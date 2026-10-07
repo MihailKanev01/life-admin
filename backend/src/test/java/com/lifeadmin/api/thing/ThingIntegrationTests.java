@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.UUID;
 
-import com.lifeadmin.api.reminder.ReminderRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -28,7 +28,7 @@ class ThingIntegrationTests {
     private MockMvc mockMvc;
 
     @Autowired
-    private ReminderRepository reminders;
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @Test
     void thingsAreIsolatedByAuthenticatedUser() throws Exception {
@@ -103,10 +103,8 @@ class ThingIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String thingId = org.springframework.test.web.servlet.result.MockMvcResultHandlers.print()
-                .toString();
-        String body = created.getResponse().getContentAsString();
-        String id = com.jayway.jsonpath.JsonPath.read(body, "$.id");
+        JsonNode body = objectMapper.readTree(created.getResponse().getContentAsString());
+        String id = body.get("id").asText();
 
         mockMvc.perform(post("/api/v1/reminders")
                         .with(csrf()).session(sessionB)

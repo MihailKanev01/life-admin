@@ -1,4 +1,4 @@
-import {addReminder,createAccountAndFinishWalkthrough} from "./test-helpers";
+import {addReminder,addThing,createAccountAndFinishWalkthrough} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
@@ -48,8 +48,8 @@ test.describe("Life Admin prototype smoke", () => {
 
   test("navigates Things, Payments and Search", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
+    await addThing(page);
 
-    await page.getByRole("button", { name: /Things/i }).first().click();
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Mazda 6/i })).toBeVisible();
 
@@ -65,21 +65,24 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
   });
 
-  test("opens a Thing and sees connected context", async ({ page }) => {
+  test("opens a Thing and connects a reminder to it", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
+    await addThing(page);
 
-    await page.getByRole("button", { name: /Things/i }).first().click();
     await page.getByRole("button", { name: /Mazda 6/i }).click();
-
     await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
-    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
-    await expect(page.getByText("Insurance policy", { exact: true })).toBeVisible();
-    await expect(page.getByText("Car service", { exact: true }).last()).toBeVisible();
-    await expect(page.getByText("€120 · yearly", { exact: true })).toBeVisible();
+    await expect(page.getByText("Nothing right now", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
     await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
     await expect(page.getByPlaceholder("e.g. Car insurance expires June 14")).toHaveValue("Car insurance expires December 14");
+    await page.getByRole("button", { name: "Review details" }).click();
+    await page.getByRole("button", { name: "Save to Life Admin" }).click();
+
+    await expect(page.getByRole("button", { name: /Car insurance/i })).toBeVisible();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await page.getByRole("button", { name: /Mazda 6/i }).click();
+    await expect(page.getByText("1 reminder", { exact: true })).toBeVisible();
   });
 
   test("toggles dark mode and back", async ({ page }) => {

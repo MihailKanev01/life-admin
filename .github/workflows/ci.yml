@@ -41,7 +41,7 @@ jobs:
           cd backend
           mvn -B -ntp -Dspring.profiles.active=test test-compile dependency:build-classpath -Dmdep.scope=test -Dmdep.outputFile=/tmp/life-admin-api-classpath
           api_classpath="target/classes:$(cat /tmp/life-admin-api-classpath)"
-          nohup java -cp "$api_classpath" com.lifeadmin.api.LifeAdminApiApplication >/tmp/life-admin-api.log 2>&1 &
+          nohup java -cp "$api_classpath" com.lifeadmin.api.LifeAdminApiApplication --spring.profiles.active=test >/tmp/life-admin-api.log 2>&1 &
           api_pid=$!
           echo "$api_pid" >/tmp/life-admin-api.pid
 

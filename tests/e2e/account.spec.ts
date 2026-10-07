@@ -9,8 +9,8 @@ test.describe("Life Admin account and onboarding",()=>{
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);
-    await page.getByLabel("Password").fill(account.password);
-    await page.getByLabel("Confirm password").fill(account.password);
+    await page.getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
+    await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
     await page.getByRole("button",{name:"Create account"}).click();
 
     await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();

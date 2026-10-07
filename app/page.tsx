@@ -159,7 +159,7 @@ function AccountGate({onAuthenticated}:{onAuthenticated:(account:Account)=>void}
    {error&&<div className="auth-error" role="alert">{error}</div>}
    <button className="dark full auth-submit" disabled={busy} onClick={submit}>{busy?"Please wait…":mode==="create"?"Create account":"Sign in"}</button>
    <button className="text full" disabled={busy} onClick={()=>{setMode(mode==="create"?"login":"create");setError("");setPassword("");setConfirmPassword("");}}>{mode==="create"?"Already have an account? Sign in":"New here? Create an account"}</button>
-   <div className="auth-note"><strong>Secure account</strong><span>Your password is sent to the server over HTTPS and stored only as a one-way Argon2 hash. Sessions use an HttpOnly cookie.</span></div>
+   <div className="auth-note"><strong>Secure account</strong><span>In deployed environments your password is sent over HTTPS and stored only as a one-way Argon2 hash. Sessions use an HttpOnly cookie.</span></div>
   </div>
  </main>;
 }

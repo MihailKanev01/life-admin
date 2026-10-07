@@ -25,7 +25,7 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
     await page.getByRole("button", { name: /Car insurance/i }).first().click();
     await expect(page.getByRole("heading", { name: "Car insurance" })).toBeVisible();
-    await expect(page.getByText("Due Dec 14", { exact: true })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy").filter({hasText:"Due Dec 14"})).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
   });
 

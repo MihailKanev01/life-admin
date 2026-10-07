@@ -57,6 +57,7 @@
 ## Phase 3 — Prototype + Usability Testing
 
 - [x] Build clickable prototype
+- [x] Prototype mandatory account gate and onboarding walkthrough
 - [x] Add automated desktop/mobile smoke coverage
 - [x] Add light/dark accessibility smoke coverage
 - [ ] Recruit usability testers
@@ -95,7 +96,9 @@
 ## Phase 6 — Web MVP
 
 - [x] Bootstrap application foundation
-- [ ] Implement auth
+- [ ] Implement server-side authentication
+- [ ] Connect account gate to server authentication
+- [ ] Persist user-owned data per account
 - [ ] Implement Things
 - [ ] Implement Reminders
 - [ ] Implement Home

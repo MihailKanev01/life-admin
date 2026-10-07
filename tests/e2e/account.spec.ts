@@ -14,11 +14,11 @@ test.describe("Life Admin account and onboarding",()=>{
     await page.getByRole("button",{name:"Create account"}).click();
 
     await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();
-    await page.getByRole("button",{name:"Next"}).click();
+    await page.getByRole("button",{name:"Next",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Start with what you manage."})).toBeVisible();
-    await page.getByRole("button",{name:"Next"}).click();
+    await page.getByRole("button",{name:"Next",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Tell us naturally."})).toBeVisible();
-    await page.getByRole("button",{name:"Next"}).click();
+    await page.getByRole("button",{name:"Next",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Know what deserves your attention."})).toBeVisible();
     await page.getByRole("button",{name:"Start using Life Admin"}).click();
 

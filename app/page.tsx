@@ -37,6 +37,8 @@ type AttentionItem={
  dueDate:string|null;
 };
 
+type QuickProposal={type:"Reminder"|"Thing"|"Payment"|"Document";title:string;context:string;due:string};
+
 function mapUser(user:ApiUser):Account{
  return {
   id:user.id,
@@ -50,10 +52,6 @@ function mapUser(user:ApiUser):Account{
 
 const initialAttention:AttentionItem[]=[];
 
-const initialAttention:AttentionItem[]=[
- {id:"internet-payment",title:"Internet payment",meta:"Due today",amount:"€25",urgent:true},
- {id:"car-insurance",title:"Car insurance",meta:"Due in 5 days",amount:"",urgent:false},
-];
 
 const things=[
  ["🚗","Mazda 6","235,420 km","1 attention"],
@@ -98,7 +96,7 @@ const walkthroughSteps=[
 function buildQuickProposal(text:string):QuickProposal{
  const normalized=text.trim();
  const lower=normalized.toLowerCase();
- const dateMatch=normalized.match(/(?:january|february|march|april|may|june|july|august|september|october|november|december)s+d{1,2}/i);
+ const dateMatch=normalized.match(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b/i);
  const due=dateMatch?dateMatch[0]:"Choose a date";
  if(lower.includes("insurance")||lower.includes("car insurance"))return {type:"Reminder",title:"Car insurance",context:"Mazda 6",due};
  if(lower.includes("add a thing"))return {type:"Thing",title:"New thing",context:"Personal",due};

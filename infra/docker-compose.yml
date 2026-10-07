@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: life-admin-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: life_admin
+      POSTGRES_USER: life_admin
+      POSTGRES_PASSWORD: life_admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - life-admin-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U life_admin -d life_admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  life-admin-postgres:

@@ -52,7 +52,4 @@ public class ReminderController {
         return reminders.response(reminders.snooze(principal, id, request.dueDate()));
     }
 
-    private static LocalDate unused(LocalDate date) {
-        return date;
-    }
 }

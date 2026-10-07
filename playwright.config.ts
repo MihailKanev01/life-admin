@@ -16,20 +16,11 @@ export default defineConfig({
   {name:"chromium",use:{...devices["Desktop Chrome"]},testMatch:/.*\.spec\.ts/,testIgnore:/mobile\.spec\.ts/},
   {name:"mobile-chromium",use:{...devices["Pixel 7"]},testMatch:/mobile\.spec\.ts/},
  ],
- webServer:[
-  {
-   command:"mvn -B -ntp -Dspring-boot.run.profiles=test -Dspring-boot.run.includeTestScope=true spring-boot:run",
-   cwd:"backend",
-   url:"http://127.0.0.1:8080/api/v1/system/health",
-   reuseExistingServer:!process.env.CI,
-   timeout:120_000,
-  },
-  {
-   command:"npm run dev -- --hostname 127.0.0.1",
-   url:"http://127.0.0.1:3000",
-   reuseExistingServer:!process.env.CI,
-   timeout:120_000,
-   env:{NEXT_PUBLIC_API_BASE_URL:"http://127.0.0.1:8080/api/v1"},
-  },
- ],
+ webServer:{
+  command:"npm run dev -- --hostname 127.0.0.1",
+  url:"http://127.0.0.1:3000",
+  reuseExistingServer:!process.env.CI,
+  timeout:120_000,
+  env:{NEXT_PUBLIC_API_BASE_URL:"http://127.0.0.1:8080/api/v1"},
+ },
 });

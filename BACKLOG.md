@@ -21,6 +21,8 @@
 
 ## Phase 1 — User Validation
 
+- [x] Prepare validation session protocol
+- [x] Prepare participant recruitment template
 - [ ] Recruit participants
 - [ ] Run 10–15 interviews
 - [ ] Record interviews in interview tracker
@@ -55,6 +57,8 @@
 ## Phase 3 — Prototype + Usability Testing
 
 - [x] Build clickable prototype
+- [x] Add automated desktop/mobile smoke coverage
+- [x] Add light/dark accessibility smoke coverage
 - [ ] Recruit usability testers
 - [ ] Test core flows
 - [ ] Log friction
@@ -69,6 +73,8 @@
 - [x] Components
 - [x] Responsive layouts
 - [x] Accessibility states
+- [x] Dark mode token mapping
+- [x] Dark/light theme toggle
 - [ ] Review visual design with user evidence
 
 ## Phase 5 — Technical Architecture

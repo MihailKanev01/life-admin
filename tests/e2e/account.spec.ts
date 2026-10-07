@@ -39,8 +39,6 @@ test.describe("Life Admin account and onboarding", () => {
     await page.getByRole("button",{name:"Sign out"}).click();
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
 
-    await page.getByLabel(/email address/i).fill(testAccountB.email);
-    await page.getByRole("button",{name:/New here\? Create an account/i}).click();
     await page.getByLabel("Your name").fill(testAccountB.name);
     await page.getByLabel("Email address").fill(testAccountB.email);
     await page.getByRole("button",{name:"Create account"}).click();

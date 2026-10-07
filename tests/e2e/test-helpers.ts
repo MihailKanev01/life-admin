@@ -23,7 +23,7 @@ export async function createAccountAndFinishWalkthrough(
  await page.getByRole("button",{name:"Create account"}).click();
 
  for(let index=0;index<3;index++){
-  await page.getByRole("button",{name:"Next"}).click();
+  await page.getByRole("button",{name:"Next",exact:true}).click();
  }
  await page.getByRole("button",{name:"Start using Life Admin"}).click();
  await expect(page.getByRole("heading",{name:"Good afternoon, "+account.name})).toBeVisible();

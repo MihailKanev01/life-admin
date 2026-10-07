@@ -114,3 +114,18 @@ Validation implication:
 - success means lower uncertainty and easier next action, not simply faster reminder creation.
 
 See: docs/validation/competitive-gap.md.
+
+
+### D009
+Use a provisional ICP centered on working adults with cross-category personal admin, not productivity enthusiasts or specialist property managers.
+
+Reason:
+- online evidence spans vehicle, home, subscriptions, documents and household responsibilities;
+- existing tools are strongest within a single workflow (task management, files, home management, banking);
+- the strongest unmet hypothesis is the cross-category context gap.
+
+Status:
+- hypothesis only;
+- must be confirmed or rejected through direct participant evidence.
+
+See: docs/validation/provisional-icp-jtbd.md.

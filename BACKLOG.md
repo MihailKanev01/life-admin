@@ -97,10 +97,11 @@
 ## Phase 6 — Web MVP
 
 - [x] Bootstrap application foundation
-- [ ] Implement server-side authentication
-- [ ] Connect account gate to server authentication
+- [x] Implement server-side authentication
+- [x] Connect account gate to server authentication
 - [ ] Persist user-owned data per account
-- [ ] Persist onboarding completion state per account
+- [x] Persist onboarding completion state per account
+- [x] Persist user-owned reminders per account
 - [ ] Implement Things
 - [ ] Implement Reminders
 - [ ] Implement Home

@@ -73,7 +73,7 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
     await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
-    await expect(page.getByDisplayValue("Car insurance expires December 14")).toBeVisible();
+    await expect(page.getByPlaceholder("e.g. Car insurance expires June 14")).toHaveValue("Car insurance expires December 14");
   });
 
   test("toggles dark mode and back", async ({ page }) => {

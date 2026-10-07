@@ -1,4 +1,4 @@
-import {createAccountAndFinishWalkthrough} from "./test-helpers";
+import {addReminder,createAccountAndFinishWalkthrough} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
@@ -28,6 +28,8 @@ test.describe("Life Admin prototype smoke", () => {
 
   test("completes and snoozes attention items", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
+    await addReminder(page,"Internet payment due October 7");
+    await addReminder(page,"Car insurance expires December 14");
 
     await page.getByRole("button", { name: /Internet payment/i }).click();
     await expect(page.getByRole("heading", { name: "Internet payment" })).toBeVisible();

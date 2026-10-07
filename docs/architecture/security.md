@@ -4,6 +4,7 @@
 
 Web:
 - secure, HttpOnly session cookie
+- database-backed sessions via Spring Session JDBC
 - SameSite policy selected for deployment topology
 - TLS only
 - logout/revocation
@@ -13,6 +14,7 @@ If passwords are used:
 - Argon2id
 - unique salts
 - no plaintext storage
+- Bouncy Castle provider for the Argon2 implementation
 - reasonable login throttling
 
 OWASP recommends Argon2id, bcrypt or PBKDF2 for password storage and specifically recommends Argon2id with memory-hard settings. Source: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

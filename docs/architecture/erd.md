@@ -9,6 +9,7 @@ USER
   password_hash
   display_name
   timezone
+  onboarding_completed_at
   created_at
        |
        | 1..*

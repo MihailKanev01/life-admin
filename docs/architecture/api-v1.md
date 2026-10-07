@@ -13,6 +13,15 @@ All routes are under:
 
 Use secure session cookies for the web client.
 
+For the web client, `GET /auth/me` should include:
+- user id;
+- email;
+- display name;
+- timezone;
+- onboarding completion state/version.
+
+The client uses this response to decide whether to show the authenticated workspace or first-run onboarding.
+
 Future mobile authentication can use the same identity domain with a token-based flow without changing business resources.
 
 ## Things

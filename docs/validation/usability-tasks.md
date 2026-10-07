@@ -71,3 +71,30 @@ Record:
 - recovery;
 - completion time;
 - whether user asks for help.
+
+
+## Task 0 — Create account and understand the product
+
+### Prompt
+
+“You have just heard about Life Admin. Start from the beginning and set it up for yourself.”
+
+### Observe
+
+- whether account creation feels expected;
+- whether the participant understands why an account is required;
+- whether the four-step walkthrough is enough to explain the product;
+- whether the participant skips any step;
+- whether they can explain the relationship between Things, Quick Add and Home without coaching.
+
+### Success criteria
+
+- participant creates an account without help;
+- participant can explain what Life Admin is for in their own words;
+- participant can explain what a Thing is;
+- participant can explain why Quick Add asks for confirmation;
+- participant can explain what Home is meant to answer.
+
+### Validation note
+
+Do not explain the model before observation. Record the participant’s own language and any points of confusion.

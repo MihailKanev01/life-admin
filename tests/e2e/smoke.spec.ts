@@ -1,11 +1,12 @@
+import {addReminder,createAccountAndFinishWalkthrough} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
   test("renders Home and opens Quick Add", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
 
     await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Take care of these first" })).toBeVisible();
+    await expect(page.getByText("Nothing urgent", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /quick add/i }).first().click();
 
@@ -22,11 +23,16 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("December 14", { exact: true }).last()).toBeVisible();
 
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
-    await expect(page.getByRole("button", { name: /Car insurance/i }).first()).toContainText("Reminder");
+    await page.getByRole("button", { name: /Car insurance/i }).first().click();
+    await expect(page.getByRole("heading", { name: "Car insurance" })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy").filter({hasText:"Due Dec 14"})).toBeVisible();
+    await page.getByRole("button", { name: "Close" }).click();
   });
 
   test("completes and snoozes attention items", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
+    await addReminder(page,"Internet payment due October 7");
+    await addReminder(page,"Car insurance expires December 14");
 
     await page.getByRole("button", { name: /Internet payment/i }).click();
     await expect(page.getByRole("heading", { name: "Internet payment" })).toBeVisible();
@@ -41,7 +47,7 @@ test.describe("Life Admin prototype smoke", () => {
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
 
     await page.getByRole("button", { name: /Things/i }).first().click();
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
@@ -60,7 +66,7 @@ test.describe("Life Admin prototype smoke", () => {
   });
 
   test("opens a Thing and sees connected context", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
 
     await page.getByRole("button", { name: /Things/i }).first().click();
     await page.getByRole("button", { name: /Mazda 6/i }).click();
@@ -77,7 +83,7 @@ test.describe("Life Admin prototype smoke", () => {
   });
 
   test("toggles dark mode and back", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
 
     const toggle = page.getByRole("button", { name: "Switch to dark mode" });
     await toggle.click();

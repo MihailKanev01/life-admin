@@ -1,0 +1,63 @@
+package com.lifeadmin.api.thing;
+
+import java.util.List;
+import java.util.UUID;
+
+import com.lifeadmin.api.reminder.ReminderRepository;
+import com.lifeadmin.api.security.UserPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class ThingService {
+
+    private final ThingRepository things;
+    private final ReminderRepository reminders;
+
+    public ThingService(ThingRepository things, ReminderRepository reminders) {
+        this.things = things;
+        this.reminders = reminders;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Thing> list(UserPrincipal principal) {
+        return things.findByUserIdOrderByCreatedAtDesc(principal.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public Thing get(UserPrincipal principal, UUID id) {
+        return things.findByIdAndUserId(id, principal.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found"));
+    }
+
+    @Transactional
+    public Thing create(UserPrincipal principal, ThingDtos.CreateRequest request) {
+        String name = request.name().trim();
+        String type = request.type().trim();
+        String detail = request.detail() == null ? null : request.detail().trim();
+
+        if (things.existsByUserIdAndNameIgnoreCase(principal.getId(), name)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A thing with this name already exists");
+        }
+
+        return things.save(new Thing(principal.getId(), name, type, detail));
+    }
+
+    public ThingDtos.ThingResponse response(Thing thing) {
+        return new ThingDtos.ThingResponse(
+                thing.getId(),
+                thing.getName(),
+                thing.getType(),
+                thing.getDetail(),
+                reminders.countByUserIdAndThingIdAndStatus(
+                        thing.getUserId(), thing.getId(), "OPEN"),
+                thing.getCreatedAt());
+    }
+
+    private Thing owned(UserPrincipal principal, UUID id) {
+        return things.findByIdAndUserId(id, principal.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found"));
+    }
+}

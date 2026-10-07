@@ -11,4 +11,6 @@ public interface ReminderRepository extends JpaRepository<Reminder, UUID> {
     List<Reminder> findByUserIdAndStatusOrderByDueDateAscCreatedAtDesc(UUID userId, String status);
 
     Optional<Reminder> findByIdAndUserId(UUID id, UUID userId);
+
+    long countByUserIdAndThingIdAndStatus(UUID userId, UUID thingId, String status);
 }

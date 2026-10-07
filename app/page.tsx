@@ -2,12 +2,15 @@
 import {useEffect,useState} from "react";
 import {
   ApiReminder,
+  ApiThing,
   ApiUser,
   completeOnboarding,
   completeReminder,
   createReminder,
+  createThing,
   getCurrentUser,
   getReminders,
+  getThings,
   loginAccount,
   logoutAccount,
   registerAccount,
@@ -52,13 +55,6 @@ function mapUser(user:ApiUser):Account{
 
 const initialAttention:AttentionItem[]=[];
 
-
-const things=[
- ["🚗","Mazda 6","235,420 km","1 attention"],
- ["⌂","Home","Apartment","2 upcoming"],
- ["◉","iPhone 16 Pro","Personal","Warranty 2027"],
- ["▣","PC","Desktop","No attention"],
-] as const;
 
 const payments=[
  ["Internet","€25","Every month · 15th","Today"],
@@ -237,7 +233,12 @@ export default function App(){
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);
  const [modal,setModal]=useState(false);
  const [selected,setSelected]=useState<AttentionItem|null>(null);
- const [selectedThing,setSelectedThing]=useState(false);
+ const [things,setThings]=useState<ApiThing[]>([]);
+ const [selectedThing,setSelectedThing]=useState<ApiThing|null>(null);
+ const [thingModal,setThingModal]=useState(false);
+ const [thingName,setThingName]=useState("");
+ const [thingType,setThingType]=useState("Vehicle");
+ const [thingDetail,setThingDetail]=useState("");
  const [accountSheet,setAccountSheet]=useState(false);
  const [q,setQ]=useState("");
  const [theme,setTheme]=useState<Theme>("light");
@@ -262,6 +263,11 @@ export default function App(){
   getReminders().then(data=>setAttention(data.items.map(reminderAttention))).catch(()=>setAttention([]));
  },[ready,account,showWalkthrough]);
 
+ useEffect(()=>{
+  if(!ready||!account||showWalkthrough)return;
+  getThings().then(data=>setThings(data.items)).catch(()=>setThings([]));
+ },[ready,account,showWalkthrough]);
+
  const toggleTheme=()=>{
   setTheme(current=>{
    const next=current==="dark"?"light":"dark";
@@ -275,6 +281,20 @@ export default function App(){
   setModal(true);
   setQuickText(prefill);
   setQuickProposal(null);
+ };
+
+ const openThingModal=()=>{
+  setThingName("");setThingType("Vehicle");setThingDetail("");setThingModal(true);
+ };
+
+ const saveThing=async()=>{
+  if(!thingName.trim()){setAppError("Give this thing a name.");return;}
+  setSaving(true);setAppError("");
+  try{
+   const created=await createThing({name:thingName.trim(),type:thingType,detail:thingDetail.trim()||null});
+   setThings(items=>[created,...items]);setThingModal(false);
+  }catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this thing.");}
+  finally{setSaving(false);}
  };
 
  const authenticate=(nextAccount:Account)=>{
@@ -327,22 +347,24 @@ export default function App(){
      <div className="grid2"><section className="panel"><div className="heading"><div><p className="eyebrow">Coming up</p><h2>Next on your radar</h2></div></div>{[["▱","TV warranty","24 days"],["↻","Car service","1,200 km"]].map(x=><div className="simple" key={x[1]}><span className="square">{x[0]}</span><div><strong>{x[1]}</strong><small>Tracked in Things</small></div><b>{x[2]}</b></div>)}</section><section className="panel"><div className="heading"><div><p className="eyebrow">Waiting</p><h2>Not in your hands</h2></div></div><div className="simple"><span className="square">□</span><div><strong>Amazon return</strong><small>Waiting for an update</small></div><b>Tomorrow</b></div></section></div>
     </>}
 
-    {section==="things"&&<><div className="intro"><div><p className="eyebrow">Things</p><h1>Your real life, organized</h1><p className="subtitle">Keep reminders, documents and payments connected to what they belong to.</p></div><button className="dark action" onClick={()=>openQuickAdd("Add a thing")}>+ Add thing</button></div><div className="toolbar"><div className="input">⌕<input value={q} onChange={event=>setQ(event.target.value)} placeholder="Search things..."/></div><small>{things.filter(x=>(x[1]+" "+x[2]).toLowerCase().includes(q.toLowerCase())).length} things</small></div><div className="thinggrid">{things.filter(x=>(x[1]+" "+x[2]).toLowerCase().includes(q.toLowerCase())).map(x=><button className="thing" key={x[1]} onClick={()=>x[1]==="Mazda 6"&&setSelectedThing(true)}><span className="thingicon">{x[0]}</span><strong>{x[1]}</strong><small>{x[2]}</small><em>{x[3]}</em></button>)}</div></>}
+    {section==="things"&&<><div className="intro"><div><p className="eyebrow">Things</p><h1>Your real life, organized</h1><p className="subtitle">Keep reminders, documents and payments connected to what they belong to.</p></div><button className="dark action" onClick={openThingModal}>+ Add thing</button></div><div className="toolbar"><div className="input">⌕<input value={q} onChange={event=>setQ(event.target.value)} placeholder="Search things..."/></div><small>{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).length} things</small></div>{things.length?<div className="thinggrid">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><button className="thing" key={x.id} onClick={()=>setSelectedThing(x)}><span className="thingicon">{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><strong>{x.name}</strong><small>{x.detail||x.type}</small><em>{x.openReminderCount?x.openReminderCount+" attention": "No attention"}</em></button>)}</div>:<div className="empty"><span>+</span><div><strong>Nothing here yet.</strong><small>Add the things you own or manage. Their reminders will stay connected to them.</small></div></div>}</>}
 
     {section==="payments"&&<><div className="intro"><div><p className="eyebrow">Payments</p><h1>Know what leaves your account</h1><p className="subtitle">Recurring bills and subscriptions — without becoming a banking app.</p></div><button className="dark action" onClick={()=>openQuickAdd("Add a payment")}>+ Add payment</button></div><div className="stats">{[["Upcoming","€145","next 30 days"],["Recurring","€386","per month"],["Subscriptions","€47","per month"]].map(x=><div className="stat" key={x[0]}><small>{x[0]}</small><strong>{x[1]}</strong><span>{x[2]}</span></div>)}</div><section className="panel">{payments.map(x=><div className="pay" key={x[0]}><span className="square">€</span><div><strong>{x[0]}</strong><small>{x[2]}</small></div><b>{x[1]}</b><em className={x[3]==="Today"?"urgentpill":"pill"}>{x[3]}</em></div>)}</section></>}
 
-    {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{things.filter(x=>(x[1]+" "+x[2]).toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x[1]}><span>{x[0]}</span><div><strong>{x[1]}</strong><small>{x[2]}</small></div><em>Thing</em></div>)}{payments.filter(x=>x[0].toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x[0]}><span>€</span><div><strong>{x[0]}</strong><small>{x[1]} · {x[2]}</small></div><em>Payment</em></div>)}</section>}</>}
+    {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><div><strong>{x.name}</strong><small>{x.detail||x.type}</small></div><em>Thing</em></div>)}{payments.filter(x=>x[0].toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x[0]}><span>€</span><div><strong>{x[0]}</strong><small>{x[1]} · {x[2]}</small></div><em>Payment</em></div>)}</section>}</>}
    </div>
   </section>
 
   <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>k==="add"?openQuickAdd():setSection(k)}><span>{i}</span><small>{l}</small></button>)}</div>
 
+  {thingModal&&<div className="backdrop" onClick={()=>setThingModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Things</p><h2>Add a thing</h2></div><button className="close" onClick={()=>setThingModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={thingName} onChange={event=>setThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={thingType} onChange={event=>setThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={thingDetail} onChange={event=>setThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThing()}>{saving?"Saving…":"Save thing"}</button><button className="text full" onClick={()=>setThingModal(false)}>Cancel</button></div></div>}
+
   {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowWalkthrough(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
 
-  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>Mazda 6</h2><p className="modalcopy">235,420 km · Vehicle</p></div><button className="close" onClick={()=>setSelectedThing(false)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>Car insurance</strong><span>Due in 5 days</span></div><div><small>Documents</small><strong>Insurance policy</strong><span>1 document</span></div><div><small>History</small><strong>Car service</strong><span>1,200 km</span></div><div><small>Payment</small><strong>Car insurance</strong><span>€120 · yearly</span></div></div><button className="light full" onClick={()=>{setSelectedThing(false);openQuickAdd("Car insurance expires December 14")}}>+ Add something to Mazda 6</button><button className="text full" onClick={()=>setSelectedThing(false)}>Close</button></div></div>}
+  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>Coming next</strong><span>Recurring costs</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14");}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
 
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not snooze reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
 
-  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setSaving(true);setAppError("");try{if(quickProposal.type==="Reminder"){const created=await createReminder({title:quickProposal.title,context:quickProposal.context,dueDate:proposalDueDate(quickProposal.due)});setAttention(items=>[reminderAttention(created),...items]);}else{setAttention(items=>[{id:crypto.randomUUID(),title:quickProposal.title,meta:quickProposal.type+" · "+quickProposal.due,amount:"",urgent:false,context:quickProposal.context,dueDate:null},...items]);}setModal(false);setQuickText("");setQuickProposal(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this item.");}finally{setSaving(false);}}}>{saving?"Saving…":quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
+  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setSaving(true);setAppError("");try{if(quickProposal.type==="Reminder"){const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());const created=await createReminder({title:quickProposal.title,context:quickProposal.context,dueDate:proposalDueDate(quickProposal.due),thingId:linkedThing?.id??null});setAttention(items=>[reminderAttention(created),...items]);if(linkedThing)setThings(items=>items.map(item=>item.id===linkedThing.id?{...item,openReminderCount:item.openReminderCount+1}:item));}else if(quickProposal.type==="Thing"){const created=await createThing({name:quickProposal.title==="New thing"?"New thing":quickProposal.title,type:"Thing",detail:null});setThings(items=>[created,...items]);}else{setAttention(items=>[{id:crypto.randomUUID(),title:quickProposal.title,meta:quickProposal.type+" · "+quickProposal.due,amount:"",urgent:false,context:quickProposal.context,dueDate:null},...items]);}setModal(false);setQuickText("");setQuickProposal(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this item.");}finally{setSaving(false);}}}>{saving?"Saving…":quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
  </main>;
 }

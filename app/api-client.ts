@@ -64,3 +64,30 @@ export async function completeOnboarding(){
 export async function logoutAccount(){
  return apiRequest<void>("/auth/logout",{method:"POST"});
 }
+
+export type ApiReminder={
+ id:string;
+ title:string;
+ context:string;
+ dueDate:string|null;
+ status:string;
+ createdAt:string;
+};
+
+export type ApiReminderList={items:ApiReminder[]};
+
+export async function getReminders(){
+ return apiRequest<ApiReminderList>("/reminders");
+}
+
+export async function createReminder(payload:{title:string;context:string;dueDate:string|null}){
+ return apiRequest<ApiReminder>("/reminders",{method:"POST",body:JSON.stringify(payload)});
+}
+
+export async function completeReminder(id:string){
+ return apiRequest<ApiReminder>("/reminders/"+id+"/complete",{method:"POST"});
+}
+
+export async function snoozeReminder(id:string,dueDate:string){
+ return apiRequest<ApiReminder>("/reminders/"+id+"/snooze",{method:"POST",body:JSON.stringify({dueDate})});
+}

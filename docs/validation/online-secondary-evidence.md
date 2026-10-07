@@ -2,113 +2,156 @@
 
 > Status: secondary evidence only.
 >
-> This document records publicly available user discussions found online. It does **not** replace direct participant sessions and must not be copied into `hypothesis-results.md` as participant evidence.
+> These are real public user discussions found online. They are useful for directional validation, but they are **not** a substitute for direct participant sessions and must not be recorded as participant responses.
 
-## What was reviewed
+## Verified public discussions
 
-Sources were selected for first-hand descriptions of personal admin, reminders, household management, documents, payments, maintenance, and productivity-tool friction. Reddit was used heavily because the discussions contain user-authored problem descriptions and replies.
+### 1. People already combine Notes, Reminders, Calendar and other tools
 
-## Evidence table
+A May 31, 2026 ProductivityApps discussion describes a user trying Notion, Obsidian and Todoist before returning to Apple Notes + Reminders because the basics created less upkeep. A reply says the key is faster capture with less organizing.
 
-| Signal | What people describe | Product implication | Confidence |
-|---|---|---|---|
-| Fragmented admin | People combine calendars, reminders, notes, spreadsheets, banking apps and self-messages to manage personal admin. | Life Admin should unify the *attention layer* rather than recreate every underlying service. | Medium |
-| Mental load | People describe forgetting bills, subscriptions, errands and recurring responsibilities, with stress from unfinished admin. | Home should answer “what matters now?” rather than expose a giant backlog. | Medium |
-| Reminders become noise | Users report too many reminders, ignored notifications and repeated overdue items. | Notifications need context, timing, clear next action, and easy snooze/complete. | Medium |
-| Recurring maintenance is distinct | Car, home and other upkeep items recur on intervals and do not fit naturally into ordinary one-off task lists. | Things should own recurring maintenance and reminders. | Medium |
-| Documents are hard to manage | Users describe paper piles, receipts, bills and important documents being hard to sort, retrieve and keep organized. | Documents should be contextual to a Thing/action, with simple search and retrieval. | Medium |
-| Shared mental load | Household discussions describe one person carrying appointments, forms, groceries, chores and reminders for everyone. | Household sharing should eventually expose responsibility/context without becoming a full family planner. | Low–Medium |
-| Capture must be low friction | Users already dump information into Notes, Reminders, self-messages, calendars and spreadsheets because writing something down is easier than relying on memory. | Quick Add must be faster than maintaining a planning system. | Medium |
-| AI-assisted capture is desired | At least one user explicitly considered an app that scans emails to create reminders automatically. | AI/OCR/email extraction is a promising later capability, but needs explicit confirmation and trust controls. | Low–Medium |
+Source: https://www.reddit.com/r/ProductivityApps/comments/1tsjfj8/ive_tried_every_productivity_app_and_i_still_just/ citeturn520287reddit28
 
-## Selected real user statements
+A June 8, 2026 thread explicitly asks how people divide work between Notes, Tasks and Calendar and lists a large ecosystem of separate tools.
 
-### 1. Fragmented systems
+Source: https://www.reddit.com/r/ProductivityApps/comments/1tzw2tg/so_what_do_you_use_for_your_notestaskscalendar/ citeturn520287reddit27
 
-A September 2026 ProductivityApps discussion says the user has tried many systems and currently mixes iPhone notes with a WhatsApp chat to themselves because some things “cannot forget.”  
-Source: https://www.reddit.com/r/ProductivityApps/comments/1wgr78i/how_do_you_keep_track_of_your_life_without_using/
+**Signal:** fragmented personal admin is normal; users often optimize around low maintenance rather than feature depth.
 
-A September 2026 user described carrying multiple devices and combining Todoist with native reminder systems, while wanting a single place to consolidate the workflow.  
-Source: https://www.reddit.com/r/ProductivityApps/comments/1wdkcao/trying_to_carry_fewer_things_and_check_fewer/
+### 2. Users struggle with knowing what to do now
 
-### 2. Mental load / unfinished admin
+In a July 9, 2026 discussion about a life-admin app, one respondent says Todoist's weakness is that it does not tell them what they should be doing right now and instead exposes a massive list.
 
-A July 2026 Adulting post describes bills, work tasks, errands and messages all living in the same overloaded mental space, with stress coming from knowing something was forgotten without knowing what.  
-Source: https://www.reddit.com/r/Adulting/comments/1us1p2b/is_adulting_just_making_lists_so_you_dont_forget/
+Source: https://www.reddit.com/r/AppleReminders/comments/1us2hl3/adulting_app/ citeturn521173reddit30
 
-A March 2025 Adulting discussion describes the “constant low-key friction” of unfinished everyday administration, including subscriptions, bills and postponed tasks.  
-Source: https://www.reddit.com/r/Adulting/comments/1jk23kp
+**Signal:** the value proposition may be prioritization/context, not storage of more tasks.
 
-### 3. Reminder fatigue
+### 3. Reminder overload is a real failure mode
 
-An August 2026 ProductivityApps discussion says a common failure mode is an app becoming “a second inbox that needs managing”; the same thread describes excessive notifications turning into background noise and people repeatedly snoozing tasks.  
-Source: https://www.reddit.com/r/ProductivityApps/comments/1vlncam/what_makes_you_ignore_or_abandon/
+An August 11, 2026 ProductivityApps discussion describes a reminder system becoming a “second inbox”; the user says notifications become background noise, snooze becomes the default, and useful reminders need context plus an easy next action.
 
-A separate July 2025 discussion says normal reminders pile up, are swiped away, and often lack context about why a recurring maintenance item matters.  
-Source: https://www.reddit.com/r/productivity/comments/1m7fxf9/how_do_you_keep_track_of_everything_that_you_need/
+Source: https://www.reddit.com/r/ProductivityApps/comments/1vlncam/what_makes_you_ignore_or_abandon/ citeturn521173reddit27
 
-### 4. Recurring maintenance
+A March 5, 2026 productivity discussion says calendar reminders are easy to swipe away and argues that reminders need the context required to act, not just a task label.
 
-The July 2025 productivity discussion explicitly separates car maintenance, home maintenance, recurring health/admin tasks and seasonal upkeep from ordinary to-dos.  
-Source: https://www.reddit.com/r/productivity/comments/1m7fxf9/how_do_you_keep_track_of_everything_that_you_need/
+Source: https://www.reddit.com/r/productivity/comments/1rlw1wb/does_a_reminder_system_like_this_exist/ citeturn521173reddit37
 
-A September 2024 Adulting discussion describes using recurring calendar reminders for garbage day, bills, annual tasks and home maintenance because these tasks otherwise get forgotten.  
-Source: https://www.reddit.com/r/Adulting/comments/1fqeife
+**Signal:** Life Admin should not simply increase notification volume. Context, timing, snooze and next action matter.
 
-### 5. Documents and receipts
+### 4. Recurring home/car maintenance has a distinct problem shape
 
-A September 2026 Declutter discussion describes paper piles and recommends scanning important paperwork while keeping a simple system. A reply specifically mentions keeping car-work receipts and paid invoices temporarily.  
-Source: https://www.reddit.com/r/declutter/comments/1w5lvjn/paperwork_decluttering/
+A September 10, 2026 organizing discussion lists appliance cleaning, AC servicing, filters, vehicle servicing, tyre pressure, insurance/subscription renewals and home repairs as easy-to-forget recurring tasks. The author says even remembering when something was last done can become surprisingly difficult.
 
-Another September 2026 thread describes people feeling overwhelmed by large amounts of paper and warns that digital filing can itself create access and organization problems.  
-Source: https://www.reddit.com/r/declutter/comments/1vglbam/paper_im_drowning/
+Source: https://www.reddit.com/r/organizing/comments/1wcaeze/how_do_you_organize_recurring_maintenance_tasks/ citeturn769074reddit39
 
-### 6. Household sharing
+A July 1, 2026 HomeMaintenance discussion says weekly, monthly and yearly maintenance cycles are hard to track; handwritten lists do not notify, while calendar reminders can arrive too late because preparation is needed.
 
-A July 2026 Adulting thread about an “adulting app” includes a user asking for all adult-life deadlines in one place and specifically wanting the mental load shared with another person.  
-Source: https://www.reddit.com/r/AppleReminders/comments/1us2hl3/adulting_app/
+Source: https://www.reddit.com/r/HomeMaintenance/comments/1ukn829/weekly_monthly_yearly_home_maintenance_tasks_are/ citeturn769074reddit40
 
-A May 2026 ADHDparenting discussion describes one household member carrying appointments, forms, meals, groceries, chores and reminders for everyone else.  
-Source: https://www.reddit.com/r/ADHDparenting/comments/1tf71x8/does_anyone_else_feel_like_theyre_the_only_one/
+**Signal:** Things + recurring maintenance is more specific than a generic to-do list.
 
-### 7. Fast capture
+### 5. People want maintenance systems without bloat
 
-The September 2026 ProductivityApps discussion shows users falling back to Notes and self-messages because those tools are fast and familiar.  
-Source: https://www.reddit.com/r/ProductivityApps/comments/1wgr78i/how_do_you_keep_track_of_your_life_without_using/
+An October 28, 2025 Homeowners discussion asks for a lightweight home-maintenance app because existing options look too bloated. One reply says recurring calendar events work, but also asks for a simple system with calendar/text integration.
 
-A November 2025 Adulting thread reports people using a spreadsheet plus calendar reminders, or banking automation plus calendar reminders, to keep bills and subscriptions under control.  
-Source: https://www.reddit.com/r/Adulting/comments/1ouv5c9/whats_your_system_for_managing_bills/
+Source: https://www.reddit.com/r/homeowners/comments/1oiee72/how_do_you_remember_all_your_home_maintenance_tasks/ citeturn769074reddit41
 
-### 8. AI-assisted capture
+**Signal:** simplicity and low upkeep can be a differentiator.
 
-A December 2025 Adulting discussion asks what people use to track recurring maintenance and explicitly mentions considering an app that automatically scans emails to create reminders.  
-Source: https://www.reddit.com/r/Adulting/comments/1pwnuj4/how_do_you_actually_remember_to_do_all_the/
+### 6. Paperwork is both a storage and action problem
 
-## Preliminary interpretation
+A February 25, 2026 Declutter discussion says papers overwhelm the user and asks how to know what is important and how to organize documents so they can be accessed rather than forgotten.
 
-The strongest online signal is **not** “people want another productivity app.” It is that people already maintain fragile personal systems across reminders, calendars, notes, spreadsheets, banking apps, paper files and self-messages.
+Source: https://www.reddit.com/r/declutter/comments/1reol3x/how_do_we_deal_with_paper_clutter/ citeturn769074reddit46
 
-The product opportunity therefore remains narrow:
+A September 2, 2026 discussion about paperwork describes difficulty deciding what to keep; respondents recommend scanning useful paperwork into digital storage.
 
-**reduce the work of remembering and acting on personal admin, without becoming another system the user must constantly maintain.**
+Source: https://www.reddit.com/r/declutter/comments/1w5lvjn/paperwork_decluttering/ citeturn769074reddit37
 
-This evidence supports keeping the current product principles:
+A February 25, 2024 thread specifically calls out car service receipts, warranty/return items, tax records and other financial paperwork as records people may keep for later use.
 
-1. Attention over inventory.
-2. Quick capture over structured entry.
-3. Things as context for recurring real-world responsibilities.
-4. Calm, consolidated notifications.
-5. Documents attached to useful context.
-6. Sharing as a later extension, not a full family-planning product.
-7. AI/OCR as assisted capture, never silent automation.
+Source: https://www.reddit.com/r/declutter/comments/1azb542/ citeturn769074reddit47
 
-## Important limitation
+**Signal:** documents are most useful when tied to future action, proof, ownership or a physical thing.
 
-Online comments are self-selected, community-specific and not representative of the target market. Some threads also contain product promotion or atypical workflows. Treat this document as **directional secondary evidence** that can strengthen or challenge hypotheses, but not as the Phase 1 evidence gate.
+### 7. Household mental load can sit with one person
 
-The real-user gate remains:
+A May 16, 2026 ADHDparenting discussion describes one person remembering appointments, permission slips, meals, groceries, forms and chores, and asks how to make the system work without constant nagging.
 
-- 10–15 quality participant sessions
+Source: https://en.reddit.com/r/ADHDparenting/comments/1tf71x8/does_anyone_else_feel_like_theyre_the_only_one/ citeturn520287search0
+
+A July 9, 2026 life-admin discussion says a shared place for bills, utility information, insurance and upkeep could help distribute the mental load, with responsibilities assigned to either person.
+
+Source: https://www.reddit.com/r/AppleReminders/comments/1us2hl3/adulting_app/ citeturn521173reddit30
+
+**Signal:** household sharing is promising, but the product should share ownership/context rather than become a full family planner.
+
+### 8. Low-friction capture is important
+
+A May 31, 2026 ProductivityApps discussion describes returning to Notes + Reminders because complicated systems created too much upkeep, with the discussion emphasizing speed of capture.
+
+Source: https://www.reddit.com/r/ProductivityApps/comments/1tsjfj8/ive_tried_every_productivity_app_and_i_still_just/ citeturn520287reddit28
+
+A July 9, 2026 AppIdeas discussion says entering information is itself a problem and argues for phone-level AI integration such as tapping a button and saying “remember this”.
+
+Source: https://www.reddit.com/r/AppIdeas/comments/1urnsbu/adulting_app/ citeturn521173reddit33
+
+**Signal:** Quick Add should beat structured data entry on speed.
+
+### 9. AI-assisted capture has interest, but trust is unresolved
+
+The July 9, 2026 AppIdeas discussion includes feedback that phone AI integration could be a must-have for capture, while another commenter says data safety would determine whether they would use such an app.
+
+Source: https://www.reddit.com/r/AppIdeas/comments/1urnsbu/adulting_app/ citeturn521173reddit33
+
+**Signal:** AI can remove entry work, but privacy/trust must be part of the product proposition.
+
+### 10. Some people reject the need for another app
+
+Not all feedback supports the product. In the same July 9, 2026 life-admin discussion, respondents say they already use Calendar, Reminders or existing phone assistants and do not need a separate app.
+
+Source: https://www.reddit.com/r/AppIdeas/comments/1urnsbu/adulting_app/ citeturn521173reddit33
+
+**Signal:** this is the key competitive risk. Life Admin must solve a problem existing generic tools do not solve well, especially **context + prioritization + Things + linked documents**, rather than merely “remind me”.
+
+---
+
+## Preliminary H1–H10 readout from online evidence
+
+| Hypothesis | Online signal | Confidence | Interpretation |
+|---|---|---:|---|
+| H1 — Fragmented personal admin | Supported | Medium | Multiple apps/workflows are common. |
+| H2 — Attention over storage | Supported | Medium–High | People complain about massive lists and want to know what matters now. |
+| H3 — Fast capture | Supported | Medium–High | Low upkeep and quick capture repeatedly appear. |
+| H4 — Things model | Supported | Medium | Maintenance discussions naturally organize work around cars/homes/equipment. |
+| H5 — Recurring admin | Supported | High | Recurring maintenance and renewals are explicit pain points. |
+| H6 — Consolidated notifications | Supported with caution | Medium | Contextual reminders are valued; notification volume itself becomes noise. |
+| H7 — Payments, not banking | Inconclusive | Low | Online discussion confirms bills/subscriptions are a need, but does not prove the boundary versus banking apps. |
+| H8 — Contextual documents | Supported | Medium | Receipts, warranties and paperwork are kept because they matter later to a thing/action. |
+| H9 — Household sharing | Supported | Medium | Mental load and responsibility sharing are explicit needs, but target segment needs validation. |
+| H10 — AI removes entry work | Promising | Low–Medium | AI capture is requested, but trust and existing phone assistants are strong counterarguments. |
+
+## Current product implication
+
+The strongest online evidence does **not** justify building a generic task manager.
+
+It supports a narrower promise:
+
+**Collect the important life-admin information once, connect it to the thing/deadline/payment/document it belongs to, and surface what needs action now.**
+
+The strongest differentiation hypothesis is therefore:
+
+**context + prioritization + real-world Things**, not reminders alone.
+
+## Limitations
+
+Online communities are self-selected, non-representative, and vulnerable to duplicate opinions, extreme users, and product-promotion bias. Some threads are also explicitly asking for feedback on an app idea, which means the replies are useful product feedback but are not unbiased demand measurement.
+
+This file is therefore **secondary evidence**.
+
+The Phase 1 gate remains open until direct participant sessions produce:
+
+- 10–15 quality sessions
 - repeated behavioral pain clusters
 - H1–H10 decisions based on participant evidence
 - primary target user

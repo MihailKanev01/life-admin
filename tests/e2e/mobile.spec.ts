@@ -1,8 +1,9 @@
+import {createAccountAndFinishWalkthrough} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin mobile prototype", () => {
   test("keeps primary navigation and Quick Add usable on mobile", async ({ page }) => {
-    await page.goto("/");
+    await createAccountAndFinishWalkthrough(page);
 
     await expect(page.locator(".mobileNav")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();

@@ -95,7 +95,8 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        request.getSession(true);\n        request.changeSessionId();
+        request.getSession(true);
+        request.changeSessionId();
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authService.authentication(user));

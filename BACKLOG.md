@@ -14,6 +14,7 @@
 - [x] Define validation gates
 - [x] Create interview guide
 - [x] Create competitor matrix
+- [x] Define competitive differentiation gap
 - [x] Create feature priority matrix
 - [x] Create public sentiment synthesis
 - [x] Create validation hypotheses
@@ -37,6 +38,7 @@
 - [ ] Update persona
 - [ ] Update jobs-to-be-done
 - [ ] Update MVP feature priorities
+- [ ] Compare Life Admin against existing Reminders/Calendar workflows
 - [ ] Pass Phase 1 evidence gate
 - [ ] Lock MVP scope
 
@@ -61,6 +63,7 @@
 - [x] Add light/dark accessibility smoke coverage
 - [ ] Recruit usability testers
 - [ ] Test core flows
+- [ ] Test contextual Home vs generic reminder comparison
 - [ ] Log friction
 - [ ] Revise prototype
 - [ ] Pass usability gate

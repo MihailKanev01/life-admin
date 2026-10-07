@@ -14,6 +14,7 @@
 - [x] Define validation gates
 - [x] Create interview guide
 - [x] Create competitor matrix
+- [x] Define competitive differentiation gap
 - [x] Create feature priority matrix
 - [x] Create public sentiment synthesis
 - [x] Create validation hypotheses
@@ -21,6 +22,9 @@
 
 ## Phase 1 — User Validation
 
+- [x] Prepare validation session protocol
+- [x] Prepare participant recruitment template
+- [x] Prepare direct validation field kit
 - [ ] Recruit participants
 - [ ] Run 10–15 interviews
 - [ ] Record interviews in interview tracker
@@ -35,55 +39,66 @@
 - [ ] Update persona
 - [ ] Update jobs-to-be-done
 - [ ] Update MVP feature priorities
+- [ ] Compare Life Admin against existing Reminders/Calendar workflows
 - [ ] Pass Phase 1 evidence gate
 - [ ] Lock MVP scope
 
 ## Phase 2 — Information Architecture + Wireframes
 
-- [ ] Define navigation
-- [ ] Define Home states
-- [ ] Define Things hierarchy
-- [ ] Define Payments hierarchy
-- [ ] Define Search behavior
-- [ ] Define Quick Add flow
-- [ ] Define reminder creation/edit/snooze flow
-- [ ] Define document flow
-- [ ] Create low-fidelity wireframes
+- [x] Define navigation
+- [x] Define Home states
+- [x] Define Things hierarchy
+- [x] Define Payments hierarchy
+- [x] Define Search behavior
+- [x] Define Quick Add flow
+- [x] Define reminder creation/edit/snooze flow
+- [x] Define document flow
+- [x] Create low-fidelity wireframes
+- [ ] Review wireframes with interview evidence
+- [ ] Revise IA after interviews
 
 ## Phase 3 — Prototype + Usability Testing
 
-- [ ] Build clickable prototype
+- [x] Build clickable prototype
+- [x] Add automated desktop/mobile smoke coverage
+- [x] Add light/dark accessibility smoke coverage
 - [ ] Recruit usability testers
 - [ ] Test core flows
+- [ ] Test contextual Home vs generic reminder comparison
 - [ ] Log friction
 - [ ] Revise prototype
 - [ ] Pass usability gate
 
 ## Phase 4 — Visual Design
 
-- [ ] Design tokens
-- [ ] Typography
-- [ ] Color system
-- [ ] Components
-- [ ] Responsive layouts
-- [ ] Accessibility states
+- [x] Design tokens
+- [x] Typography
+- [x] Color system
+- [x] Components
+- [x] Responsive layouts
+- [x] Accessibility states
+- [x] Dark mode token mapping
+- [x] Dark/light theme toggle
+- [ ] Review visual design with user evidence
 
 ## Phase 5 — Technical Architecture
 
-- [ ] Frontend architecture
-- [ ] Backend architecture
-- [ ] ERD
-- [ ] API contract
-- [ ] Auth/security baseline
-- [ ] Storage strategy
-- [ ] Notification architecture
-- [ ] GDPR baseline
-- [ ] Deployment environments
-- [ ] CI/CD
+- [x] Frontend architecture
+- [x] Backend architecture
+- [x] ERD
+- [x] API contract
+- [x] Auth/security baseline
+- [x] Storage strategy
+- [x] Notification architecture
+- [x] GDPR baseline
+- [x] Deployment environments
+- [x] CI/CD
+- [x] Choose current framework versions
+- [ ] Review architecture after user validation
 
 ## Phase 6 — Web MVP
 
-- [ ] Bootstrap application
+- [x] Bootstrap application foundation
 - [ ] Implement auth
 - [ ] Implement Things
 - [ ] Implement Reminders

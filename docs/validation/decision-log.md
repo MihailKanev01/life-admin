@@ -2,7 +2,9 @@
 
 ## Status
 
-Phase 1 has not passed its evidence gate yet.
+Phase 1 has not passed its direct-evidence gate yet.
+
+Online secondary evidence has been reviewed and recorded separately. It can inform what we test, but cannot substitute for participant sessions.
 
 ## Current decisions
 
@@ -29,17 +31,59 @@ Reason:
 - keeps the product attention-first.
 
 ### D003
-Do not lock the Things model until interviews.
+Keep Things as the contextual model, but do not lock the final data model until direct validation.
 
 Reason:
-- it is promising in competitor research, but direct user mental models are stronger evidence.
+- real online discussions repeatedly frame recurring maintenance around cars, homes, appliances and other real-world things;
+- direct user mental models are still stronger evidence.
 
 ### D004
 Do not build AI first.
 
 Reason:
-- AI should reduce input friction after the underlying workflow is proven;
-- building extraction before validating the workflow can optimize the wrong problem.
+- online feedback supports faster AI-assisted capture, but also raises data-safety concerns;
+- the underlying workflow needs validation before extraction is automated;
+- AI should reduce input friction, not define the product.
+
+### D005
+Do not compete on reminders alone.
+
+Reason:
+- online users describe generic reminders as easy to ignore or as a second inbox;
+- users report that reminders are more useful when they provide context, a clear next action, and easy rescheduling;
+- the differentiator should be context + prioritization + Things, not another task list.
+
+### D006
+Keep Payments narrow.
+
+Reason:
+- online discussions show clear use of calendars/reminders for bills, subscriptions and renewals;
+- existing banking/calendar/reminder tools are credible substitutes;
+- the evidence is insufficient to justify expanding into a banking or budgeting product.
+
+### D007
+Documents should be connected to action and ownership context.
+
+Reason:
+- online paperwork discussions repeatedly mention receipts, warranties, home/car records and documents kept because they may be needed later;
+- storage alone is not the full problem; retrieval and future action matter.
+
+## Preliminary online evidence readout
+
+| Hypothesis | Online read | Confidence |
+|---|---|---:|
+| H1 — Fragmented personal admin | Supported | Medium |
+| H2 — Attention over storage | Supported | Medium–High |
+| H3 — Fast capture | Supported | Medium–High |
+| H4 — Things model | Supported | Medium |
+| H5 — Recurring admin | Supported | High |
+| H6 — Consolidated notifications | Supported with caution | Medium |
+| H7 — Payments, not banking | Inconclusive | Low |
+| H8 — Contextual documents | Supported | Medium |
+| H9 — Household sharing | Supported | Medium |
+| H10 — AI removes entry work | Promising | Low–Medium |
+
+Full source material: docs/validation/online-secondary-evidence.md.
 
 ## Gate to pass Phase 1
 
@@ -50,4 +94,38 @@ Phase 1 can be marked complete only when:
 - Things model is validated or rejected;
 - reminder behavior is understood;
 - Payments placement is decided;
-- MVP scope is updated from evidence.
+- MVP scope is updated from direct evidence.
+
+Online evidence must remain labelled as secondary evidence in all summaries and decisions.
+
+
+### D008
+Do not position Life Admin as a generic reminder/document/payment aggregator.
+
+Reason:
+- Apple Reminders already covers natural-language capture, tags, Smart Lists, locations, attachments and sharing;
+- Todoist already covers recurring tasks, filters, files, search, priorities and collaboration;
+- Manor already covers contextual home assets, maintenance, documents, warranties, history and sharing;
+- Hubmee already markets a broad personal/family/property/garage hub model with assets, documents, reminders, subscriptions and sharing;
+- therefore the product must compete on the *decision layer* and low-maintenance contextual workflow, not feature parity.
+
+Validation implication:
+- the key usability comparison is now “generic reminder/calendar vs Life Admin contextual Home”;
+- success means lower uncertainty and easier next action, not simply faster reminder creation.
+
+See: docs/validation/competitive-gap.md.
+
+
+### D009
+Use a provisional ICP centered on working adults with cross-category personal admin, not productivity enthusiasts or specialist property managers.
+
+Reason:
+- online evidence spans vehicle, home, subscriptions, documents and household responsibilities;
+- existing tools are strongest within a single workflow (task management, files, home management, banking);
+- the strongest unmet hypothesis is the cross-category context gap.
+
+Status:
+- hypothesis only;
+- must be confirmed or rejected through direct participant evidence.
+
+See: docs/validation/provisional-icp-jtbd.md.

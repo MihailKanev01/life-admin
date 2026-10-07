@@ -1,0 +1,64 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("Life Admin prototype smoke", () => {
+  test("renders Home and opens Quick Add", async ({ page }) => {
+    await page.goto("/");
+
+    await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Take care of these first" })).toBeVisible();
+
+    await page.getByRole("button", { name: /quick add/i }).first().click();
+
+    await expect(
+      page.getByRole("heading", { name: "What do you want to remember?" }),
+    ).toBeVisible();
+    await expect(page.getByPlaceholder("e.g. Car insurance expires June 14")).toBeVisible();
+  });
+
+  test("completes and snoozes attention items", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /Internet payment/i }).click();
+    await expect(page.getByRole("heading", { name: "Internet payment" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("button", { name: /Internet payment/i })).toHaveCount(0);
+
+    await page.getByRole("button", { name: /Car insurance/i }).click();
+    await page.getByRole("button", { name: "Snooze until tomorrow" }).click();
+
+    await expect(page.getByRole("button", { name: /Car insurance/i })).toContainText("Tomorrow");
+  });
+
+  test("navigates Things, Payments and Search", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Mazda 6/i })).toBeVisible();
+
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
+    await expect(page.getByText("Internet", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /Search your life/i }).click();
+    await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
+
+    const search = page.getByPlaceholder(/Try “car”/i);
+    await search.fill("insurance");
+    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+  });
+
+  test("toggles dark mode and back", async ({ page }) => {
+    await page.goto("/");
+
+    const toggle = page.getByRole("button", { name: "Switch to dark mode" });
+    await toggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Switch to light mode" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  });
+
+});

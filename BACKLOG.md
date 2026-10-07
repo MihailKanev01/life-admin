@@ -24,6 +24,7 @@
 
 - [x] Prepare validation session protocol
 - [x] Prepare participant recruitment template
+- [x] Prepare direct validation field kit
 - [ ] Recruit participants
 - [ ] Run 10–15 interviews
 - [ ] Record interviews in interview tracker

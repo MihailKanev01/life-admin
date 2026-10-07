@@ -1,16 +1,33 @@
 "use client";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 type Section="home"|"things"|"payments"|"search";
+type Theme="light"|"dark";
 const initial=[{id:1,title:"Internet payment",meta:"Due today",amount:"€25",urgent:true},{id:2,title:"Car insurance",meta:"Due in 5 days",amount:"",urgent:false}];
 const things=[["🚗","Mazda 6","235,420 km","1 attention"],["⌂","Home","Apartment","2 upcoming"],["◉","iPhone 16 Pro","Personal","Warranty 2027"],["▣","PC","Desktop","No attention"]];
 const payments=[["Internet","€25","Every month · 15th","Today"],["Spotify","€8","Every month · 3rd","27 days"],["Car insurance","€120","Yearly","5 days"]];
 
 export default function App(){
- const [section,setSection]=useState<Section>("home"),[attention,setAttention]=useState(initial),[modal,setModal]=useState(false),[selected,setSelected]=useState<typeof initial[number]|null>(null),[q,setQ]=useState("");
+ const [section,setSection]=useState<Section>("home"),[attention,setAttention]=useState(initial),[modal,setModal]=useState(false),[selected,setSelected]=useState<typeof initial[number]|null>(null),[q,setQ]=useState(""),[theme,setTheme]=useState<Theme>("light");
+
+ useEffect(()=>{
+  const saved=window.localStorage.getItem("life-admin-theme") as Theme|null;
+  const next=saved==="dark"||saved==="light"?saved:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  setTheme(next);
+  document.documentElement.dataset.theme=next;
+ },[]);
+
+ const toggleTheme=()=>{
+  setTheme(current=>{
+   const next=current==="dark"?"light":"dark";
+   document.documentElement.dataset.theme=next;
+   window.localStorage.setItem("life-admin-theme",next);
+   return next;
+  });
+ };
  return <main className="shell">
-  <aside className="sidebar"><div className="brand">LIFE ADMIN<span>.</span></div><nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav><button className="dark add" onClick={()=>setModal(true)}>+ Add</button><div className="bottom"><button className="nav">⚙ Settings</button><div className="account"><span>M</span><div><strong>Mihail</strong><small>Personal</small></div></div></div></aside>
-  <section className="content"><header><div className="mobilebrand">LIFE ADMIN<span>.</span></div><button className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button><button className="mobileplus" onClick={()=>setModal(true)}>+</button></header>
+  <aside className="sidebar"><div className="brand">LIFE ADMIN<span>.</span></div><nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav><button className="dark add" onClick={()=>setModal(true)}>+ Add</button><div className="bottom"><button className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button><button className="nav">⚙ Settings</button><div className="account"><span>M</span><div><strong>Mihail</strong><small>Personal</small></div></div></div></aside>
+  <section className="content"><header><div className="mobilebrand">LIFE ADMIN<span>.</span></div><button className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button><button className="mobiletheme" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button><button className="mobileplus" onClick={()=>setModal(true)}>+</button></header>
    <div className="page">
     {section==="home"&&<><div className="intro"><div><p className="eyebrow">Wednesday, 7 October</p><h1>Good afternoon, Mihail</h1><p className="subtitle">{attention.length?attention.length+" things need your attention.":"You’re all caught up."}</p></div><button className="dark action" onClick={()=>setModal(true)}>+ Quick add</button></div>
      <section><div className="heading"><div><p className="eyebrow">Needs attention</p><h2>{attention.length?"Take care of these first":"Nothing urgent"}</h2></div>{attention.length>0&&<span className="count">{attention.length}</span>}</div><div className="list">{attention.map(x=><button className="row" key={x.id} onClick={()=>setSelected(x)}><i className={x.urgent?"dot urgent":"dot"}/><span><strong>{x.title}</strong><small>{x.meta}</small></span>{x.amount&&<b>{x.amount}</b>}<em>›</em></button>)}{!attention.length&&<div className="empty"><span>✓</span><div><strong>You’re all caught up.</strong><small>Nothing important needs attention right now.</small></div></div>}</div></section>

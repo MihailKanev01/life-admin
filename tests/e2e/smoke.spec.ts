@@ -59,6 +59,23 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
   });
 
+  test("opens a Thing and sees connected context", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await page.getByRole("button", { name: /Mazda 6/i }).click();
+
+    await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
+    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("Insurance policy", { exact: true })).toBeVisible();
+    await expect(page.getByText("Car service", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("€120 · yearly", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
+    await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
+    await expect(page.getByDisplayValue("Car insurance expires December 14")).toBeVisible();
+  });
+
   test("toggles dark mode and back", async ({ page }) => {
     await page.goto("/");
 

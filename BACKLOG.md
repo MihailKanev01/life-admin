@@ -88,7 +88,7 @@
 
 ## Phase 6 — Web MVP
 
-- [ ] Bootstrap application
+- [x] Bootstrap application foundation
 - [ ] Implement auth
 - [ ] Implement Things
 - [ ] Implement Reminders

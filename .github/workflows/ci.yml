@@ -43,10 +43,5 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Setup Maven
-        uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: "3.9.12"
-
       - name: Test API
-        run: mvn -B test
+        run: mvn -B -ntp test

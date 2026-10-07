@@ -9,9 +9,12 @@ type QuickProposal={type:"Reminder"|"Thing"|"Payment"|"Document";title:string;co
 function buildQuickProposal(text:string):QuickProposal{
  const normalized=text.trim();
  const lower=normalized.toLowerCase();
- const dateMatch=normalized.match(/\\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\\s+\\d{1,2}\\b/i);
+ const dateMatch=normalized.match(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b/i);
  const due=dateMatch?dateMatch[0]:"Choose a date";
  if(lower.includes("insurance")||lower.includes("car insurance")) return {type:"Reminder",title:"Car insurance",context:"Mazda 6",due};
+ if(lower.includes("add a thing")) return {type:"Thing",title:"New thing",context:"Personal",due};
+ if(lower.includes("add a payment")) return {type:"Payment",title:"New payment",context:"Recurring payment",due};
+ if(lower.includes("add a document")) return {type:"Document",title:"New document",context:"Personal",due};
  if(lower.includes("spotify")||lower.includes("netflix")||lower.includes("subscription")) return {type:"Payment",title:normalized||"Subscription",context:"Recurring payment",due};
  if(lower.includes("warranty")) return {type:"Document",title:"TV warranty",context:"TV",due};
  if(lower.includes("car")||lower.includes("service")||lower.includes("maintenance")) return {type:"Reminder",title:"Car service",context:"Mazda 6",due};

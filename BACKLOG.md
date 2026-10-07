@@ -40,19 +40,21 @@
 
 ## Phase 2 — Information Architecture + Wireframes
 
-- [ ] Define navigation
-- [ ] Define Home states
-- [ ] Define Things hierarchy
-- [ ] Define Payments hierarchy
-- [ ] Define Search behavior
-- [ ] Define Quick Add flow
-- [ ] Define reminder creation/edit/snooze flow
-- [ ] Define document flow
-- [ ] Create low-fidelity wireframes
+- [x] Define navigation
+- [x] Define Home states
+- [x] Define Things hierarchy
+- [x] Define Payments hierarchy
+- [x] Define Search behavior
+- [x] Define Quick Add flow
+- [x] Define reminder creation/edit/snooze flow
+- [x] Define document flow
+- [x] Create low-fidelity wireframes
+- [ ] Review wireframes with interview evidence
+- [ ] Revise IA after interviews
 
 ## Phase 3 — Prototype + Usability Testing
 
-- [ ] Build clickable prototype
+- [x] Build clickable prototype
 - [ ] Recruit usability testers
 - [ ] Test core flows
 - [ ] Log friction
@@ -61,12 +63,13 @@
 
 ## Phase 4 — Visual Design
 
-- [ ] Design tokens
-- [ ] Typography
-- [ ] Color system
-- [ ] Components
-- [ ] Responsive layouts
-- [ ] Accessibility states
+- [x] Design tokens
+- [x] Typography
+- [x] Color system
+- [x] Components
+- [x] Responsive layouts
+- [x] Accessibility states
+- [ ] Review visual design with user evidence
 
 ## Phase 5 — Technical Architecture
 

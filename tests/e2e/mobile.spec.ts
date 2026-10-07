@@ -10,7 +10,7 @@ test.describe("Life Admin mobile prototype", () => {
     await page.locator(".mobileNav").getByRole("button", { name: "Things" }).click();
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
 
-    await page.locator(".mobileNav").getByRole("button", { name: /Add/ }).click();
+    await page.locator(".mobileNav .mobadd").click();
     await expect(
       page.getByRole("heading", { name: "What do you want to remember?" }),
     ).toBeVisible();

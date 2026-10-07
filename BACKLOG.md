@@ -73,16 +73,18 @@
 
 ## Phase 5 — Technical Architecture
 
-- [ ] Frontend architecture
-- [ ] Backend architecture
-- [ ] ERD
-- [ ] API contract
-- [ ] Auth/security baseline
-- [ ] Storage strategy
-- [ ] Notification architecture
-- [ ] GDPR baseline
-- [ ] Deployment environments
-- [ ] CI/CD
+- [x] Frontend architecture
+- [x] Backend architecture
+- [x] ERD
+- [x] API contract
+- [x] Auth/security baseline
+- [x] Storage strategy
+- [x] Notification architecture
+- [x] GDPR baseline
+- [x] Deployment environments
+- [x] CI/CD
+- [x] Choose current framework versions
+- [ ] Review architecture after user validation
 
 ## Phase 6 — Web MVP
 

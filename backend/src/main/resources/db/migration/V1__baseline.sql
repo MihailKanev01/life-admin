@@ -1,0 +1,2 @@
+-- Baseline migration.
+-- Business tables will be added only after the MVP domain is revalidated.

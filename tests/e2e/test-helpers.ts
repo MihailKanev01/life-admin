@@ -18,8 +18,8 @@ export async function createAccountAndFinishWalkthrough(
  await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
  await page.getByLabel("Your name").fill(account.name);
  await page.getByLabel("Email address").fill(account.email);
- await page.getByLabel("Password").fill(account.password);
- await page.getByLabel("Confirm password").fill(account.password);
+ await page.getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
+ await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
  await page.getByRole("button",{name:"Create account"}).click();
 
  for(let index=0;index<3;index++){

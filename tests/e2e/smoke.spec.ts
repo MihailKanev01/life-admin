@@ -48,4 +48,17 @@ test.describe("Life Admin prototype smoke", () => {
     await search.fill("insurance");
     await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
   });
+
+  test("toggles dark mode and back", async ({ page }) => {
+    await page.goto("/");
+
+    const toggle = page.getByRole("button", { name: "Switch to dark mode" });
+    await toggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Switch to light mode" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  });
+
 });

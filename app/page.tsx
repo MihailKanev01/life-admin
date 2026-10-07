@@ -98,6 +98,7 @@ function buildQuickProposal(text:string):QuickProposal{
  const lower=normalized.toLowerCase();
  const dateMatch=normalized.match(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b/i);
  const due=dateMatch?dateMatch[0]:"Choose a date";
+ if(lower.includes("internet payment"))return {type:"Reminder",title:"Internet payment",context:"Personal",due};
  if(lower.includes("insurance")||lower.includes("car insurance"))return {type:"Reminder",title:"Car insurance",context:"Mazda 6",due};
  if(lower.includes("add a thing"))return {type:"Thing",title:"New thing",context:"Personal",due};
  if(lower.includes("add a payment"))return {type:"Payment",title:"New payment",context:"Recurring payment",due};

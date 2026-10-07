@@ -97,3 +97,20 @@ Phase 1 can be marked complete only when:
 - MVP scope is updated from direct evidence.
 
 Online evidence must remain labelled as secondary evidence in all summaries and decisions.
+
+
+### D008
+Do not position Life Admin as a generic reminder/document/payment aggregator.
+
+Reason:
+- Apple Reminders already covers natural-language capture, tags, Smart Lists, locations, attachments and sharing;
+- Todoist already covers recurring tasks, filters, files, search, priorities and collaboration;
+- Manor already covers contextual home assets, maintenance, documents, warranties, history and sharing;
+- Hubmee already markets a broad personal/family/property/garage hub model with assets, documents, reminders, subscriptions and sharing;
+- therefore the product must compete on the *decision layer* and low-maintenance contextual workflow, not feature parity.
+
+Validation implication:
+- the key usability comparison is now “generic reminder/calendar vs Life Admin contextual Home”;
+- success means lower uncertainty and easier next action, not simply faster reminder creation.
+
+See: docs/validation/competitive-gap.md.

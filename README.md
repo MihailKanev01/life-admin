@@ -16,6 +16,55 @@ The product should prioritize **attention over inventory**:
 - Search answers: "Where is the information?"
 - Quick Add answers: "How do I capture something in seconds?"
 
+## Account model
+
+Every user has a personal account and their own server-backed workspace.
+
+Current persisted domain:
+- user identity;
+- onboarding completion state;
+- reminders.
+
+The next persisted domain is Things, followed by contextual Payments and Documents.
+
+## Local development
+
+Start the API database:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+Run the backend:
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Run the web app:
+
+```bash
+npm install
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api/v1 npm run dev
+```
+
+The web client proxies `/api/v1/*` to the configured backend origin.
+
+## Production deployment
+
+Set `NEXT_PUBLIC_API_BASE_URL` in the deployed web environment to the real backend origin ending in `/api/v1`.
+
+The frontend must never use the localhost fallback in production.
+
+The backend must run with:
+- TLS;
+- PostgreSQL;
+- Flyway migrations;
+- secure HttpOnly session cookies;
+- server-side authorization;
+- production secrets from managed secret storage.
+
 ## Delivery strategy
 
 1. Product discovery
@@ -28,12 +77,6 @@ The product should prioritize **attention over inventory**:
 8. Web MVP
 9. Beta + iteration
 10. Mobile app on top of the same API
-
-## Current status
-
-**Phase 0 — Product Discovery**
-
-Research is documented under `docs/research/`.
 
 ## Repository rules
 

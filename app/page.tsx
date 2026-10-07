@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {
   ApiReminder,
   ApiThing,
@@ -244,6 +244,8 @@ export default function App(){
  const [theme,setTheme]=useState<Theme>("light");
  const [quickText,setQuickText]=useState("");
  const [quickProposal,setQuickProposal]=useState<QuickProposal|null>(null);
+ const attentionMutationVersion=useRef(0);
+ const thingMutationVersion=useRef(0);
  const [showWalkthrough,setShowWalkthrough]=useState(false),[saving,setSaving]=useState(false),[appError,setAppError]=useState("");
 
  useEffect(()=>{
@@ -260,12 +262,14 @@ export default function App(){
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
-  getReminders().then(data=>setAttention(data.items.map(reminderAttention))).catch(()=>setAttention([]));
+  const requestVersion=attentionMutationVersion.current;
+  getReminders().then(data=>{if(requestVersion===attentionMutationVersion.current)setAttention(data.items.map(reminderAttention));}).catch(()=>{});
  },[ready,account,showWalkthrough]);
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
-  getThings().then(data=>setThings(data.items)).catch(()=>setThings([]));
+  const requestVersion=thingMutationVersion.current;
+  getThings().then(data=>{if(requestVersion===thingMutationVersion.current)setThings(data.items);}).catch(()=>{});
  },[ready,account,showWalkthrough]);
 
  const toggleTheme=()=>{
@@ -292,6 +296,7 @@ export default function App(){
   setSaving(true);setAppError("");
   try{
    const created=await createThing({name:thingName.trim(),type:thingType,detail:thingDetail.trim()||null});
+   thingMutationVersion.current+=1;
    setThings(items=>[created,...items]);setThingModal(false);
   }catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this thing.");}
   finally{setSaving(false);}
@@ -363,8 +368,12 @@ export default function App(){
 
   {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>Coming next</strong><span>Recurring costs</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14");}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
 
-  {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not snooze reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
+  {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
+     setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
+     setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not snooze reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
 
-  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setSaving(true);setAppError("");try{if(quickProposal.type==="Reminder"){const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());const created=await createReminder({title:quickProposal.title,context:quickProposal.context,dueDate:proposalDueDate(quickProposal.due),thingId:linkedThing?.id??null});setAttention(items=>[reminderAttention(created),...items]);if(linkedThing)setThings(items=>items.map(item=>item.id===linkedThing.id?{...item,openReminderCount:item.openReminderCount+1}:item));}else if(quickProposal.type==="Thing"){const created=await createThing({name:quickProposal.title==="New thing"?"New thing":quickProposal.title,type:"Thing",detail:null});setThings(items=>[created,...items]);}else{setAttention(items=>[{id:crypto.randomUUID(),title:quickProposal.title,meta:quickProposal.type+" · "+quickProposal.due,amount:"",urgent:false,context:quickProposal.context,dueDate:null},...items]);}setModal(false);setQuickText("");setQuickProposal(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this item.");}finally{setSaving(false);}}}>{saving?"Saving…":quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
+  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setSaving(true);setAppError("");try{if(quickProposal.type==="Reminder"){const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());const created=await createReminder({title:quickProposal.title,context:quickProposal.context,dueDate:proposalDueDate(quickProposal.due),thingId:linkedThing?.id??null});attentionMutationVersion.current+=1;
+   setAttention(items=>[reminderAttention(created),...items]);
+   if(linkedThing){thingMutationVersion.current+=1;setThings(items=>items.map(item=>item.id===linkedThing.id?{...item,openReminderCount:item.openReminderCount+1}:item));}else if(quickProposal.type==="Thing"){const created=await createThing({name:quickProposal.title==="New thing"?"New thing":quickProposal.title,type:"Thing",detail:null});setThings(items=>[created,...items]);}else{setAttention(items=>[{id:crypto.randomUUID(),title:quickProposal.title,meta:quickProposal.type+" · "+quickProposal.due,amount:"",urgent:false,context:quickProposal.context,dueDate:null},...items]);}setModal(false);setQuickText("");setQuickProposal(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this item.");}finally{setSaving(false);}}}>{saving?"Saving…":quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
  </main>;
 }

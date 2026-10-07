@@ -4,6 +4,7 @@ The prototype now has a Playwright smoke suite covering the core interaction pat
 
 ## Covered
 
+Desktop:
 - Home renders the attention hierarchy.
 - Quick Add opens and exposes the capture field.
 - Attention item can be completed.
@@ -12,11 +13,22 @@ The prototype now has a Playwright smoke suite covering the core interaction pat
 - Payments navigation and sample payment rendering.
 - Global Search navigation and a basic result lookup.
 
+Mobile:
+- Mobile bottom navigation remains visible and usable.
+- Mobile Things navigation works.
+- Mobile Quick Add opens.
+- Mobile Payments navigation works.
+
+Accessibility:
+- Home is scanned with axe-core.
+- Serious and critical accessibility violations fail the suite.
+- Text contrast tokens are checked indirectly through the automated scan.
+
 ## Run locally
 
 ```bash
 npm install
-npx playwright install chromium
+npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 

@@ -3,12 +3,17 @@ package com.lifeadmin.api.security;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.io.Serial;
+import java.io.Serializable;
 
 import com.lifeadmin.api.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public final class UserPrincipal implements UserDetails {
+public final class UserPrincipal implements UserDetails, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final UUID id;
     private final String email;

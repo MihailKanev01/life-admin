@@ -6,7 +6,7 @@ test.describe("Life Admin prototype smoke", () => {
     await createAccountAndFinishWalkthrough(page);
 
     await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Take care of these first" })).toBeVisible();
+    await expect(page.getByText("Nothing urgent", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /quick add/i }).first().click();
 

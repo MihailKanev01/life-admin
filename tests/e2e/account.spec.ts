@@ -39,8 +39,8 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await page.getByLabel("Your name").fill(accountB.name);
     await page.getByLabel("Email address").fill(accountB.email);
-    await page.getByLabel("Password").fill(accountB.password);
-    await page.getByLabel("Confirm password").fill(accountB.password);
+    await page.getByRole("textbox",{name:"Password",exact:true}).fill(accountB.password);
+    await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(accountB.password);
     await page.getByRole("button",{name:"Create account"}).click();
     await page.getByRole("button",{name:"Skip walkthrough"}).click();
 

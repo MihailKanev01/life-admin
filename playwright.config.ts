@@ -18,7 +18,7 @@ export default defineConfig({
  ],
  webServer:[
   {
-   command:"mvn -B -ntp spring-boot:run -Dspring-boot.run.profiles=test",
+   command:"mvn -B -ntp -Dspring-boot.run.profiles=test -Dspring-boot.run.includeTestScope=true spring-boot:run",
    cwd:"backend",
    url:"http://127.0.0.1:8080/api/v1/system/health",
    reuseExistingServer:!process.env.CI,

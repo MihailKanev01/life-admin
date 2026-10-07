@@ -68,6 +68,7 @@ public class User {
     public String getDisplayName() { return displayName; }
     public String getTimezone() { return timezone; }
     public Instant getOnboardingCompletedAt() { return onboardingCompletedAt; }
+    public Instant getCreatedAt() { return createdAt; }
 
     public void completeOnboarding() {
         onboardingCompletedAt = Instant.now();

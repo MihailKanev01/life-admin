@@ -54,7 +54,7 @@
 
 ## Phase 3 — Prototype + Usability Testing
 
-- [ ] Build clickable prototype
+- [x] Build clickable prototype
 - [ ] Recruit usability testers
 - [ ] Test core flows
 - [ ] Log friction
@@ -63,12 +63,13 @@
 
 ## Phase 4 — Visual Design
 
-- [ ] Design tokens
-- [ ] Typography
-- [ ] Color system
-- [ ] Components
-- [ ] Responsive layouts
-- [ ] Accessibility states
+- [x] Design tokens
+- [x] Typography
+- [x] Color system
+- [x] Components
+- [x] Responsive layouts
+- [x] Accessibility states
+- [ ] Review visual design with user evidence
 
 ## Phase 5 — Technical Architecture
 

@@ -372,8 +372,58 @@ export default function App(){
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
      setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not snooze reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
 
-  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setSaving(true);setAppError("");try{if(quickProposal.type==="Reminder"){const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());const created=await createReminder({title:quickProposal.title,context:quickProposal.context,dueDate:proposalDueDate(quickProposal.due),thingId:linkedThing?.id??null});attentionMutationVersion.current+=1;
+  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
+ if(!quickProposal){
+  setQuickProposal(buildQuickProposal(quickText));
+  return;
+ }
+ setSaving(true);
+ setAppError("");
+ try{
+  if(quickProposal.type==="Reminder"){
+   const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());
+   const created=await createReminder({
+    title:quickProposal.title,
+    context:quickProposal.context,
+    dueDate:proposalDueDate(quickProposal.due),
+    thingId:linkedThing?.id??null
+   });
+   attentionMutationVersion.current+=1;
    setAttention(items=>[reminderAttention(created),...items]);
-   if(linkedThing){thingMutationVersion.current+=1;setThings(items=>items.map(item=>item.id===linkedThing.id?{...item,openReminderCount:item.openReminderCount+1}:item));}else if(quickProposal.type==="Thing"){const created=await createThing({name:quickProposal.title==="New thing"?"New thing":quickProposal.title,type:"Thing",detail:null});setThings(items=>[created,...items]);}else{setAttention(items=>[{id:crypto.randomUUID(),title:quickProposal.title,meta:quickProposal.type+" · "+quickProposal.due,amount:"",urgent:false,context:quickProposal.context,dueDate:null},...items]);}setModal(false);setQuickText("");setQuickProposal(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this item.");}finally{setSaving(false);}}}>{saving?"Saving…":quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
+   if(linkedThing){
+    thingMutationVersion.current+=1;
+    setThings(items=>items.map(item=>item.id===linkedThing.id
+     ?{...item,openReminderCount:item.openReminderCount+1}
+     :item));
+   }
+  }else if(quickProposal.type==="Thing"){
+   const created=await createThing({
+    name:quickProposal.title==="New thing"?"New thing":quickProposal.title,
+    type:"Thing",
+    detail:null
+   });
+   thingMutationVersion.current+=1;
+   setThings(items=>[created,...items]);
+  }else{
+   attentionMutationVersion.current+=1;
+   setAttention(items=>[{
+    id:crypto.randomUUID(),
+    title:quickProposal.title,
+    meta:quickProposal.type+" · "+quickProposal.due,
+    amount:"",
+    urgent:false,
+    context:quickProposal.context,
+    dueDate:null
+   },...items]);
+  }
+  setModal(false);
+  setQuickText("");
+  setQuickProposal(null);
+ }catch(caught){
+  setAppError(caught instanceof Error?caught.message:"Could not save this item.");
+ }finally{
+  setSaving(false);
+ }
+}}}</button></div></div>}
  </main>;
 }

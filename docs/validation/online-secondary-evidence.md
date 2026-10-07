@@ -158,3 +158,50 @@ The Phase 1 gate remains open until direct participant sessions produce:
 - JTBD update
 - MVP priority update
 - explicit PASS / REVISE / FAIL decision
+
+
+## Additional verified signals — August–September 2026
+
+### 11. People already attach documents to reminders because they lack better context
+
+In an August 21, 2026 HomeMaintenance thread, one user says they use iPhone Reminders not only for the reminder but also for repair history, part links, receipts, warranties and photos associated with each maintenance item.
+
+Source: https://www.reddit.com/r/HomeMaintenance/comments/1vu13hg/do_people_here_use_any_home_maintenance_apps_if/ citeturn352529reddit37
+
+**Signal:** users are already creating a primitive version of the Things + contextual documents model inside generic reminders.
+
+### 12. Generic calendar/reminder tools solve the notification, but not the knowledge gap
+
+In an April 4, 2026 HomeImprovement discussion, a user says they repeatedly discover maintenance needs too late and, more importantly, do not know all the maintenance tasks they should be tracking. Another commenter recommends the phone calendar, and the original poster replies that the problem is forgetting to add things in the first place.
+
+Source: https://www.reddit.com/r/HomeImprovement/comments/1sccyg0/how_do_you_keep_track_of_all_your_home/ citeturn352529reddit46
+
+**Signal:** there are two separate problems: storing a reminder and knowing what belongs in the system.
+
+### 13. The lightweight-vs-bloat tension is explicit
+
+A February 7, 2026 HomeMaintenance discussion asks for a routine-maintenance reminder app; a reply says the alternatives usually collapse to paid apps, calendars or spreadsheets.
+
+Source: https://www.reddit.com/r/HomeMaintenance/comments/1qy26el/home_maintenance_app/ citeturn352529reddit41
+
+An August 18, 2026 HomeMaintenance discussion again asks what people use for maintenance and how they keep track of repairs, appliances and history.
+
+Source: https://www.reddit.com/r/HomeMaintenance/comments/1vrwzlc/how_does_everyone_keep_track_of_all_the_maintenance/ citeturn352529reddit44
+
+**Signal:** the product has to earn its place over Notes/Calendar/Spreadsheet with a materially better workflow, not with a longer feature list.
+
+### 14. Existing systems often become spreadsheets + calendars
+
+A long-running Homeowners discussion has users describing Google Sheets plus Calendar, with one person replying that a spreadsheet can become many tabs and another later asking whether the setup remains maintainable.
+
+Source: https://www.reddit.com/r/homeowners/comments/15vk6gd/app_to_keep_track_of_things/ citeturn352529reddit40
+
+**Signal:** Life Admin should reduce the maintenance burden created by manual spreadsheets/calendar combinations.
+
+### 15. Asset-based maintenance is already a recognizable product pattern
+
+A September 2026 discussion asks for home-maintenance applications covering reminders, repair history, receipts/warranties, contractor information and appliance records. The question itself shows users think in terms of maintenance history + documents + reminders as one package.
+
+Source: https://www.reddit.com/r/HomeMaintenance/comments/1vu13hg/do_people_here_use_any_home_maintenance_apps_if/ citeturn352529reddit37
+
+**Signal:** contextual records around Things are understandable without introducing a novel enterprise-style data model.

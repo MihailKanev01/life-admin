@@ -25,6 +25,12 @@ jobs:
       - name: Build web
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright smoke tests
+        run: npm run test:e2e
+
   api:
     name: API checks
     runs-on: ubuntu-latest

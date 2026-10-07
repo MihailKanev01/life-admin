@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "16.4.0",
@@ -16,7 +17,8 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@playwright/test": "1.63.0"
   },
   "engines": {
     "node": ">=24 <25"

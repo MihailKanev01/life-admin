@@ -62,7 +62,6 @@ public class AuthController {
 
         User user = authService.authenticate(request.email(), request.password());
 
-        httpRequest.changeSessionId();
         establishAuthentication(user, httpRequest, httpResponse);
         return new AuthDtos.AuthResponse(authService.response(user));
     }

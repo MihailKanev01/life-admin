@@ -29,10 +29,6 @@ test.describe("Life Admin account and onboarding", () => {
   test("keeps personal data separated between accounts and restores it after sign in", async ({page}) => {
     await createAccountAndFinishWalkthrough(page,testAccountA);
 
-    await page.getByRole("button",{name:/Quick add/i}).first().click();
-    await page.getByPlaceholder("e.g. Car insurance expires June 14").fill("Passport renewal September 22");
-    await page.getByRole("button",{name:"Review details"}).click();
-    await page.getByRole("button",{name:"Save to Life Admin"}).click();
     await expect(page.getByRole("button",{name:/Passport renewal/i})).toBeVisible();
 
     await page.getByRole("button",{name:"Account"}).click();

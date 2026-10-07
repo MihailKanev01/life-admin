@@ -3,12 +3,26 @@ import {useEffect, useState} from "react";
 
 type Section="home"|"things"|"payments"|"search";
 type Theme="light"|"dark";
+
+type QuickProposal={type:"Reminder"|"Thing"|"Payment"|"Document";title:string;context:string;due:string};
+
+function buildQuickProposal(text:string):QuickProposal{
+ const normalized=text.trim();
+ const lower=normalized.toLowerCase();
+ const dateMatch=normalized.match(/\\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\\s+\\d{1,2}\\b/i);
+ const due=dateMatch?dateMatch[0]:"Choose a date";
+ if(lower.includes("insurance")||lower.includes("car insurance")) return {type:"Reminder",title:"Car insurance",context:"Mazda 6",due};
+ if(lower.includes("spotify")||lower.includes("netflix")||lower.includes("subscription")) return {type:"Payment",title:normalized||"Subscription",context:"Recurring payment",due};
+ if(lower.includes("warranty")) return {type:"Document",title:"TV warranty",context:"TV",due};
+ if(lower.includes("car")||lower.includes("service")||lower.includes("maintenance")) return {type:"Reminder",title:"Car service",context:"Mazda 6",due};
+ return {type:"Reminder",title:normalized||"New reminder",context:"Personal",due};
+}
 const initial=[{id:1,title:"Internet payment",meta:"Due today",amount:"€25",urgent:true},{id:2,title:"Car insurance",meta:"Due in 5 days",amount:"",urgent:false}];
 const things=[["🚗","Mazda 6","235,420 km","1 attention"],["⌂","Home","Apartment","2 upcoming"],["◉","iPhone 16 Pro","Personal","Warranty 2027"],["▣","PC","Desktop","No attention"]];
 const payments=[["Internet","€25","Every month · 15th","Today"],["Spotify","€8","Every month · 3rd","27 days"],["Car insurance","€120","Yearly","5 days"]];
 
 export default function App(){
- const [section,setSection]=useState<Section>("home"),[attention,setAttention]=useState(initial),[modal,setModal]=useState(false),[selected,setSelected]=useState<typeof initial[number]|null>(null),[q,setQ]=useState(""),[theme,setTheme]=useState<Theme>("light");
+ const [section,setSection]=useState<Section>("home"),[attention,setAttention]=useState(initial),[modal,setModal]=useState(false),[selected,setSelected]=useState<typeof initial[number]|null>(null),[q,setQ]=useState(""),[theme,setTheme]=useState<Theme>("light"),[quickText,setQuickText]=useState(""),[quickProposal,setQuickProposal]=useState<QuickProposal|null>(null);
 
  useEffect(()=>{
   const saved=window.localStorage.getItem("life-admin-theme") as Theme|null;
@@ -26,7 +40,7 @@ export default function App(){
   });
  };
  return <main className="shell">
-  <aside className="sidebar"><div className="brand">LIFE ADMIN<span>.</span></div><nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav><button className="dark add" onClick={()=>setModal(true)}>+ Add</button><div className="bottom"><button className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button><button className="nav">⚙ Settings</button><div className="account"><span>M</span><div><strong>Mihail</strong><small>Personal</small></div></div></div></aside>
+  <aside className="sidebar"><div className="brand">LIFE ADMIN<span>.</span></div><nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav><button className="dark add" onClick={()=>{setModal(true);setQuickText("");setQuickProposal(null)}}>+ Add</button><div className="bottom"><button className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button><button className="nav">⚙ Settings</button><div className="account"><span>M</span><div><strong>Mihail</strong><small>Personal</small></div></div></div></aside>
   <section className="content"><header><div className="mobilebrand">LIFE ADMIN<span>.</span></div><button className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button><button className="mobiletheme" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button><button className="mobileplus" onClick={()=>setModal(true)}>+</button></header>
    <div className="page">
     {section==="home"&&<><div className="intro"><div><p className="eyebrow">Wednesday, 7 October</p><h1>Good afternoon, Mihail</h1><p className="subtitle">{attention.length?attention.length+" things need your attention.":"You’re all caught up."}</p></div><button className="dark action" onClick={()=>setModal(true)}>+ Quick add</button></div>
@@ -39,6 +53,6 @@ export default function App(){
    </div></section>
   <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>k==="add"?setModal(true):setSection(k)}><span>{i}</span><small>{l}</small></button>)}</div>
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={e=>e.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={()=>{setAttention(x=>x.filter(a=>a.id!==selected.id));setSelected(null)}}>Done</button><button className="light full" onClick={()=>{setAttention(x=>x.map(a=>a.id===selected.id?{...a,meta:"Tomorrow"}:a));setSelected(null)}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
-  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={e=>e.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>We’ll organize it for you.</strong><small>We’ll identify the date, context and suggest a reminder.</small></div></div><div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setModal(false)}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div><button className="dark full" onClick={()=>setModal(false)}>Continue</button></div></div>}
+  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={e=>e.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={e=>{setQuickText(e.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={!quickText.trim()&&!quickProposal} onClick={()=>{if(!quickProposal){setQuickProposal(buildQuickProposal(quickText));return;}setAttention(x=>[{id:Date.now(),title:quickProposal.title,meta:`${quickProposal.type} · ${quickProposal.due}`,amount:"",urgent:false},...x]);setModal(false);setQuickText("");setQuickProposal(null)}}>{quickProposal?"Save to Life Admin":"Review details"}</button></div></div>}
  </main>
 }

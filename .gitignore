@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+
+# Java
+**/target/
+
+# Env
+.env
+.env.*
+!.env.example

@@ -23,7 +23,10 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("December 14", { exact: true }).last()).toBeVisible();
 
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
-    await expect(page.getByRole("button", { name: /Car insurance/i }).first()).toContainText("Reminder");
+    await page.getByRole("button", { name: /Car insurance/i }).first().click();
+    await expect(page.getByRole("heading", { name: "Car insurance" })).toBeVisible();
+    await expect(page.getByText("Due Dec 14", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Close" }).click();
   });
 
   test("completes and snoozes attention items", async ({ page }) => {

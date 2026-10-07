@@ -4,7 +4,7 @@ export type TestAccount={name:string;email:string;password:string};
 
 export function makeTestAccount(label="user"):TestAccount{
  return {
-  name:label==="user"?"Mihail Test":label,
+  name:label==="user"?"Mihail":label,
   email:label.toLowerCase().replace(/[^a-z0-9]+/g,"-")+"-"+crypto.randomUUID().slice(0,8)+"@example.com",
   password:"LifeAdmin-Test-2026!",
  };

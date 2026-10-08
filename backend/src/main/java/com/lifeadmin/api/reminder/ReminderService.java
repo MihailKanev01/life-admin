@@ -38,6 +38,31 @@ public class ReminderService {
     }
 
     @Transactional
+    public Reminder update(UserPrincipal principal, UUID id, ReminderDtos.UpdateRequest request) {
+        Reminder reminder = findOwned(principal, id);
+        UUID thingId = request.thingId();
+        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
+        }
+        reminder.update(
+                request.title().trim(),
+                request.context().trim(),
+                request.dueDate(),
+                thingId);
+        return reminder;
+    }
+
+    @Transactional
+    public Reminder reschedule(UserPrincipal principal, UUID id, LocalDate date) {
+        if (date == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reschedule date is required");
+        }
+        Reminder reminder = findOwned(principal, id);
+        reminder.rescheduleTo(date);
+        return reminder;
+    }
+
+    @Transactional
     public Reminder complete(UserPrincipal principal, UUID id) {
         Reminder reminder = findOwned(principal, id);
         reminder.complete();

@@ -123,7 +123,10 @@ test.describe("Life Admin prototype smoke", () => {
       const cookie = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1] ?? "";
       return { responseStatus: response.status, tokenLength: data.token?.length ?? 0, cookieLength: cookie.length, matches: Boolean(data.token) && decodeURIComponent(cookie) === data.token };
     });
-    console.log("CSRF state after logout", csrfState);
+    const csrfCookies = (await page.context().cookies()).filter(cookie => cookie.name === "XSRF-TOKEN").map(cookie => ({
+      domain: cookie.domain, path: cookie.path, secure: cookie.secure, httpOnly: cookie.httpOnly, sameSite: cookie.sameSite, valueLength: cookie.value.length
+    }));
+    console.log("CSRF state after logout", csrfState, csrfCookies);
 
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);

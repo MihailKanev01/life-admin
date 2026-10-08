@@ -1,3 +1,4 @@
+
 package com.lifeadmin.api.reminder;
 
 import java.time.Instant;
@@ -70,12 +71,25 @@ public class Reminder {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getCompletedAt() { return completedAt; }
 
+    public void update(String title, String context, LocalDate dueDate, UUID thingId) {
+        this.title = title;
+        this.context = context;
+        this.dueDate = dueDate;
+        this.thingId = thingId;
+        this.status = "OPEN";
+    }
+
     public void complete() {
         status = "COMPLETED";
         completedAt = Instant.now();
     }
 
     public void snoozeUntil(LocalDate date) {
+        dueDate = date;
+        status = "OPEN";
+    }
+
+    public void rescheduleTo(LocalDate date) {
         dueDate = date;
         status = "OPEN";
     }

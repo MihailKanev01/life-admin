@@ -140,7 +140,7 @@ export async function completeOnboarding(){
 
 export async function logoutAccount(){
  const result=await apiRequest<void>("/auth/logout",{method:"POST"});
- document.cookie="XSRF-TOKEN=; Max-Age=0; Path=/; SameSite=Strict";
+ document.cookie="XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Strict";
  return result;
 }
 

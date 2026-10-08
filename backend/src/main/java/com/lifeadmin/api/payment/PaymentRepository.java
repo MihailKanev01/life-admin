@@ -11,4 +11,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByUserIdAndStatusOrderByNextDueDateAscCreatedAtDesc(UUID userId, String status);
 
     Optional<Payment> findByIdAndUserId(UUID id, UUID userId);
+
+    long countByUserIdAndThingIdAndStatus(UUID userId, UUID thingId, String status);
 }

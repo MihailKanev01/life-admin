@@ -109,20 +109,22 @@ test.describe("Life Admin prototype smoke", () => {
     const account = makeTestAccount("duplicate");
     await createAccountAndFinishWalkthrough(page, account);
 
-    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
-    await page.getByRole("button", { name: "Sign out", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    const duplicatePage = await page.context().newPage();
+    try {
+      await duplicatePage.goto("/");
+      await expect(duplicatePage.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
-    await page.getByLabel("Your name").fill(account.name);
-    await page.getByLabel("Email address").fill(account.email);
-    await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
-    await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
-    await page.getByRole("button", { name: "Create account", exact: true }).click();
+      await duplicatePage.getByLabel("Your name").fill(account.name);
+      await duplicatePage.getByLabel("Email address").fill(account.email);
+      await duplicatePage.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+      await duplicatePage.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+      await duplicatePage.getByRole("button", { name: "Create account", exact: true }).click();
 
-    await expect(page.locator(".auth-error")).toContainText("already exists");
-    await expect(page.locator(".auth-error")).toContainText("Forgot your password");
+      await expect(duplicatePage.locator(".auth-error")).toContainText("already exists");
+      await expect(duplicatePage.locator(".auth-error")).toContainText("Forgot your password");
+    } finally {
+      await duplicatePage.close();
+    }
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {

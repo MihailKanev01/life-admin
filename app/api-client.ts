@@ -46,6 +46,12 @@ async function csrfToken():Promise<string>{
  if(!response.ok)throw new Error("Authentication service is unavailable.");
  const data=await response.json() as {token?:string};
  if(!data.token)throw new Error("Could not initialize secure authentication.");
+ const cookie=document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1]??"";
+ const cookieToken=decodeURIComponent(cookie);
+ if(cookieToken!==data.token){
+  const secure=window.location.protocol==="https:"?"; Secure":"";
+  document.cookie="XSRF-TOKEN="+data.token+"; Path=/; SameSite=Strict"+secure;
+ }
  return data.token;
 }
 
@@ -140,7 +146,8 @@ export async function completeOnboarding(){
 
 export async function logoutAccount(){
  const result=await apiRequest<void>("/auth/logout",{method:"POST"});
- document.cookie="XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Strict";
+ const secure=window.location.protocol==="https:"?"; Secure":"";
+ document.cookie="XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Strict"+secure;
  return result;
 }
 

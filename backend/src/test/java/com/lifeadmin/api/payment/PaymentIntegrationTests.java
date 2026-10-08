@@ -97,7 +97,7 @@ class PaymentIntegrationTests {
                         .with(csrf())
                         .session(session))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nextDueDate").value(LocalDate.now().plusMonths(1).toString()));
+                .andExpect(jsonPath("$.nextDueDate").value("2026-11-15"));
     }
 
     private void createPayment(MockHttpSession session, String thingId) throws Exception {

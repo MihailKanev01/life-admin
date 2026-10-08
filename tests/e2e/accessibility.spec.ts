@@ -6,7 +6,7 @@ test.describe("Life Admin accessibility smoke", () => {
   test("Home has no serious or critical accessibility violations in light mode", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
 
-    const results = await new AxeBuilder({ page }).analyze();
+    const results = await new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]["page"] }).analyze();
     const seriousOrCritical = results.violations.filter(
       (violation) => violation.impact === "serious" || violation.impact === "critical",
     );
@@ -18,7 +18,7 @@ test.describe("Life Admin accessibility smoke", () => {
     await createAccountAndFinishWalkthrough(page);
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
 
-    const results = await new AxeBuilder({ page }).analyze();
+    const results = await new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]["page"] }).analyze();
     const seriousOrCritical = results.violations.filter(
       (violation) => violation.impact === "serious" || violation.impact === "critical",
     );

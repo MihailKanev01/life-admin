@@ -27,14 +27,15 @@ Future mobile authentication can use the same identity domain with a token-based
 ## Things
 
 `GET /things`
-Query:
-- q
-- type
-- includeArchived
-- page
-- pageSize
+Returns Things owned by the authenticated user.
 
 `POST /things`
+Body:
+- name
+- type
+- detail
+
+The server assigns ownership from the authenticated session; client ownership fields are never trusted.
 
 `GET /things/{thingId}`
 
@@ -45,13 +46,23 @@ Query:
 ## Reminders
 
 `GET /reminders`
+Returns open reminders owned by the authenticated user.
+
+`POST /reminders`
+Body:
+- title
+- context
+- dueDate
+- optional thingId
+
+If `thingId` is supplied, the referenced Thing must belong to the authenticated user.
+
+`GET /reminders`
 Query:
 - status
 - from
 - to
 - thingId
-
-`POST /reminders`
 
 `GET /reminders/{reminderId}`
 

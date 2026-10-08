@@ -39,3 +39,18 @@ export async function addReminder(
  await page.getByRole("button",{name:"Review details"}).click();
  await page.getByRole("button",{name:"Save to Life Admin"}).click();
 }
+
+export async function addThing(
+ page:Page,
+ name="Mazda 6",
+ type="Vehicle",
+ detail="235,420 km",
+){
+ await page.getByRole("button",{name:/Things/i}).first().click();
+ await page.getByRole("button",{name:"+ Add thing",exact:true}).click();
+ await page.getByLabel("Name").fill(name);
+ await page.getByLabel("Type").selectOption({label:type});
+ await page.getByLabel("Detail").fill(detail);
+ await page.getByRole("button",{name:"Save thing",exact:true}).click();
+ await expect(page.getByRole("button",{name:new RegExp(name,"i")})).toBeVisible();
+}

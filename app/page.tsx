@@ -443,7 +443,7 @@ export default function App(){
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
-  const key=\`life-admin-product-tour-\${account.id}-v1\`;
+  const key="life-admin-product-tour-"+account.id+"-v1";
   setShowProductTour(window.localStorage.getItem(key)!=="1");
  },[ready,account,showWalkthrough]);
 

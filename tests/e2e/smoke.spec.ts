@@ -112,6 +112,8 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);

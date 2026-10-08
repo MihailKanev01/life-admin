@@ -225,3 +225,4 @@ class ThingIntegrationTests {
         return prefix + "-" + UUID.randomUUID() + "@example.com";
     }
 }
+

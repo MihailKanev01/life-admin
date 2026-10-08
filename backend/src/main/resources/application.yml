@@ -2,7 +2,7 @@ spring:
   application:
     name: life-admin-api
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/life_admin}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/life_admin}
     username: ${DB_USER:life_admin}
     password: ${DB_PASSWORD:life_admin}
   session:

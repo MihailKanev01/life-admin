@@ -77,14 +77,26 @@ Query:
 ## Payments
 
 `GET /payments`
+Returns active recurring payments owned by the authenticated user.
 
 `POST /payments`
+Body:
+- name
+- type: BILL, SUBSCRIPTION or RENEWAL
+- amount
+- currency
+- frequency: WEEKLY, MONTHLY or YEARLY
+- optional nextDueDate
+- optional thingId
+
+The server assigns ownership from the authenticated session. If `thingId` is supplied, the referenced Thing must belong to the authenticated user.
 
 `GET /payments/{paymentId}`
 
 `PATCH /payments/{paymentId}`
 
 `POST /payments/{paymentId}/mark-paid`
+Marks the payment as paid and advances the next due date according to its recurring frequency.
 
 ## Documents
 

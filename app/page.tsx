@@ -2,17 +2,21 @@
 import {useEffect,useRef,useState} from "react";
 import {
   ApiReminder,
+  ApiPayment,
   ApiThing,
   ApiUser,
   completeOnboarding,
   completeReminder,
+  createPayment,
   createReminder,
   createThing,
   getCurrentUser,
+  getPayments,
   getReminders,
   getThings,
   loginAccount,
   logoutAccount,
+  markPaymentPaid,
   registerAccount,
   snoozeReminder,
 } from "./api-client";
@@ -55,12 +59,6 @@ function mapUser(user:ApiUser):Account{
 
 const initialAttention:AttentionItem[]=[];
 
-
-const payments=[
- ["Internet","€25","Every month · 15th","Today"],
- ["Spotify","€8","Every month · 3rd","27 days"],
- ["Car insurance","€120","Yearly","5 days"],
-] as const;
 
 const walkthroughSteps=[
  {
@@ -226,6 +224,34 @@ function proposalDueDate(due:string):string|null{
  return `${year}-${String(month+1).padStart(2,"0")}-${String(Number(match[2])).padStart(2,"0")}`;
 }
 
+function paymentDueLabel(nextDueDate:string|null){
+  if(!nextDueDate)return "No date";
+  const due=new Date(nextDueDate+"T00:00:00");
+  const today=new Date();
+  const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const tomorrow=new Date(start);
+  tomorrow.setDate(tomorrow.getDate()+1);
+  if(due.getTime()===start.getTime())return "Today";
+  if(due.getTime()===tomorrow.getTime())return "Tomorrow";
+  return due.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+}
+
+function paymentMonthlyEquivalent(payment:ApiPayment){
+  if(payment.frequency==="YEARLY")return payment.amount/12;
+  if(payment.frequency==="WEEKLY")return payment.amount*52/12;
+  return payment.amount;
+}
+
+function paymentFrequencyLabel(frequency:string){
+  if(frequency==="YEARLY")return "Every year";
+  if(frequency==="WEEKLY")return "Every week";
+  return "Every month";
+}
+
+function formatPaymentMoney(amount:number,currency:string){
+  return new Intl.NumberFormat("en-US",{style:"currency",currency,currencyDisplay:"symbol",maximumFractionDigits:2}).format(amount);
+}
+
 export default function App(){
  const [ready,setReady]=useState(false);
  const [account,setAccount]=useState<Account|null>(null);
@@ -234,6 +260,14 @@ export default function App(){
  const [modal,setModal]=useState(false);
  const [selected,setSelected]=useState<AttentionItem|null>(null);
  const [things,setThings]=useState<ApiThing[]>([]);
+ const [payments,setPayments]=useState<ApiPayment[]>([]);
+ const [paymentModal,setPaymentModal]=useState(false);
+ const [paymentName,setPaymentName]=useState("");
+ const [paymentType,setPaymentType]=useState("BILL");
+ const [paymentAmount,setPaymentAmount]=useState("");
+ const [paymentFrequency,setPaymentFrequency]=useState("MONTHLY");
+ const [paymentDueDate,setPaymentDueDate]=useState("");
+ const [paymentThingId,setPaymentThingId]=useState("");
  const [selectedThing,setSelectedThing]=useState<ApiThing|null>(null);
  const [thingModal,setThingModal]=useState(false);
  const [thingName,setThingName]=useState("");
@@ -246,6 +280,7 @@ export default function App(){
  const [quickProposal,setQuickProposal]=useState<QuickProposal|null>(null);
  const attentionMutationVersion=useRef(0);
  const thingMutationVersion=useRef(0);
+ const paymentMutationVersion=useRef(0);
  const [showWalkthrough,setShowWalkthrough]=useState(false),[saving,setSaving]=useState(false),[appError,setAppError]=useState("");
 
  useEffect(()=>{
@@ -272,6 +307,12 @@ export default function App(){
   getThings().then(data=>{if(requestVersion===thingMutationVersion.current)setThings(data.items);}).catch(()=>{});
  },[ready,account,showWalkthrough]);
 
+ useEffect(()=>{
+  if(!ready||!account||showWalkthrough)return;
+  const requestVersion=paymentMutationVersion.current;
+  getPayments().then(data=>{if(requestVersion===paymentMutationVersion.current)setPayments(data.items);}).catch(()=>{});
+ },[ready,account,showWalkthrough]);
+
  const toggleTheme=()=>{
   setTheme(current=>{
    const next=current==="dark"?"light":"dark";
@@ -289,6 +330,38 @@ export default function App(){
 
  const openThingModal=()=>{
   setThingName("");setThingType("Vehicle");setThingDetail("");setThingModal(true);
+ };
+
+ const openPaymentModal=(prefillName="")=>{
+  setPaymentName(prefillName);
+  setPaymentType("BILL");
+  setPaymentAmount("");
+  setPaymentFrequency("MONTHLY");
+  setPaymentDueDate("");
+  setPaymentThingId("");
+  setPaymentModal(true);
+ };
+
+ const savePayment=async()=>{
+  if(!paymentName.trim()){setAppError("Give this payment a name.");return;}
+  const amount=Number(paymentAmount);
+  if(!Number.isFinite(amount)||amount<=0){setAppError("Enter a valid amount.");return;}
+  setSaving(true);setAppError("");
+  try{
+   const created=await createPayment({
+    name:paymentName.trim(),
+    type:paymentType,
+    amount,
+    currency:"EUR",
+    frequency:paymentFrequency,
+    nextDueDate:paymentDueDate||null,
+    thingId:paymentThingId||null
+   });
+   paymentMutationVersion.current+=1;
+   setPayments(items=>[created,...items]);
+   setPaymentModal(false);
+  }catch(caught){setAppError(caught instanceof Error?caught.message:"Could not save this payment.");}
+  finally{setSaving(false);}
  };
 
  const saveThing=async()=>{
@@ -354,9 +427,11 @@ export default function App(){
 
     {section==="things"&&<><div className="intro"><div><p className="eyebrow">Things</p><h1>Your real life, organized</h1><p className="subtitle">Keep reminders, documents and payments connected to what they belong to.</p></div><button className="dark action" onClick={openThingModal}>+ Add thing</button></div><div className="toolbar"><div className="input">⌕<input value={q} onChange={event=>setQ(event.target.value)} placeholder="Search things..."/></div><small>{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).length} things</small></div>{things.length?<div className="thinggrid">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><button className="thing" key={x.id} onClick={()=>setSelectedThing(x)}><span className="thingicon">{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><strong>{x.name}</strong><small>{x.detail||x.type}</small><em>{x.openReminderCount?x.openReminderCount+" attention": "No attention"}</em></button>)}</div>:<div className="empty"><span>+</span><div><strong>Nothing here yet.</strong><small>Add the things you own or manage. Their reminders will stay connected to them.</small></div></div>}</>}
 
-    {section==="payments"&&<><div className="intro"><div><p className="eyebrow">Payments</p><h1>Know what leaves your account</h1><p className="subtitle">Recurring bills and subscriptions — without becoming a banking app.</p></div><button className="dark action" onClick={()=>openQuickAdd("Add a payment")}>+ Add payment</button></div><div className="stats">{[["Upcoming","€145","next 30 days"],["Recurring","€386","per month"],["Subscriptions","€47","per month"]].map(x=><div className="stat" key={x[0]}><small>{x[0]}</small><strong>{x[1]}</strong><span>{x[2]}</span></div>)}</div><section className="panel">{payments.map(x=><div className="pay" key={x[0]}><span className="square">€</span><div><strong>{x[0]}</strong><small>{x[2]}</small></div><b>{x[1]}</b><em className={x[3]==="Today"?"urgentpill":"pill"}>{x[3]}</em></div>)}</section></>}
-
-    {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><div><strong>{x.name}</strong><small>{x.detail||x.type}</small></div><em>Thing</em></div>)}{payments.filter(x=>x[0].toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x[0]}><span>€</span><div><strong>{x[0]}</strong><small>{x[1]} · {x[2]}</small></div><em>Payment</em></div>)}</section>}</>}
+    {section==="payments"&&<><div className="intro"><div><p className="eyebrow">Payments</p><h1>Know what leaves your account</h1><p className="subtitle">Recurring bills and subscriptions — without becoming a banking app.</p></div><button className="dark action" onClick={()=>openPaymentModal()}>+ Add payment</button></div>
+     {(()=>{const today=new Date();const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());const end=new Date(start);end.setDate(end.getDate()+30);const upcoming=payments.filter(x=>x.nextDueDate).filter(x=>{const d=new Date(x.nextDueDate+"T00:00:00");return d>=start&&d<=end}).reduce((sum,x)=>sum+x.amount,0);const recurring=payments.reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);const subscriptions=payments.filter(x=>x.type==="SUBSCRIPTION").reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);return <div className="stats"><div className="stat"><small>Upcoming</small><strong>{formatPaymentMoney(upcoming,"EUR")}</strong><span>next 30 days</span></div><div className="stat"><small>Recurring</small><strong>{formatPaymentMoney(recurring,"EUR")}</strong><span>per month equivalent</span></div><div className="stat"><small>Subscriptions</small><strong>{formatPaymentMoney(subscriptions,"EUR")}</strong><span>per month equivalent</span></div></div>})()}
+     <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>Mark paid</button></div>)}</>:<div className="empty"><span>€</span><div><strong>No recurring payments yet.</strong><small>Add bills, subscriptions or renewals so you know what is coming up.</small></div></div>}</section></>}
+     
+{section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><div><strong>{x.name}</strong><small>{x.detail||x.type}</small></div><em>Thing</em></div>)}{payments.filter(x=>x.name.toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>€</span><div><strong>{x.name}</strong><small>{formatPaymentMoney(x.amount,x.currency)} · {paymentFrequencyLabel(x.frequency)}</small></div><em>Payment</em></div>)}</section>}</>}
    </div>
   </section>
 
@@ -364,9 +439,11 @@ export default function App(){
 
   {thingModal&&<div className="backdrop" onClick={()=>setThingModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Things</p><h2>Add a thing</h2></div><button className="close" onClick={()=>setThingModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={thingName} onChange={event=>setThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={thingType} onChange={event=>setThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={thingDetail} onChange={event=>setThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThing()}>{saving?"Saving…":"Save thing"}</button><button className="text full" onClick={()=>setThingModal(false)}>Cancel</button></div></div>}
 
+  {paymentModal&&<div className="backdrop" onClick={()=>setPaymentModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Payments</p><h2>Add a recurring payment</h2></div><button className="close" onClick={()=>setPaymentModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={paymentName} onChange={event=>setPaymentName(event.target.value)} placeholder="e.g. Internet"/></label><label className="auth-field"><span>Type</span><select value={paymentType} onChange={event=>setPaymentType(event.target.value)}><option value="BILL">Bill</option><option value="SUBSCRIPTION">Subscription</option><option value="RENEWAL">Renewal</option></select></label><label className="auth-field"><span>Amount</span><input inputMode="decimal" type="number" min="0.01" step="0.01" value={paymentAmount} onChange={event=>setPaymentAmount(event.target.value)} placeholder="25.00"/></label><label className="auth-field"><span>Frequency</span><select value={paymentFrequency} onChange={event=>setPaymentFrequency(event.target.value)}><option value="MONTHLY">Every month</option><option value="YEARLY">Every year</option><option value="WEEKLY">Every week</option></select></label><label className="auth-field"><span>Next due date</span><input type="date" value={paymentDueDate} onChange={event=>setPaymentDueDate(event.target.value)}/></label><label className="auth-field"><span>Connected Thing</span><select value={paymentThingId} onChange={event=>setPaymentThingId(event.target.value)}><option value="">None</option>{things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}</select></label><button className="dark full" disabled={saving} onClick={()=>void savePayment()}>{saving?"Saving…":"Save payment"}</button><button className="text full" onClick={()=>setPaymentModal(false)}>Cancel</button></div></div>}
+ 
   {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowWalkthrough(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
 
-  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>Coming next</strong><span>Recurring costs</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14");}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
+  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14");}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
 
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
@@ -404,6 +481,19 @@ export default function App(){
    });
    thingMutationVersion.current+=1;
    setThings(items=>[created,...items]);
+  }else if(quickProposal.type==="Payment"){
+   const amountMatch=quickText.match(/€?\s*(\d+(?:[.,]\d{1,2})?)/);
+   setPaymentName(quickProposal.title==="New payment"?"":quickProposal.title);
+   setPaymentAmount(amountMatch?amountMatch[1].replace(",","."):"");
+   setPaymentFrequency("MONTHLY");
+   setPaymentDueDate(proposalDueDate(quickProposal.due)||"");
+   const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());
+   setPaymentThingId(linkedThing?.id??"");
+   setModal(false);
+   setQuickText("");
+   setQuickProposal(null);
+   setPaymentModal(true);
+   return;
   }else{
    attentionMutationVersion.current+=1;
    setAttention(items=>[{

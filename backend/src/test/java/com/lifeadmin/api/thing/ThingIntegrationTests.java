@@ -44,7 +44,8 @@ class ThingIntegrationTests {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Mazda 6"))
-                .andExpect(jsonPath("$.openReminderCount").value(0));
+                .andExpect(jsonPath("$.openReminderCount").value(0))
+                .andExpect(jsonPath("$.activePaymentCount").value(0));
 
         mockMvc.perform(get("/api/v1/things").session(sessionB))
                 .andExpect(status().isOk())

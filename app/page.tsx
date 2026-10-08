@@ -567,8 +567,8 @@ export default function App(){
    <header>
     <div className="mobilebrand">LIFE ADMIN<span>.</span></div>
     <button data-tour="search" className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button>
-    <button data-tour="theme" className="mobiletheme" onClick={toggleTheme aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button>
-    <button data-tour="account" className="mobileaccount" onClick={()=>setAccountSheet(true) aria-label="Open account">{account.name.slice(0,1).toUpperCase()}</button>
+    <button data-tour="theme" className="mobiletheme" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button>
+    <button data-tour="account" className="mobileaccount" onClick={()=>setAccountSheet(true)} aria-label="Open account">{account.name.slice(0,1).toUpperCase()}</button>
     <button data-tour="add" className="mobileplus" onClick={()=>openQuickAdd()}>+</button>
    </header>
 

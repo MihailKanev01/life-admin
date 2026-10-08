@@ -17,10 +17,15 @@ public class AuthService {
 
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetService passwordResetService;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UserRepository users,
+            PasswordEncoder passwordEncoder,
+            PasswordResetService passwordResetService) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
+        this.passwordResetService = passwordResetService;
     }
 
     @Transactional
@@ -63,6 +68,14 @@ public class AuthService {
         User user = getCurrentUser(principal);
         user.completeOnboarding();
         return user;
+    }
+
+    public void requestPasswordReset(String email) {
+        passwordResetService.request(email);
+    }
+
+    public void confirmPasswordReset(String token, String password) {
+        passwordResetService.confirm(token, password);
     }
 
     public UsernamePasswordAuthenticationToken authentication(User user) {

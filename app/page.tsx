@@ -253,7 +253,7 @@ function formatPaymentMoney(amount:number,currency:string){
 }
 
 export default function App(){
- const [ready,setReady]=useState(false);
+ const [ready,setReady]=useState(true);
  const [account,setAccount]=useState<Account|null>(null);
  const [section,setSection]=useState<Section>("home");
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);

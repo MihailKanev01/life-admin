@@ -289,7 +289,7 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
 }
 
 function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(account:Account)=>void;initialMode?:AuthMode}){
- const [mode,setMode]=useState<AuthMode>("create");
+ const [mode,setMode]=useState<AuthMode>(initialMode);
  const [name,setName]=useState("");
  const [email,setEmail]=useState("");
  const [password,setPassword]=useState("");

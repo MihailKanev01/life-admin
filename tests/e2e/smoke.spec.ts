@@ -121,7 +121,13 @@ test.describe("Life Admin prototype smoke", () => {
       await duplicatePage.getByLabel("Email address").fill(account.email);
       await duplicatePage.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
       await duplicatePage.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+      const authResponsePromise = duplicatePage.waitForResponse(response =>
+        response.request().method() === "POST" && response.url().includes("/api/v1/auth/")
+      );
       await duplicatePage.getByRole("button", { name: "Create account", exact: true }).click();
+      const authResponse = await authResponsePromise;
+      console.log("duplicate auth request", authResponse.request().method(), authResponse.url(), authResponse.status());
+      console.log("duplicate auth response", await authResponse.text());
 
       await expect(duplicatePage.locator(".auth-error")).toContainText("already exists");
       await expect(duplicatePage.locator(".auth-error")).toContainText("Forgot your password");

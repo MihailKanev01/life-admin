@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Life Admin prototype smoke", () => {
   test("shows the public landing and interactive preview", async ({ page }) => {
     await page.goto("/");
+    await expect(page).toHaveTitle("Life Admin — Your life admin, in one place");
     await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
     await expect(page.getByText("Frontend only · mock data")).toBeVisible();
 
@@ -21,10 +22,24 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.locator(".landing-window-nav").getByRole("button", { name: /Things/ }).click();
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Add thing", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
+    await expect(page.locator("textarea").last()).toHaveValue("Add a thing");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Thing", { exact: true }).last()).toBeVisible();
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+
     await page.locator(".landing-window-nav").getByRole("button", { name: /Payments/ }).click();
     await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Add payment", exact: true }).click();
+    await expect(page.locator("textarea").last()).toHaveValue("Add a payment");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Payment", { exact: true }).last()).toBeVisible();
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+
     await page.locator(".landing-window-nav").getByRole("button", { name: /Search/ }).click();
     await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Capture the thought. Keep the context. Act when it matters." })).toBeVisible();
 
     await page.locator(".landing-nav-cta").click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();

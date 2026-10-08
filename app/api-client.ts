@@ -1,6 +1,7 @@
 type ApiErrorShape={message?:string;detail?:string;error?:{message?:string}};
 
-const API_REQUEST_TIMEOUT_MS=10_000;
+const API_REQUEST_TIMEOUT_MS=30_000;
+const API_WARMUP_TIMEOUT_MS=180_000;
 
 async function fetchWithTimeout(input:RequestInfo|URL,init:RequestInit={},timeoutMs=API_REQUEST_TIMEOUT_MS){
  const controller=new AbortController();
@@ -10,6 +11,28 @@ async function fetchWithTimeout(input:RequestInfo|URL,init:RequestInit={},timeou
  }finally{
   window.clearTimeout(timeoutId);
  }
+}
+
+let apiWarmupPromise:Promise<void>|null=null;
+let apiWarmupSucceededAt=0;
+
+async function warmUpApi(){
+ const now=Date.now();
+ if(apiWarmupPromise)return apiWarmupPromise;
+ if(apiWarmupSucceededAt&&now-apiWarmupSucceededAt<5*60_000)return;
+ apiWarmupPromise=(async()=>{
+  try{
+   const response=await fetchWithTimeout("/api/v1/system/health",{
+    credentials:"include",
+    cache:"no-store",
+   },API_WARMUP_TIMEOUT_MS);
+   if(response.ok)apiWarmupSucceededAt=Date.now();
+  }catch{}
+  finally{
+   apiWarmupPromise=null;
+  }
+ })();
+ await apiWarmupPromise;
 }
 
 async function csrfToken():Promise<string>{
@@ -27,6 +50,7 @@ async function csrfToken():Promise<string>{
 }
 
 async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
+ await warmUpApi();
  const method=(init.method||"GET").toUpperCase();
  const headers=new Headers(init.headers);
  headers.set("Content-Type","application/json");

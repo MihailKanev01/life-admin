@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: life-admin-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    repo: https://github.com/MihailKanev01/life-admin
+    branch: feature/production-backend-hosting
+    autoDeployTrigger: checksPass
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/system/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: life-admin-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: life-admin-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: life-admin-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: life-admin-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: life-admin-db
+          property: password

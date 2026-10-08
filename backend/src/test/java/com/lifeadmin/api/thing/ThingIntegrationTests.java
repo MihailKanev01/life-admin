@@ -58,6 +58,65 @@ class ThingIntegrationTests {
     }
 
     @Test
+    void thingCanBeUpdatedAndDuplicateNameIsRejected() throws Exception {
+        MockHttpSession session = register(email("update-thing"), "User");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Old Car",
+                                  "type":"Vehicle",
+                                  "detail":"100,000 km"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = created.getResponse().getContentAsString()
+                .replaceAll(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+
+        mockMvc.perform(patch("/api/v1/things/" + id)
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"New Car",
+                                  "type":"Vehicle",
+                                  "detail":"120,000 km"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("New Car"))
+                .andExpect(jsonPath("$.detail").value("120,000 km"));
+
+        mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Other Car",
+                                  "type":"Vehicle",
+                                  "detail":"Test"
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(patch("/api/v1/things/" + id)
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Other Car",
+                                  "type":"Vehicle",
+                                  "detail":"120,000 km"
+                                }
+                                """))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void duplicateThingNamesAreRejectedPerUser() throws Exception {
         MockHttpSession session = register(email("duplicate-thing"), "User");
 

@@ -22,11 +22,17 @@ export async function createAccountAndFinishWalkthrough(
  await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
  await page.getByRole("button",{name:"Create account"}).click();
 
+ // Registration completes into the original 4-screen onboarding walkthrough.
+ // Wait for its first heading before interacting so the ProductTour cannot race it.
+ await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();
  for(let index=0;index<3;index++){
   await page.getByRole("button",{name:"Next",exact:true}).click();
  }
- await page.getByRole("button",{name:"Start using Life Admin"}).click();
+ await page.getByRole("button",{name:"Start using Life Admin",exact:true}).click();
  await expect(page.getByRole("heading",{name:"Good afternoon, "+account.name})).toBeVisible();
+
+ // ProductTour is a separate post-onboarding layer. Tests are interested in the dashboard,
+ // so close the tour explicitly after the dashboard is ready.
  const tourSkip=page.getByRole("button",{name:"Skip tour",exact:true});
  await expect(tourSkip).toBeVisible({timeout:10000});
  await tourSkip.click();

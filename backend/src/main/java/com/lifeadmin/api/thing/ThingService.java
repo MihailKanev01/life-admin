@@ -36,6 +36,21 @@ public class ThingService {
     }
 
     @Transactional
+    public Thing update(UserPrincipal principal, UUID id, ThingDtos.UpdateRequest request) {
+        Thing thing = get(principal, id);
+        String name = request.name().trim();
+        String type = request.type().trim();
+        String detail = request.detail() == null ? null : request.detail().trim();
+
+        if (things.existsByUserIdAndNameIgnoreCaseAndIdNot(principal.getId(), name, id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A thing with this name already exists");
+        }
+
+        thing.update(name, type, detail);
+        return thing;
+    }
+
+    @Transactional
     public Thing create(UserPrincipal principal, ThingDtos.CreateRequest request) {
         String name = request.name().trim();
         String type = request.type().trim();

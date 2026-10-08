@@ -59,6 +59,12 @@ public class Thing {
         updatedAt = Instant.now();
     }
 
+    public void update(String name, String type, String detail) {
+        this.name = name;
+        this.type = type;
+        this.detail = detail;
+    }
+
     public UUID getId() { return id; }
     public UUID getUserId() { return userId; }
     public String getName() { return name; }

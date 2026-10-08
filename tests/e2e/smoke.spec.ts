@@ -26,8 +26,8 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".landing-window-nav").getByRole("button", { name: /Search/ }).click();
     await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Create your account", exact: true }).first().click();
-    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.locator(".landing-nav-cta").click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
     await page.getByRole("button", { name: "Close", exact: true }).click();
   });
 

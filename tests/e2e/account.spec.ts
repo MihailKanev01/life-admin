@@ -8,12 +8,12 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
     await page.getByRole("button",{name:"Create your account"}).first().click();
-    await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
+    await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Create your account"})).toBeVisible();
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);
     await page.getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
     await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
-    await page.getByRole("button",{name:"Create account"}).click();
+    await page.locator(".auth-overlay").getByRole("button",{name:"Create account",exact:true}).click();
 
     await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();
     await page.getByRole("button",{name:"Next",exact:true}).click();

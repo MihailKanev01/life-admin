@@ -354,9 +354,9 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     );
 
     await expect(page.locator(".pay").filter({ hasText: "Monthly Bill" })).toContainText("Connected to a Thing");
-    await expect(page.getByText("Every month", { exact: true })).toBeVisible();
-    await expect(page.getByText("Every year", { exact: true })).toBeVisible();
-    await expect(page.getByText("Every week", { exact: true })).toBeVisible();
+    await expect(page.locator(".pay").filter({ hasText: "Monthly Bill" })).toContainText("Every month");
+    await expect(page.locator(".pay").filter({ hasText: "Yearly Subscription" })).toContainText("Every year");
+    await expect(page.locator(".pay").filter({ hasText: "Weekly Renewal" })).toContainText("Every week");
 
     const monthly = page.locator(".pay").filter({ hasText: "Monthly Bill" });
     await monthly.getByRole("button", { name: "Mark paid", exact: true }).click();
@@ -375,7 +375,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await createAccountAndFinishWalkthrough(page);
 
     const openQuick = async (textValue: string) => {
-      await page.getByRole("button", { name: /Quick add/i }).first().click();
+      await page.getByRole("button", { name: /\+(?: Quick add| Add)/i }).first().click();
       await page
         .getByPlaceholder("e.g. Car insurance expires June 14")
         .fill(textValue);

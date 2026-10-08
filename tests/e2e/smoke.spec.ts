@@ -2,6 +2,35 @@ import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough,makeTe
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
+  test("shows the public landing and interactive preview", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await expect(page.getByText("Frontend only · mock data")).toBeVisible();
+
+    await page.getByRole("button", { name: "Quick add", exact: true }).first().click();
+    await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
+    const previewInput = page.getByPlaceholder("e.g. Car insurance expires June 14");
+    await previewInput.fill("Car insurance expires December 14");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Reminder", { exact: true })).toBeVisible();
+    await expect(page.getByText("Mazda 6", { exact: true })).toBeVisible();
+    await expect(page.getByText("December 14", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+    await expect(page.getByRole("status")).toContainText("Saved to the demo preview.");
+
+    await page.getByRole("button", { name: "Things", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
+    await page.getByRole("button", { name: "Payments", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Create your account", exact: true }).first().click();
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+  });
+
   test("renders Home and opens Quick Add", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
 
@@ -91,6 +120,8 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.getByRole("button", { name: "Create your account" }).first().click();
     await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
     await page.getByRole("button", { name: "Already have an account? Sign in" }).click();

@@ -98,6 +98,7 @@ export type ApiThing={
  type:string;
  detail:string|null;
  openReminderCount:number;
+ activePaymentCount:number;
  createdAt:string;
 };
 

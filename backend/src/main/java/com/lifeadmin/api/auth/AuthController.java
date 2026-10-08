@@ -80,6 +80,21 @@ public class AuthController {
         return new AuthDtos.AuthResponse(authService.response(user));
     }
 
+    @PostMapping("/password-reset/request")
+    public AuthDtos.MessageResponse requestPasswordReset(
+            @Valid @RequestBody AuthDtos.PasswordResetRequest request) {
+        authService.requestPasswordReset(request.email());
+        return new AuthDtos.MessageResponse(
+                "If an account exists for that email, a password reset link will be sent.");
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public AuthDtos.MessageResponse confirmPasswordReset(
+            @Valid @RequestBody AuthDtos.PasswordResetConfirmRequest request) {
+        authService.confirmPasswordReset(request.token(), request.password());
+        return new AuthDtos.MessageResponse("Your password has been updated. You can now sign in.");
+    }
+
     @PostMapping("/logout")
     public void logout(HttpServletRequest request) {
         SecurityContextHolder.clearContext();

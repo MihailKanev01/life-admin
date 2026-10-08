@@ -193,6 +193,7 @@ function AccountGate({onAuthenticated}:{onAuthenticated:(account:Account)=>void}
 }
 function Walkthrough({account,onComplete}:{account:Account;onComplete:()=>void}){
  const [step,setStep]=useState(0);
+ const [direction,setDirection]=useState<"forward"|"back">("forward");
  const [busy,setBusy]=useState(false);
  const current=walkthroughSteps[step];
 
@@ -210,11 +211,13 @@ function Walkthrough({account,onComplete}:{account:Account;onComplete:()=>void})
   <div className="walkthrough-top"><div className="auth-brand">LIFE ADMIN<span>.</span></div><button className="text" disabled={busy} onClick={finish}>Skip walkthrough</button></div>
   <div className="walkthrough-card">
    <div className="walkthrough-progress">{walkthroughSteps.map((_,index)=><span key={index} className={index<=step?"done":""}/>)}</div>
-   <div className="walkthrough-visual-wrap">{current.visual}</div>
-   <div className="walkthrough-copy"><p className="eyebrow">{current.eyebrow}</p><h1>{current.title}</h1><p>{current.text}</p></div>
+   <div className="walkthrough-visual-wrap">
+    <div key={"visual-"+step} className={"walkthrough-step-content "+direction}>{current.visual}</div>
+   </div>
+   <div key={"copy-"+step} className={"walkthrough-copy walkthrough-step-content "+direction}><p className="eyebrow">{current.eyebrow}</p><h1>{current.title}</h1><p>{current.text}</p></div>
    <div className="walkthrough-actions">
-    {step>0?<button className="light action" disabled={busy} onClick={()=>setStep(step-1)}>Back</button>:<span/>}
-    {step<walkthroughSteps.length-1?<button className="dark action" disabled={busy} onClick={()=>setStep(step+1)}>Next</button>:<button className="dark action" disabled={busy} onClick={finish}>{busy?"Saving…":"Start using Life Admin"}</button>}
+    {step>0?<button className="light action" disabled={busy} onClick={()=>{setDirection("back");setStep(step-1)}}>Back</button>:<span/>}
+    {step<walkthroughSteps.length-1?<button className="dark action" disabled={busy} onClick={()=>{setDirection("forward");setStep(step+1)}}>Next</button>:<button className="dark action" disabled={busy} onClick={finish}>{busy?"Saving…":"Start using Life Admin"}</button>}
    </div>
   </div>
  </main>;
@@ -241,6 +244,7 @@ function getVisibleTourTarget(target:string):HTMLElement|null{
 
 function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void}){
  const [step,setStep]=useState(0);
+ const [direction,setDirection]=useState<"forward"|"back">("forward");
  const [targetRect,setTargetRect]=useState<{top:number;left:number;right:number;bottom:number;width:number;height:number}|null>(null);
  const [tooltipPosition,setTooltipPosition]=useState({top:120,left:24});
  const tooltipRef=useRef<HTMLDivElement|null>(null);
@@ -313,9 +317,13 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
    finish();
    return;
   }
+  setDirection("forward");
   setStep(value=>value+1);
  };
- const previous=()=>setStep(value=>Math.max(0,value-1));
+ const previous=()=>{
+  setDirection("back");
+  setStep(value=>Math.max(0,value-1));
+ };
 
  const focusCenterX=targetRect?(targetRect.left+targetRect.right)/2:window.innerWidth/2;
  const focusCenterY=targetRect?(targetRect.top+targetRect.bottom)/2:window.innerHeight/2;
@@ -355,6 +363,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
     <div>
      {step>0&&<button className="light tour-button" onClick={previous}>Back</button>}
      <button className="dark tour-button" onClick={next}>{step===productTourSteps.length-1?"Done":"Next"}</button>
+    </div>
     </div>
    </div>
   </div>

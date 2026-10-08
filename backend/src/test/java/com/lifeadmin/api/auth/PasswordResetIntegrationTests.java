@@ -123,10 +123,8 @@ class PasswordResetIntegrationTests {
     @TestConfiguration
     static class TestMailConfiguration {
 
-        @Bean
-        @Primary
         @Bean(name = "testPasswordResetEmailSender")
-        @org.springframework.context.annotation.Primary
+        @Primary
         CapturingPasswordResetEmailSender passwordResetEmailSender() {
             return new CapturingPasswordResetEmailSender();
         }

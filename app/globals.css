@@ -62,3 +62,4 @@ html[data-theme="dark"] .product-tour-focus{box-shadow:0 0 0 5px rgba(255,255,25
  .product-tour-actions{margin-top:15px}
  .tour-button{min-width:70px}
 }
+.auth-secondary{margin-top:-1px}.auth-notice{margin-top:12px;padding:11px 12px;border-radius:11px;background:#e9f0e9;color:var(--success);font-size:12px;line-height:1.5}html[data-theme="dark"] .auth-notice{background:#26342a}@media(max-width:700px){.auth-notice{font-size:11px}}

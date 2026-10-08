@@ -4,6 +4,7 @@ import {
   ApiReminder,
   ApiPayment,
   ApiThing,
+  ApiSearchResult,
   ApiUser,
   completeOnboarding,
   completeReminder,
@@ -19,6 +20,7 @@ import {
   markPaymentPaid,
   registerAccount,
   requestPasswordReset,
+  searchLife,
   snoozeReminder,
 } from "./api-client";
 
@@ -660,6 +662,8 @@ export default function App(){
  const [thingDetail,setThingDetail]=useState("");
  const [accountSheet,setAccountSheet]=useState(false);
  const [q,setQ]=useState("");
+ const [searchResults,setSearchResults]=useState<ApiSearchResult[]>([]);
+ const [searchLoading,setSearchLoading]=useState(false);
  const [theme,setTheme]=useState<Theme>("light");
  const [quickText,setQuickText]=useState("");
  const [quickProposal,setQuickProposal]=useState<QuickProposal|null>(null);
@@ -705,6 +709,39 @@ export default function App(){
   const requestVersion=paymentMutationVersion.current;
   getPayments().then(data=>{if(requestVersion===paymentMutationVersion.current)setPayments(data.items);}).catch(()=>{});
  },[ready,account,showWalkthrough]);
+ useEffect(()=>{
+  if(!ready||!account||showWalkthrough||section!=="search"){
+   setSearchResults([]);
+   setSearchLoading(false);
+   return;
+  }
+  const query=q.trim();
+  if(!query){
+   setSearchResults([]);
+   setSearchLoading(false);
+   return;
+  }
+
+  let active=true;
+  setSearchLoading(true);
+  const timer=window.setTimeout(()=>{
+   searchLife(query).then(data=>{
+    if(active)setSearchResults(data.items);
+   }).catch(caught=>{
+    if(active){
+     setSearchResults([]);
+     setAppError(caught instanceof Error?caught.message:"Could not search your Life Admin.");
+    }
+   }).finally(()=>{
+    if(active)setSearchLoading(false);
+   });
+  },250);
+
+  return ()=>{
+   active=false;
+   window.clearTimeout(timer);
+  };
+ },[ready,account,showWalkthrough,section,q]);
 
  const toggleTheme=()=>{
   setTheme(current=>{
@@ -838,7 +875,7 @@ export default function App(){
      {(()=>{const today=new Date();const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());const end=new Date(start);end.setDate(end.getDate()+30);const upcoming=payments.filter(x=>x.nextDueDate).filter(x=>{const d=new Date(x.nextDueDate+"T00:00:00");return d>=start&&d<=end}).reduce((sum,x)=>sum+x.amount,0);const recurring=payments.reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);const subscriptions=payments.filter(x=>x.type==="SUBSCRIPTION").reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);return <div className="stats"><div className="stat"><small>Upcoming</small><strong>{formatPaymentMoney(upcoming,"EUR")}</strong><span>next 30 days</span></div><div className="stat"><small>Recurring</small><strong>{formatPaymentMoney(recurring,"EUR")}</strong><span>per month equivalent</span></div><div className="stat"><small>Subscriptions</small><strong>{formatPaymentMoney(subscriptions,"EUR")}</strong><span>per month equivalent</span></div></div>})()}
      <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>Mark paid</button></div>)}</>:<div className="empty"><span>€</span><div><strong>No recurring payments yet.</strong><small>Add bills, subscriptions or renewals so you know what is coming up.</small></div></div>}</section></>}
      
-{section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><div><strong>{x.name}</strong><small>{x.detail||x.type}</small></div><em>Thing</em></div>)}{payments.filter(x=>x.name.toLowerCase().includes(q.toLowerCase())).map(x=><div className="result" key={x.id}><span>€</span><div><strong>{x.name}</strong><small>{formatPaymentMoney(x.amount,x.currency)} · {paymentFrequencyLabel(x.frequency)}</small></div><em>Payment</em></div>)}</section>}</>}
+{section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things, reminders and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{searchLoading?<div className="search-status">Searching your saved information…</div>:searchResults.length?searchResults.map(result=><div className="result" key={result.kind+":"+result.id}><span>{result.kind==="THING"?"◫":result.kind==="PAYMENT"?"€":"!"}</span><div><strong>{result.title}</strong><small>{result.subtitle}{result.dueDate?" · "+result.dueDate:""}</small></div><em>{result.kind[0]+result.kind.slice(1).toLowerCase()}</em></div>):<div className="empty"><span>⌕</span><div><strong>No matches found.</strong><small>Try another word or one of the suggested searches above.</small></div></div>}</section>}</>}
    </div>
   </section>
 

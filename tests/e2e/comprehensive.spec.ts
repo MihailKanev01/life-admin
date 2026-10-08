@@ -353,7 +353,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
       "2026-11-20",
     );
 
-    await expect(page.getByText("Connected to a Thing", { exact: true })).toBeVisible();
+    await expect(page.locator(".pay").filter({ hasText: "Monthly Bill" })).toContainText("Connected to a Thing");
     await expect(page.getByText("Every month", { exact: true })).toBeVisible();
     await expect(page.getByText("Every year", { exact: true })).toBeVisible();
     await expect(page.getByText("Every week", { exact: true })).toBeVisible();
@@ -361,6 +361,14 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     const monthly = page.locator(".pay").filter({ hasText: "Monthly Bill" });
     await monthly.getByRole("button", { name: "Mark paid", exact: true }).click();
     await expect(monthly).toContainText("Dec 12");
+
+    const yearly = page.locator(".pay").filter({ hasText: "Yearly Subscription" });
+    await yearly.getByRole("button", { name: "Mark paid", exact: true }).click();
+    await expect(yearly).toContainText("Dec 12");
+
+    const weekly = page.locator(".pay").filter({ hasText: "Weekly Renewal" });
+    await weekly.getByRole("button", { name: "Mark paid", exact: true }).click();
+    await expect(weekly).toContainText("Nov 27");
   });
 
   test("covers Quick Add proposal variants and Search chips", async ({ page }) => {

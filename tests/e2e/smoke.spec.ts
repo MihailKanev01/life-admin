@@ -249,7 +249,7 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
     await page.getByRole("button", { name: /Mazda 6 Daily/i }).click();
     await expect(page.getByRole("heading", { name: "Mazda 6 Daily" })).toBeVisible();
-    await expect(page.getByText("240,000 km", { exact: true })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy").filter({ hasText: "240,000 km" })).toBeVisible();
 
     await page.reload();
     await page.getByRole("button", { name: /Things/i }).first().click();

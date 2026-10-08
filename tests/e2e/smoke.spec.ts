@@ -32,12 +32,8 @@ test.describe("Life Admin prototype smoke", () => {
   test("shows an interactive product tour and can replay it", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
 
-    await page.evaluate(() => {
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith("life-admin-product-tour-")) localStorage.removeItem(key);
-      }
-    });
-    await page.reload();
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Replay walkthrough", exact: true }).click();
 
     await expect(page.getByRole("dialog", { name: "Home keeps you focused." })).toBeVisible();
     await expect(page.getByText("STEP 1 OF 7", { exact: true })).toBeVisible();

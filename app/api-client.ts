@@ -13,7 +13,13 @@ async function fetchWithTimeout(input:RequestInfo|URL,init:RequestInit={},timeou
 }
 
 async function csrfToken():Promise<string>{
- const response=await fetchWithTimeout("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"});
+ let response:Response;
+ try{
+  response=await fetchWithTimeout("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"});
+ }catch(caught){
+  if(caught instanceof DOMException&&caught.name==="AbortError")throw new Error("Authentication service is unavailable.");
+  throw caught;
+ }
  if(!response.ok)throw new Error("Authentication service is unavailable.");
  const data=await response.json() as {token?:string};
  if(!data.token)throw new Error("Could not initialize secure authentication.");

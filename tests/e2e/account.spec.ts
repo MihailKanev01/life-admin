@@ -43,6 +43,10 @@ test.describe("Life Admin account and onboarding",()=>{
     await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(accountB.password);
     await page.getByRole("button",{name:"Create account"}).click();
     await page.getByRole("button",{name:"Skip walkthrough"}).click();
+    const tourSkip=page.getByRole("button",{name:"Skip tour",exact:true});
+    await expect(tourSkip).toBeVisible({timeout:10000});
+    await tourSkip.click();
+    await expect(tourSkip).toHaveCount(0);
 
     await expect(page.getByRole("heading",{name:"Good afternoon, "+accountB.name})).toBeVisible();
     await expect(page.getByRole("button",{name:/Passport renewal/i})).toHaveCount(0);

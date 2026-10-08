@@ -6,9 +6,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.time.Duration;
 
-
 import com.lifeadmin.api.domain.User;
 import com.lifeadmin.api.security.UserPrincipal;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;

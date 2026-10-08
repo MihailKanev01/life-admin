@@ -6,6 +6,8 @@ test.describe("Life Admin account and onboarding",()=>{
     const account=makeTestAccount("Mihail Test");
     await page.goto("/");
 
+    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await page.getByRole("button",{name:"Create your account"}).first().click();
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);
@@ -35,6 +37,8 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await page.getByRole("button",{name:"Account"}).click();
     await page.getByRole("button",{name:"Sign out"}).click();
+    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await page.getByRole("button",{name:"Create your account"}).first().click();
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
 
     await page.getByLabel("Your name").fill(accountB.name);

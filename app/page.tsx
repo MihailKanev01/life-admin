@@ -159,7 +159,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
    <div className="landing-window-top">
     <div className="landing-window-brand">LIFE ADMIN<span>.</span></div>
     <div className="landing-window-search">⌕ <span>Search your life...</span></div>
-    <button className="landing-window-add" onClick={openQuickAdd}>+ Quick add</button>
+    <button className="landing-window-add" onClick={()=>openQuickAdd()}>+ Quick add</button>
    </div>
 
    <div className="landing-window-body">
@@ -176,11 +176,11 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      {section==="home"&&<div className="landing-preview-page">
       <div className="landing-preview-heading">
        <div><span>WEDNESDAY, 7 OCTOBER</span><h3>Good afternoon, Alex</h3><p>{saved?"1 thing needs your attention.":"You’re all caught up."}</p></div>
-       <button onClick={openQuickAdd}>+ Quick add</button>
+       <button onClick={()=>openQuickAdd()}>+ Quick add</button>
       </div>
       <div className="landing-preview-section-heading"><span>NEEDS ATTENTION</span><strong>{saved?"Take care of this first":"Nothing urgent"}</strong></div>
       {saved
-       ?<button className="landing-preview-row" onClick={openQuickAdd}><i/><span><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></span><b>›</b></button>
+       ?<button className="landing-preview-row" onClick={()=>openQuickAdd()}><i/><span><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></span><b>›</b></button>
        :<div className="landing-preview-empty"><span>✓</span><div><strong>You’re all caught up.</strong><small>Nothing important needs attention right now.</small></div></div>}
       <div className="landing-preview-columns">
        <div className="landing-preview-card"><span>COMING UP</span><strong>Next on your radar</strong><div><b>▱</b><span>TV warranty<small>24 days</small></span></div><div><b>↻</b><span>Car service<small>1,200 km</small></span></div></div>

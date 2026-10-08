@@ -989,7 +989,8 @@ export default function App(){
     amount:"",
     urgent:false,
     context:quickProposal.context,
-    dueDate:null
+    dueDate:null,
+    thingId:quickThingId
    },...items]);
   }
   setModal(false);

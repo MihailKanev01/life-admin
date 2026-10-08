@@ -1,4 +1,4 @@
-import {addReminder,addThing,createAccountAndFinishWalkthrough} from "./test-helpers";
+import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
@@ -53,16 +53,19 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Mazda 6/i })).toBeVisible();
 
-    await page.getByRole("button", { name: /Payments/i }).first().click();
+    await addPayment(page);
     await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
+    await expect(page.getByText("Internet", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Mark paid" }).click();
     await expect(page.getByText("Internet", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /Search your life/i }).click();
     await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
 
     const search = page.getByPlaceholder(/Try “car”/i);
-    await search.fill("insurance");
-    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+    await search.fill("internet");
+    await expect(page.getByText("Internet", { exact: true }).last()).toBeVisible();
   });
 
   test("opens a Thing and connects a reminder to it", async ({ page }) => {

@@ -82,6 +82,33 @@ class ThingIntegrationTests {
     }
 
     @Test
+    void sameThingNameIsAllowedAcrossUsers() throws Exception {
+        MockHttpSession sessionA = register(email("same-name-a"), "User A");
+        MockHttpSession sessionB = register(email("same-name-b"), "User B");
+
+        String body = """
+                {
+                  "name":"Mazda 6",
+                  "type":"Vehicle",
+                  "detail":"235,420 km"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(sessionA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(sessionB)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Mazda 6"));
+    }
+
+    @Test
     void reminderCanBeLinkedOnlyToOwnThing() throws Exception {
         MockHttpSession sessionA = register(email("thing-owner-a"), "Owner A");
         MockHttpSession sessionB = register(email("thing-owner-b"), "Owner B");

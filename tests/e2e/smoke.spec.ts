@@ -117,28 +117,11 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
-    const csrfState = await page.evaluate(async () => {
-      const response = await fetch("/api/v1/auth/csrf", { credentials: "include", cache: "no-store" });
-      const data = await response.json() as { token?: string };
-      const cookie = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)?.[1] ?? "";
-      return { responseStatus: response.status, tokenLength: data.token?.length ?? 0, cookieLength: cookie.length, matches: Boolean(data.token) && decodeURIComponent(cookie) === data.token };
-    });
-    const csrfCookies = (await page.context().cookies()).filter(cookie => cookie.name === "XSRF-TOKEN").map(cookie => ({
-      domain: cookie.domain, path: cookie.path, secure: cookie.secure, httpOnly: cookie.httpOnly, sameSite: cookie.sameSite, valueLength: cookie.value.length
-    }));
-    console.log("CSRF state after logout", csrfState, csrfCookies);
-
     await page.getByLabel("Your name").fill(account.name);
     await page.getByLabel("Email address").fill(account.email);
     await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
     await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
-    const registerResponsePromise = page.waitForResponse(response =>
-      response.url().includes("/api/v1/auth/register") &&
-      response.request().method() === "POST",
-    );
     await page.getByRole("button", { name: "Create account", exact: true }).click();
-    const registerResponse = await registerResponsePromise;
-    console.log("Duplicate registration response", registerResponse.status(), await registerResponse.text());
 
     await expect(page.locator(".auth-error")).toContainText("already exists");
     await expect(page.locator(".auth-error")).toContainText("Forgot your password");

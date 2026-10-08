@@ -852,7 +852,7 @@ export default function App(){
  setAppError("");
  try{
   if(quickProposal.type==="Reminder"){
-   const linkedThing=things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());
+   const linkedThing=quickThingId?things.find(item=>item.id===quickThingId):things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());
    const created=await createReminder({
     title:quickProposal.title,
     context:quickProposal.context,

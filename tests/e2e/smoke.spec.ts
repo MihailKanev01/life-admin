@@ -51,6 +51,8 @@ test.describe("Life Admin prototype smoke", () => {
 
     await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();
     await expect(page.getByText("Nothing urgent", { exact: true })).toBeVisible();
+    await expect(page.getByText("Nothing upcoming.", { exact: true })).toBeVisible();
+    await expect(page.getByText("No upcoming payments.", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /quick add/i }).first().click();
 
@@ -71,6 +73,10 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Car insurance" })).toBeVisible();
     await expect(page.locator(".sheet .modalcopy").filter({hasText:"Due Dec 14"})).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
+
+    const comingUpPanel = page.locator(".panel").filter({ hasText: "Next on your radar" });
+    await expect(comingUpPanel.getByText("Car insurance", { exact: true })).toBeVisible();
+    await expect(comingUpPanel.getByText(/Dec 14/i)).toBeVisible();
   });
 
   test("shows an interactive product tour and can replay it", async ({ page }) => {

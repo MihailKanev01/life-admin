@@ -47,7 +47,7 @@ async function csrfToken():Promise<string>{
  const data=await response.json() as {token?:string};
  if(!data.token)throw new Error("Could not initialize secure authentication.");
  const secure=window.location.protocol==="https:"?"; Secure":"";
- document.cookie="XSRF-TOKEN="+encodeURIComponent(data.token)+"; Path=/; SameSite=Strict"+secure;
+ document.cookie="XSRF-TOKEN="+data.token+"; Path=/; SameSite=Strict"+secure;
  return data.token;
 }
 

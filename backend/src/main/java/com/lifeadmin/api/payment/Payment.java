@@ -105,6 +105,23 @@ public class Payment {
     public Instant getLastPaidAt() { return lastPaidAt; }
     public Instant getCreatedAt() { return createdAt; }
 
+    public void update(
+            String name,
+            String type,
+            BigDecimal amount,
+            String currency,
+            String frequency,
+            LocalDate nextDueDate,
+            UUID thingId) {
+        this.name = name;
+        this.type = type;
+        this.amount = amount;
+        this.currency = currency;
+        this.frequency = frequency;
+        this.nextDueDate = nextDueDate;
+        this.thingId = thingId;
+    }
+
     public void markPaid() {
         lastPaidAt = Instant.now();
         if (nextDueDate != null) {

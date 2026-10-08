@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.time.Duration;
+
 
 import com.lifeadmin.api.domain.User;
 import com.lifeadmin.api.security.UserPrincipal;
@@ -96,12 +98,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletRequest request) {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         SecurityContextHolder.clearContext();
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
+
+        ResponseCookie clearedCsrf = ResponseCookie.from("XSRF-TOKEN", "")
+                .maxAge(Duration.ZERO)
+                .path("/")
+                .sameSite("Strict")
+                .httpOnly(false)
+                .secure(request.isSecure())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, clearedCsrf.toString());
     }
 
     private void establishAuthentication(

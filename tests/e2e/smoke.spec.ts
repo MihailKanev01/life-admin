@@ -132,7 +132,7 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Car insurance renewal" })).toBeVisible();
     await expect(page.locator(".sheet .modalcopy")).toContainText("Dec 20");
 
-    await page.getByRole("button", { name: "Reschedule to tomorrow", exact: true }).click();
+    await page.getByRole("button", { name: "Snooze until tomorrow", exact: true }).click();
     await expect(page.getByRole("button", { name: /Car insurance renewal/i })).toContainText("Tomorrow");
   });
 

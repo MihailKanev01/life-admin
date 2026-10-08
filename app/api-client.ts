@@ -236,3 +236,20 @@ export async function createPayment(payload:{
 export async function markPaymentPaid(id:string){
  return apiRequest<ApiPayment>("/payments/"+id+"/mark-paid",{method:"POST"});
 }
+
+
+export type ApiSearchResult={
+ id:string;
+ kind:"THING"|"REMINDER"|"PAYMENT"|string;
+ title:string;
+ subtitle:string;
+ thingId:string|null;
+ dueDate:string|null;
+ createdAt:string;
+};
+
+export type ApiSearchResponse={items:ApiSearchResult[]};
+
+export async function searchLife(query:string){
+ return apiRequest<ApiSearchResponse>("/search?q="+encodeURIComponent(query.trim()));
+}

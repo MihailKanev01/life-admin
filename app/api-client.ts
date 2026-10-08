@@ -149,6 +149,7 @@ export type ApiReminder={
  id:string;
  title:string;
  context:string;
+ thingId:string|null;
  dueDate:string|null;
  status:string;
  createdAt:string;

@@ -47,6 +47,7 @@ type AttentionItem={
  urgent:boolean;
  context:string;
  dueDate:string|null;
+ thingId:string|null;
 };
 
 type QuickProposal={type:"Reminder"|"Thing"|"Payment"|"Document";title:string;context:string;due:string};
@@ -594,6 +595,7 @@ function reminderAttention(reminder:ApiReminder):AttentionItem{
   urgent:reminder.dueDate===new Date().toISOString().slice(0,10),
   context:reminder.context,
   dueDate:reminder.dueDate,
+  thingId:reminder.thingId,
  };
 }
 
@@ -788,7 +790,7 @@ export default function App(){
     title:reminderTitle.trim(),
     context:reminderContext.trim(),
     dueDate:reminderDueDate||null,
-    thingId:null,
+    thingId:reminderEdit.thingId,
    });
    attentionMutationVersion.current+=1;
    setAttention(items=>items.map(item=>item.id===updated.id?reminderAttention(updated):item));

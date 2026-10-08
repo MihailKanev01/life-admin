@@ -79,10 +79,10 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
    message=error.message||error.detail||error.error?.message||message;
   }catch{}
 
-  if(message==="Something went wrong."){
-   if(response.status===409){
-    message="An account with this email already exists. Sign in or use Forgot your password.";
-   }else if(response.status===401){
+  if(response.status===409){
+   message="An account with this email already exists. Sign in or use Forgot your password.";
+  }else if(message==="Something went wrong."){
+   if(response.status===401){
     message="Invalid email or password.";
    }else if(response.status===403){
     message="The security check failed. Please refresh the page and try again.";

@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import "./globals.css";
 
-export const metadata:Metadata={title:"Life Admin — Prototype",description:"Web-first Life Admin clickable prototype"};
+export const metadata:Metadata={title:"Life Admin — Your life admin, in one place",description:"A calm workspace for the things you manage, the payments you make and the reminders that need your attention."};
 
 const themeScript=`try {
   const saved=localStorage.getItem("life-admin-theme");

@@ -104,7 +104,191 @@ function buildQuickProposal(text:string):QuickProposal{
  return {type:"Reminder",title:normalized||"New reminder",context:"Personal",due};
 }
 
-function AccountGate({onAuthenticated}:{onAuthenticated:(account:Account)=>void}){
+type LandingPreviewSection="home"|"things"|"payments"|"search";
+
+function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
+ const [section,setSection]=useState<LandingPreviewSection>("home");
+ const [quickOpen,setQuickOpen]=useState(false);
+ const [quickText,setQuickText]=useState("Car insurance expires December 14");
+ const [proposal,setProposal]=useState<QuickProposal|null>(null);
+ const [saved,setSaved]=useState(false);
+
+ const openQuickAdd=()=>{
+  setSection("home");
+  setQuickOpen(true);
+  setProposal(null);
+  setSaved(false);
+  onTryQuickAdd?.();
+ };
+
+ const review=()=>{
+  if(!quickText.trim())return;
+  setProposal(buildQuickProposal(quickText));
+ };
+
+ const save=()=>{
+  setSaved(true);
+  setQuickOpen(false);
+  setProposal(null);
+ };
+
+ const resetPreview=()=>{
+  setQuickText("Car insurance expires December 14");
+  setProposal(null);
+  setSaved(false);
+ };
+
+ const tabs=[
+  ["home","Home"],
+  ["things","Things"],
+  ["payments","Payments"],
+  ["search","Search"],
+ ] as const;
+
+ return <section className="landing-demo" aria-label="Interactive Life Admin preview">
+  <div className="landing-demo-top">
+   <div>
+    <span className="landing-demo-kicker">LIVE PRODUCT PREVIEW</span>
+    <strong>Explore the workspace</strong>
+   </div>
+   <span className="landing-demo-badge">Frontend only · mock data</span>
+  </div>
+
+  <div className="landing-window">
+   <div className="landing-window-top">
+    <div className="landing-window-brand">LIFE ADMIN<span>.</span></div>
+    <div className="landing-window-search">⌕ <span>Search your life...</span></div>
+    <button className="landing-window-add" onClick={openQuickAdd}>+ Quick add</button>
+   </div>
+
+   <div className="landing-window-body">
+    <nav className="landing-window-nav" aria-label="Preview sections">
+     {tabs.map(([key,label])=><button
+      key={key}
+      className={section===key?"active":""}
+      aria-pressed={section===key}
+      onClick={()=>setSection(key)}
+     >{key==="home"?"⌂":key==="things"?"◫":key==="payments"?"€":"⌕"} {label}</button>)}
+    </nav>
+
+    <div className="landing-window-content">
+     {section==="home"&&<div className="landing-preview-page">
+      <div className="landing-preview-heading">
+       <div><span>WEDNESDAY, 7 OCTOBER</span><h3>Good afternoon, Alex</h3><p>{saved?"1 thing needs your attention.":"You’re all caught up."}</p></div>
+       <button onClick={openQuickAdd}>+ Quick add</button>
+      </div>
+      <div className="landing-preview-section-heading"><span>NEEDS ATTENTION</span><strong>{saved?"Take care of this first":"Nothing urgent"}</strong></div>
+      {saved
+       ?<button className="landing-preview-row" onClick={openQuickAdd}><i/><span><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></span><b>›</b></button>
+       :<div className="landing-preview-empty"><span>✓</span><div><strong>You’re all caught up.</strong><small>Nothing important needs attention right now.</small></div></div>}
+      <div className="landing-preview-columns">
+       <div className="landing-preview-card"><span>COMING UP</span><strong>Next on your radar</strong><div><b>▱</b><span>TV warranty<small>24 days</small></span></div><div><b>↻</b><span>Car service<small>1,200 km</small></span></div></div>
+       <div className="landing-preview-card"><span>WAITING</span><strong>Not in your hands</strong><div><b>□</b><span>Amazon return<small>Tomorrow</small></span></div></div>
+      </div>
+     </div>}
+
+     {section==="things"&&<div className="landing-preview-page">
+      <div className="landing-preview-heading"><div><span>THINGS</span><h3>Your real life, organized</h3><p>Keep reminders and payments connected to what they belong to.</p></div><button>+ Add thing</button></div>
+      <div className="landing-preview-grid">
+       {[
+        ["🚗","Mazda 6","235,420 km","1 attention"],
+        ["⌂","Home","Primary home","No attention"],
+        ["◉","Laptop","MacBook Pro","No attention"],
+       ].map(([icon,name,detail,status])=><div className="landing-preview-thing" key={name}><b>{icon}</b><strong>{name}</strong><small>{detail}</small><em>{status}</em></div>)}
+      </div>
+     </div>}
+
+     {section==="payments"&&<div className="landing-preview-page">
+      <div className="landing-preview-heading"><div><span>PAYMENTS</span><h3>Know what leaves your account</h3><p>Recurring bills and subscriptions, without becoming a banking app.</p></div><button>+ Add payment</button></div>
+      <div className="landing-payment-list">
+       {[
+        ["Internet","€25.00","Every month","Oct 12"],
+        ["Netflix","€14.99","Every month","Oct 18"],
+        ["Car insurance","€480.00","Every year","Dec 14"],
+       ].map(([name,amount,frequency,due])=><div className="landing-payment-row" key={name}><span><strong>{name}</strong><small>{frequency} · due {due}</small></span><b>{amount}</b></div>)}
+      </div>
+     </div>}
+
+     {section==="search"&&<div className="landing-preview-page">
+      <div className="landing-search-heading"><span>SEARCH</span><h3>Find anything you saved</h3><p>Search across your things, reminders and payments from one place.</p></div>
+      <div className="landing-search-box">⌕ <span>car</span></div>
+      <div className="landing-search-results">
+       <div><i>Reminder</i><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></div>
+       <div><i>Thing</i><strong>Mazda 6</strong><small>235,420 km · Vehicle</small></div>
+       <div><i>Payment</i><strong>Car insurance</strong><small>€480.00 · Every year</small></div>
+      </div>
+     </div>}
+    </div>
+   </div>
+  </div>
+
+  {saved&&<div className="landing-demo-saved" role="status"><span>✓</span><div><strong>Saved to the demo preview.</strong><small>Nothing was sent to a server or account.</small></div><button onClick={resetPreview}>Try again</button></div>}
+
+  {quickOpen&&<div className="landing-quick-backdrop" onClick={()=>setQuickOpen(false)}>
+   <div className="landing-quick-card" onClick={event=>event.stopPropagation()}>
+    <div className="landing-quick-top"><div><span>QUICK ADD</span><h3>What do you want to remember?</h3></div><button aria-label="Close preview" onClick={()=>setQuickOpen(false)}>×</button></div>
+    <textarea value={quickText} onChange={event=>{setQuickText(event.target.value);setProposal(null)}} placeholder="e.g. Car insurance expires June 14"/>
+    <div className="landing-quick-hint"><b>✦</b><span>{proposal?"Review before saving":"We’ll organize it for you."}<small>{proposal?"Nothing is saved until you confirm.":"Type, context and date are proposed before anything is saved."}</small></span></div>
+    {proposal&&<div className="landing-quick-proposal">
+     <div><small>TYPE</small><strong>{proposal.type}</strong></div>
+     <div><small>CONTEXT</small><strong>{proposal.context}</strong></div>
+     <div><small>WHEN</small><strong>{proposal.due}</strong></div>
+     <div><small>SAVE AS</small><strong>{proposal.title}</strong></div>
+    </div>}
+    <button className="dark full" disabled={!quickText.trim()} onClick={proposal?save:review}>{proposal?"Save to Life Admin":"Review details"}</button>
+   </div>
+  </div>}
+ </section>;
+}
+
+function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
+ const openPreview=()=>{
+  window.setTimeout(()=>document.getElementById("landing-preview")?.scrollIntoView({behavior:"smooth",block:"center"}),0);
+ };
+
+ return <main className="landing-page">
+  <header className="landing-nav">
+   <div className="landing-brand">LIFE ADMIN<span>.</span></div>
+   <nav>
+    <button className="landing-nav-link" onClick={()=>onOpenAuth("login")}>Sign in</button>
+    <button className="dark landing-nav-cta" onClick={()=>onOpenAuth("create")}>Create account</button>
+   </nav>
+  </header>
+
+  <section className="landing-hero">
+   <div className="landing-hero-copy">
+    <p className="eyebrow">YOUR LIFE, WITHOUT THE MENTAL LOAD</p>
+    <h1>Keep the real-world admin of your life in one place.</h1>
+    <p className="landing-lead">Life Admin brings together the things you manage, the payments you make and the reminders that need your attention — so you can stop carrying all of it in your head.</p>
+    <div className="landing-actions">
+     <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
+     <button className="light landing-secondary" onClick={openPreview}>See how it works</button>
+    </div>
+    <div className="landing-note"><span>✓</span><span>Start with your own workspace. The preview below uses mock data only.</span></div>
+   </div>
+
+   <div id="landing-preview"><LandingPreview/></div>
+  </section>
+
+  <section className="landing-value">
+   <div className="landing-value-heading"><p className="eyebrow">BUILT AROUND REAL LIFE</p><h2>Less remembering. More knowing what matters.</h2></div>
+   <div className="landing-value-grid">
+    <article><span>01</span><strong>Things stay connected</strong><p>Your car, home and devices can have their own reminders and recurring costs, instead of scattered notes.</p></article>
+    <article><span>02</span><strong>Quick Add starts naturally</strong><p>Write something the way you normally would. Life Admin proposes the details before you confirm them.</p></article>
+    <article><span>03</span><strong>Attention comes first</strong><p>Home gives you a simple view of what needs action, what is coming up and what you’re waiting on.</p></article>
+   </div>
+  </section>
+
+  <section className="landing-bottom-cta">
+   <div><p className="eyebrow">READY WHEN YOU ARE</p><h2>Give your life admin a home.</h2><p>Set up your workspace once. Then keep the details that matter close when you need them.</p></div>
+   <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
+  </section>
+
+  <footer className="landing-footer"><span>LIFE ADMIN.</span><span>Your personal life admin workspace.</span></footer>
+ </main>;
+}
+
+function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(account:Account)=>void;initialMode?:AuthMode}){
  const [mode,setMode]=useState<AuthMode>("create");
  const [name,setName]=useState("");
  const [email,setEmail]=useState("");
@@ -440,6 +624,8 @@ function formatPaymentMoney(amount:number,currency:string){
 export default function App(){
  const [ready,setReady]=useState(true);
  const [account,setAccount]=useState<Account|null>(null);
+ const [showAuth,setShowAuth]=useState(false);
+ const [authMode,setAuthMode]=useState<AuthMode>("create");
  const [section,setSection]=useState<Section>("home");
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);
  const [modal,setModal]=useState(false);
@@ -571,6 +757,7 @@ export default function App(){
  const authenticate=(nextAccount:Account)=>{
   initialSessionProbeActive.current=false;
   setAccount(nextAccount);
+  setShowAuth(false);
   setAttention([]);
   setShowWalkthrough(!nextAccount.onboardingComplete);
   setShowProductTour(false);
@@ -586,6 +773,7 @@ export default function App(){
   try{await logoutAccount();}catch{}
   initialSessionProbeActive.current=false;
   setAccount(null);
+  setShowAuth(false);
   setShowProductTour(false);
   setAccountSheet(false);
   setSection("home");
@@ -593,7 +781,13 @@ export default function App(){
  };
 
  if(!ready)return <main className="auth-shell"><div className="auth-loading">Loading your workspace…</div></main>;
- if(!account)return <AccountGate onAuthenticated={authenticate}/>;
+ if(!account)return <>
+  <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}}/>
+  {showAuth&&<div className="auth-overlay" role="dialog" aria-modal="true" aria-label={authMode==="login"?"Sign in":"Create account"}>
+   <button className="auth-overlay-close" aria-label="Close" onClick={()=>setShowAuth(false)}>×</button>
+   <AccountGate key={authMode} initialMode={authMode} onAuthenticated={authenticate}/>
+  </div>}
+ </>;
  if(showWalkthrough)return <Walkthrough account={account} onComplete={finishWalkthrough}/>;
 
  return <main className="shell">

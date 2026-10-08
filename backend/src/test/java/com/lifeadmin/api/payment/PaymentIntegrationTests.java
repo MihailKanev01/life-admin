@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -115,7 +114,7 @@ class PaymentIntegrationTests {
                                   "nextDueDate":"2026-10-15",
                                   "thingId":%s
                                 }
-                                """.formatted(thingId == null ? "null" : """ + thingId + """)))
+                                """.formatted(thingId == null ? "null" : "\"" + thingId + "\"")))
                 .andExpect(status().isOk());
     }
 

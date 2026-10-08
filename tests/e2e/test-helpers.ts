@@ -28,11 +28,9 @@ export async function createAccountAndFinishWalkthrough(
  await page.getByRole("button",{name:"Start using Life Admin"}).click();
  await expect(page.getByRole("heading",{name:"Good afternoon, "+account.name})).toBeVisible();
  const tourSkip=page.getByRole("button",{name:"Skip tour",exact:true});
- try{
-  await tourSkip.waitFor({state:"visible",timeout:5000});
-  await tourSkip.click();
-  await expect(tourSkip).toHaveCount(0);
- }catch{}
+ await expect(tourSkip).toBeVisible({timeout:10000});
+ await tourSkip.click();
+ await expect(tourSkip).toHaveCount(0);
  return account;
 }
 

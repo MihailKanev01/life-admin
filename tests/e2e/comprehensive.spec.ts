@@ -399,11 +399,13 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await page.getByLabel("Name").fill("Quick Payment");
     await page.getByLabel("Amount").fill("19.99");
     await page.getByRole("button", { name: "Save payment", exact: true }).click();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
     await expect(page.getByText("Quick Payment", { exact: true })).toBeVisible();
 
     await openQuick("Add a document");
     await expect(page.getByText("Document", { exact: true }).last()).toBeVisible();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
+    await page.getByRole("button", { name: /Home/i }).first().click();
     await expect(page.getByRole("button", { name: /New document/i })).toBeVisible();
 
     await openQuick("Car service due November 21");

@@ -29,6 +29,34 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Close" }).click();
   });
 
+  test("shows an interactive product tour and can replay it", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("life-admin-product-tour-")) localStorage.removeItem(key);
+      }
+    });
+    await page.reload();
+
+    await expect(page.getByRole("dialog", { name: "Home keeps you focused." })).toBeVisible();
+    await expect(page.getByText("STEP 1 OF 7", { exact: true })).toBeVisible();
+    await expect(page.locator(".product-tour-focus")).toBeVisible();
+    await expect(page.locator(".product-tour-arrow")).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Quick Add is the fastest way in." })).toBeVisible();
+    await expect(page.getByText("STEP 2 OF 7", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Skip tour", exact: true }).click();
+    await expect(page.locator(".product-tour")).toHaveCount(0);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Replay walkthrough", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Home keeps you focused." })).toBeVisible();
+    await page.getByRole("button", { name: "Skip tour", exact: true }).click();
+  });
+
   test("completes and snoozes attention items", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addReminder(page,"Internet payment due October 7");

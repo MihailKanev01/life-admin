@@ -27,6 +27,8 @@ export async function createAccountAndFinishWalkthrough(
  }
  await page.getByRole("button",{name:"Start using Life Admin"}).click();
  await expect(page.getByRole("heading",{name:"Good afternoon, "+account.name})).toBeVisible();
+ const tourSkip=page.getByRole("button",{name:"Skip tour",exact:true});
+ if(await tourSkip.count())await tourSkip.click();
  return account;
 }
 

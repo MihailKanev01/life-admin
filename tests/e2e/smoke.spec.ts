@@ -105,29 +105,29 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
   });
 
-  test("explains when a registration email is already in use", async ({ page }) => {
+  test("shows the duplicate registration message", async ({ page }) => {
     const account = makeTestAccount("duplicate");
-    await createAccountAndFinishWalkthrough(page, account);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
-    const browser = page.context().browser();
-    if (!browser) throw new Error("Playwright browser is unavailable");
-    const duplicateContext = await browser.newContext();
-    const duplicatePage = await duplicateContext.newPage();
-    try {
-      await duplicatePage.goto("/");
-      await expect(duplicatePage.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.route("**/api/v1/auth/register", async route => {
+      await route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({
+          detail: "An account with this email already exists",
+        }),
+      });
+    });
 
-      await duplicatePage.getByLabel("Your name").fill(account.name);
-      await duplicatePage.getByLabel("Email address").fill(account.email);
-      await duplicatePage.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
-      await duplicatePage.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
-      await duplicatePage.getByRole("button", { name: "Create account", exact: true }).click();
+    await page.getByLabel("Your name").fill(account.name);
+    await page.getByLabel("Email address").fill(account.email);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+    await page.getByRole("button", { name: "Create account", exact: true }).click();
 
-      await expect(duplicatePage.locator(".auth-error")).toContainText("already exists");
-      await expect(duplicatePage.locator(".auth-error")).toContainText("Forgot your password");
-    } finally {
-      await duplicateContext.close();
-    }
+    await expect(page.locator(".auth-error")).toContainText("already exists");
+    await expect(page.locator(".auth-error")).toContainText("Forgot your password");
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {

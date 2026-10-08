@@ -396,6 +396,7 @@ function formatPaymentMoney(amount:number,currency:string){
 export default function App(){
  const [ready,setReady]=useState(true);
  const [account,setAccount]=useState<Account|null>(null);
+ const productTourCheckedForAccount=useRef<string|null>(null);
  const [section,setSection]=useState<Section>("home");
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);
  const [modal,setModal]=useState(false);
@@ -443,6 +444,8 @@ export default function App(){
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
+  if(productTourCheckedForAccount.current===account.id)return;
+  productTourCheckedForAccount.current=account.id;
   const key="life-admin-product-tour-"+account.id+"-v1";
   setShowProductTour(window.localStorage.getItem(key)!=="1");
  },[ready,account,showWalkthrough]);
@@ -541,6 +544,7 @@ export default function App(){
  const signOut=async()=>{
   try{await logoutAccount();}catch{}
   setAccount(null);
+  productTourCheckedForAccount.current=null;
   setShowProductTour(false);
   setAccountSheet(false);
   setSection("home");

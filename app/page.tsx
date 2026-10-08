@@ -424,6 +424,6 @@ export default function App(){
  }finally{
   setSaving(false);
  }
-}}}>{quickProposal?(saving?"Saving…":"Save to Life Admin"):"Review details"}</button></div></div>}
+}}>{quickProposal?(saving?"Saving…":"Save to Life Admin"):"Review details"}</button></div></div>}
  </main>;
 }

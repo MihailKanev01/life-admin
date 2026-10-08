@@ -423,6 +423,7 @@ export default function App(){
  const thingMutationVersion=useRef(0);
  const paymentMutationVersion=useRef(0);
  const [showWalkthrough,setShowWalkthrough]=useState(false),[showProductTour,setShowProductTour]=useState(false),[saving,setSaving]=useState(false),[appError,setAppError]=useState("");
+ const initialSessionProbeActive=useRef(true);
 
  useEffect(()=>{
   const saved=window.localStorage.getItem("life-admin-theme") as Theme|null;
@@ -435,6 +436,7 @@ export default function App(){
   setReady(true);
 
   getCurrentUser().then(({user})=>{
+   if(!initialSessionProbeActive.current)return;
    const current=mapUser(user);
    setAccount(current);
    setShowWalkthrough(!current.onboardingComplete);
@@ -528,6 +530,7 @@ export default function App(){
  };
 
  const authenticate=(nextAccount:Account)=>{
+  initialSessionProbeActive.current=false;
   setAccount(nextAccount);
   setAttention([]);
   setShowWalkthrough(!nextAccount.onboardingComplete);
@@ -550,6 +553,7 @@ export default function App(){
 
  const signOut=async()=>{
   try{await logoutAccount();}catch{}
+  initialSessionProbeActive.current=false;
   setAccount(null);
   setShowProductTour(false);
   setAccountSheet(false);

@@ -19,11 +19,11 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("Saved to the demo preview.");
 
-    await page.locator(".landing-window-nav").getByRole("button", { name: "Things", exact: true }).click();
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Things/ }).click();
     await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
-    await page.locator(".landing-window-nav").getByRole("button", { name: "Payments", exact: true }).click();
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Payments/ }).click();
     await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
-    await page.locator(".landing-window-nav").getByRole("button", { name: "Search", exact: true }).click();
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Search/ }).click();
     await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
 
     await page.getByRole("button", { name: "Create your account", exact: true }).first().click();
@@ -141,7 +141,7 @@ test.describe("Life Admin prototype smoke", () => {
     const account = makeTestAccount("duplicate");
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
-    await page.getByRole("button", { name: "Create your account", exact: true }).first().click();
+    await page.getByRole("button", { name: "Create account", exact: true }).first().click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
 
     await page.route("**/api/v1/auth/*", async route => {

@@ -14,12 +14,12 @@ test.describe("Password reset",()=>{
   await page.getByLabel("New password").fill("short");
   await page.getByLabel("Confirm password").fill("short");
   await page.getByRole("button",{name:"Update password"}).click();
-  await expect(page.getByRole("alert")).toContainText("at least 12 characters");
+  await expect(page.locator(".auth-error")).toContainText("at least 12 characters");
 
   await page.getByLabel("New password").fill("LifeAdmin-Test-2026!");
   await page.getByLabel("Confirm password").fill("LifeAdmin-Test-2025!");
   await page.getByRole("button",{name:"Update password"}).click();
-  await expect(page.getByRole("alert")).toContainText("Passwords do not match");
+  await expect(page.locator(".auth-error")).toContainText("Passwords do not match");
  });
 
  test("submits the token and new password and shows success",async({page})=>{
@@ -58,7 +58,7 @@ test.describe("Password reset",()=>{
   await page.getByLabel("Confirm password").fill("LifeAdmin-Reset-2026!");
   await page.getByRole("button",{name:"Update password"}).click();
 
-  await expect(page.getByRole("alert")).toContainText("invalid or has expired");
+  await expect(page.locator(".auth-error")).toContainText("invalid or has expired");
   await expect(page.getByRole("heading",{name:"Choose a new password"})).toBeVisible();
  });
 });

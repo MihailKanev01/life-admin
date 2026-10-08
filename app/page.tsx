@@ -113,9 +113,10 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
  const [proposal,setProposal]=useState<QuickProposal|null>(null);
  const [saved,setSaved]=useState(false);
 
- const openQuickAdd=()=>{
+ const openQuickAdd=(seed?:string)=>{
   setSection("home");
   setQuickOpen(true);
+  setQuickText(seed||"Car insurance expires December 14");
   setProposal(null);
   setSaved(false);
   onTryQuickAdd?.();
@@ -188,7 +189,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      </div>}
 
      {section==="things"&&<div className="landing-preview-page">
-      <div className="landing-preview-heading"><div><span>THINGS</span><h3>Your real life, organized</h3><p>Keep reminders and payments connected to what they belong to.</p></div><button>+ Add thing</button></div>
+      <div className="landing-preview-heading"><div><span>THINGS</span><h3>Your real life, organized</h3><p>Keep reminders and payments connected to what they belong to.</p></div><button onClick={()=>openQuickAdd("Add a thing")}>+ Add thing</button></div>
       <div className="landing-preview-grid">
        {[
         ["🚗","Mazda 6","235,420 km","1 attention"],
@@ -199,7 +200,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      </div>}
 
      {section==="payments"&&<div className="landing-preview-page">
-      <div className="landing-preview-heading"><div><span>PAYMENTS</span><h3>Know what leaves your account</h3><p>Recurring bills and subscriptions, without becoming a banking app.</p></div><button>+ Add payment</button></div>
+      <div className="landing-preview-heading"><div><span>PAYMENTS</span><h3>Know what leaves your account</h3><p>Recurring bills and subscriptions, without becoming a banking app.</p></div><button onClick={()=>openQuickAdd("Add a payment")}>+ Add payment</button></div>
       <div className="landing-payment-list">
        {[
         ["Internet","€25.00","Every month","Oct 12"],
@@ -249,16 +250,16 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
  return <main className="landing-page">
   <header className="landing-nav">
    <div className="landing-brand">LIFE ADMIN<span>.</span></div>
-   <nav>
+   <nav aria-label="Account actions">
     <button className="landing-nav-link" onClick={()=>onOpenAuth("login")}>Sign in</button>
     <button className="dark landing-nav-cta" onClick={()=>onOpenAuth("create")}>Create account</button>
    </nav>
   </header>
 
-  <section className="landing-hero">
+  <section className="landing-hero" aria-labelledby="landing-hero-title">
    <div className="landing-hero-copy">
     <p className="eyebrow">YOUR LIFE, WITHOUT THE MENTAL LOAD</p>
-    <h1>Keep the real-world admin of your life in one place.</h1>
+    <h1 id="landing-hero-title">Keep the real-world admin of your life in one place.</h1>
     <p className="landing-lead">Life Admin brings together the things you manage, the payments you make and the reminders that need your attention — so you can stop carrying all of it in your head.</p>
     <div className="landing-actions">
      <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
@@ -268,6 +269,18 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
    </div>
 
    <div id="landing-preview"><LandingPreview/></div>
+  </section>
+
+  <section className="landing-steps" aria-labelledby="landing-steps-title">
+   <div className="landing-steps-heading">
+    <p className="eyebrow">HOW IT WORKS</p>
+    <h2 id="landing-steps-title">Capture the thought. Keep the context. Act when it matters.</h2>
+   </div>
+   <div className="landing-steps-grid">
+    <article><span>01</span><strong>Capture it naturally</strong><p>Write the reminder in your own words instead of filling out a form first.</p></article>
+    <article><span>02</span><strong>Keep what belongs together</strong><p>Connect the reminder to the car, home or other thing it belongs to, with payment context alongside it.</p></article>
+    <article><span>03</span><strong>See what needs action</strong><p>Come back to a focused view of what needs attention, what is next and what you’re waiting on.</p></article>
+   </div>
   </section>
 
   <section className="landing-value">

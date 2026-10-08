@@ -121,7 +121,7 @@ export type ApiPayment={
  thingId:string|null;
  name:string;
  type:"BILL"|"SUBSCRIPTION"|"RENEWAL"|string;
- amount:string;
+ amount:number;
  currency:string;
  frequency:"WEEKLY"|"MONTHLY"|"YEARLY"|string;
  nextDueDate:string|null;

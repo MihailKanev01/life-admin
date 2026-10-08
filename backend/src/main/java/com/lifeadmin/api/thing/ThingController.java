@@ -31,6 +31,14 @@ public class ThingController {
         return things.response(things.get(principal, id));
     }
 
+    @PatchMapping("/{id}")
+    public ThingDtos.ThingResponse update(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody ThingDtos.UpdateRequest request) {
+        return things.response(things.update(principal, id, request));
+    }
+
     @PostMapping
     public ThingDtos.ThingResponse create(
             @AuthenticationPrincipal UserPrincipal principal,

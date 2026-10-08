@@ -279,3 +279,16 @@ export async function updateThing(id:string,payload:{
 }){
  return apiRequest<ApiThing>("/things/"+id,{method:"PATCH",body:JSON.stringify(payload)});
 }
+
+
+export async function updatePayment(id:string,payload:{
+ name:string;
+ type:string;
+ amount:number;
+ currency?:string;
+ frequency:string;
+ nextDueDate?:string|null;
+ thingId?:string|null;
+}){
+ return apiRequest<ApiPayment>("/payments/"+id,{method:"PATCH",body:JSON.stringify(payload)});
+}

@@ -18,12 +18,13 @@ import {
   logoutAccount,
   markPaymentPaid,
   registerAccount,
+  requestPasswordReset,
   snoozeReminder,
 } from "./api-client";
 
 type Section="home"|"things"|"payments"|"search";
 type Theme="light"|"dark";
-type AuthMode="create"|"login";
+type AuthMode="create"|"login"|"forgot";
 
 type Account={
  id:string;
@@ -110,18 +111,39 @@ function AccountGate({onAuthenticated}:{onAuthenticated:(account:Account)=>void}
  const [password,setPassword]=useState("");
  const [confirmPassword,setConfirmPassword]=useState("");
  const [error,setError]=useState("");
+ const [notice,setNotice]=useState("");
  const [busy,setBusy]=useState(false);
 
  const submit=async()=>{
   setError("");
+  setNotice("");
   const normalizedEmail=email.trim().toLowerCase();
+
+  if(!/^\S+@\S+\.\S+$/.test(normalizedEmail)){
+   setError("Enter a valid email address.");
+   return;
+  }
+
+  if(mode==="forgot"){
+   setBusy(true);
+   try{
+    const result=await requestPasswordReset(normalizedEmail);
+    setNotice(result.message);
+   }catch(caught){
+    setError(caught instanceof Error?caught.message:"Could not start password recovery.");
+   }finally{
+    setBusy(false);
+   }
+   return;
+  }
+
   if(mode==="create"){
    if(name.trim().length<2){setError("Enter your name.");return;}
-   if(!/^\S+@\S+\.\S+$/.test(normalizedEmail)){setError("Enter a valid email address.");return;}
    if(password.length<12){setError("Use a password with at least 12 characters.");return;}
    if(password!==confirmPassword){setError("Passwords do not match.");return;}
   }else if(password.length===0){
-   setError("Enter your password.");return;
+   setError("Enter your password.");
+   return;
   }
 
   setBusy(true);
@@ -138,26 +160,37 @@ function AccountGate({onAuthenticated}:{onAuthenticated:(account:Account)=>void}
   }
  };
 
+ const switchMode=(next:AuthMode)=>{
+  setMode(next);
+  setError("");
+  setNotice("");
+  setPassword("");
+  setConfirmPassword("");
+ };
+
  return <main className="auth-shell">
   <div className="auth-card">
    <div className="auth-brand">LIFE ADMIN<span>.</span></div>
    <div className="auth-copy">
-    <p className="eyebrow">{mode==="create"?"Your personal workspace":"Welcome back"}</p>
-    <h1>{mode==="create"?"Create your account":"Sign in to Life Admin"}</h1>
-    <p>{mode==="create"?"Your information will belong to your own account and be available wherever you sign in.":"Continue to your personal Life Admin workspace."}</p>
+    <p className="eyebrow">{mode==="create"?"Your personal workspace":mode==="login"?"Welcome back":"Password recovery"}</p>
+    <h1>{mode==="create"?"Create your account":mode==="login"?"Sign in to Life Admin":"Forgot your password?"}</h1>
+    <p>{mode==="create"?"Your information will belong to your own account and be available wherever you sign in.":mode==="login"?"Continue to your personal Life Admin workspace.":"Enter your email and we’ll send you a secure reset link if an account exists."}</p>
    </div>
    {mode==="create"&&<label className="auth-field"><span>Your name</span><input value={name} onChange={event=>setName(event.target.value)} placeholder="e.g. Mihail Kanev" autoComplete="name"/></label>}
    <label className="auth-field"><span>Email address</span><input value={email} onChange={event=>setEmail(event.target.value)} placeholder="you@example.com" type="email" autoComplete="email"/></label>
-   <label className="auth-field"><span>Password</span><input value={password} onChange={event=>setPassword(event.target.value)} placeholder={mode==="create"?"At least 12 characters":"Your password"} type="password" autoComplete={mode==="create"?"new-password":"current-password"}/></label>
+   {mode!=="forgot"&&<label className="auth-field"><span>Password</span><input value={password} onChange={event=>setPassword(event.target.value)} placeholder={mode==="create"?"At least 12 characters":"Your password"} type="password" autoComplete={mode==="create"?"new-password":"current-password"}/></label>}
    {mode==="create"&&<label className="auth-field"><span>Confirm password</span><input value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Repeat your password" type="password" autoComplete="new-password"/></label>}
    {error&&<div className="auth-error" role="alert">{error}</div>}
-   <button className="dark full auth-submit" disabled={busy} onClick={submit}>{busy?"Please wait…":mode==="create"?"Create account":"Sign in"}</button>
-   <button className="text full" disabled={busy} onClick={()=>{setMode(mode==="create"?"login":"create");setError("");setPassword("");setConfirmPassword("");}}>{mode==="create"?"Already have an account? Sign in":"New here? Create an account"}</button>
-   <div className="auth-note"><strong>Secure account</strong><span>In deployed environments your password is sent over HTTPS and stored only as a one-way Argon2 hash. Sessions use an HttpOnly cookie.</span></div>
+   {notice&&<div className="auth-notice" role="status">{notice}</div>}
+   <button className="dark full auth-submit" disabled={busy} onClick={submit}>{busy?"Please wait…":mode==="create"?"Create account":mode==="login"?"Sign in":"Send reset link"}</button>
+   {mode==="login"&&<button className="text full auth-secondary" disabled={busy} onClick={()=>switchMode("forgot")}>Forgot your password?</button>}
+   {mode==="forgot"
+    ?<button className="text full" disabled={busy} onClick={()=>switchMode("login")}>Back to sign in</button>
+    :<button className="text full" disabled={busy} onClick={()=>switchMode(mode==="create"?"login":"create")}>{mode==="create"?"Already have an account? Sign in":"New here? Create an account"}</button>}
+   <div className="auth-note"><strong>Secure account</strong><span>Reset links expire after 30 minutes and can only be used once. Passwords are stored only as one-way Argon2 hashes.</span></div>
   </div>
  </main>;
 }
-
 function Walkthrough({account,onComplete}:{account:Account;onComplete:()=>void}){
  const [step,setStep]=useState(0);
  const [busy,setBusy]=useState(false);

@@ -107,6 +107,20 @@ export async function loginAccount(payload:{email:string;password:string}){
  return apiRequest<ApiAuthResponse>("/auth/login",{method:"POST",body:JSON.stringify(payload)});
 }
 
+export async function requestPasswordReset(email:string){
+ return apiRequest<{message:string}>("/auth/password-reset/request",{
+  method:"POST",
+  body:JSON.stringify({email}),
+ });
+}
+
+export async function resetPassword(payload:{token:string;password:string}){
+ return apiRequest<{message:string}>("/auth/password-reset/confirm",{
+  method:"POST",
+  body:JSON.stringify(payload),
+ });
+}
+
 export async function completeOnboarding(){
  return apiRequest<ApiAuthResponse>("/auth/me/onboarding",{method:"PATCH"});
 }

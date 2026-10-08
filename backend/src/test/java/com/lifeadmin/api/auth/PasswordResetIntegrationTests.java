@@ -125,6 +125,8 @@ class PasswordResetIntegrationTests {
 
         @Bean
         @Primary
+        @Bean(name = "testPasswordResetEmailSender")
+        @org.springframework.context.annotation.Primary
         CapturingPasswordResetEmailSender passwordResetEmailSender() {
             return new CapturingPasswordResetEmailSender();
         }

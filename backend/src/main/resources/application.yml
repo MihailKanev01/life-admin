@@ -26,6 +26,12 @@ server:
         same-site: strict
         path: /
 
+life-admin:
+  app:
+    base-url: ${APP_BASE_URL:http://localhost:3000}
+  mail:
+    from: ${MAIL_FROM:noreply@localhost}
+
 management:
   endpoints:
     web:

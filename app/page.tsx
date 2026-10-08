@@ -20,8 +20,10 @@ import {
   markPaymentPaid,
   registerAccount,
   requestPasswordReset,
+  rescheduleReminder,
   searchLife,
   snoozeReminder,
+  updateReminder,
 } from "./api-client";
 
 type Section="home"|"things"|"payments"|"search";
@@ -645,6 +647,10 @@ export default function App(){
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);
  const [modal,setModal]=useState(false);
  const [selected,setSelected]=useState<AttentionItem|null>(null);
+ const [reminderEdit,setReminderEdit]=useState<AttentionItem|null>(null);
+ const [reminderTitle,setReminderTitle]=useState("");
+ const [reminderContext,setReminderContext]=useState("");
+ const [reminderDueDate,setReminderDueDate]=useState("");
  const [things,setThings]=useState<ApiThing[]>([]);
  const [payments,setPayments]=useState<ApiPayment[]>([]);
  const [paymentModal,setPaymentModal]=useState(false);
@@ -761,6 +767,37 @@ export default function App(){
 
  const openThingModal=()=>{
   setThingName("");setThingType("Vehicle");setThingDetail("");setThingModal(true);
+ };
+
+ const openReminderEdit=(item:AttentionItem)=>{
+  setReminderEdit(item);
+  setReminderTitle(item.title);
+  setReminderContext(item.context);
+  setReminderDueDate(item.dueDate||"");
+  setSelected(null);
+ };
+
+ const saveReminderEdit=async()=>{
+  if(!reminderEdit)return;
+  if(!reminderTitle.trim()){setAppError("Give this reminder a title.");return;}
+  if(!reminderContext.trim()){setAppError("Give this reminder a context.");return;}
+  setSaving(true);
+  setAppError("");
+  try{
+   const updated=await updateReminder(reminderEdit.id,{
+    title:reminderTitle.trim(),
+    context:reminderContext.trim(),
+    dueDate:reminderDueDate||null,
+    thingId:null,
+   });
+   attentionMutationVersion.current+=1;
+   setAttention(items=>items.map(item=>item.id===updated.id?reminderAttention(updated):item));
+   setReminderEdit(null);
+  }catch(caught){
+   setAppError(caught instanceof Error?caught.message:"Could not update this reminder.");
+  }finally{
+   setSaving(false);
+  }
  };
 
  const openPaymentModal=(prefillName="")=>{
@@ -889,9 +926,11 @@ export default function App(){
 
   {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14",id);}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
 
-  {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
-     setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await snoozeReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
-     setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not snooze reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div>}
+  {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><div className="reminder-actions"><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
+     setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={()=>openReminderEdit(selected)}>Edit reminder</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await rescheduleReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
+     setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not reschedule reminder.")}}}>Reschedule to tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div></div>}
+
+  {reminderEdit&&<div className="backdrop" onClick={()=>setReminderEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Reminder</p><h2>Edit reminder</h2></div><button className="close" onClick={()=>setReminderEdit(null)}>×</button></div><label className="auth-field"><span>Title</span><input autoFocus value={reminderTitle} onChange={event=>setReminderTitle(event.target.value)} placeholder="e.g. Car insurance"/></label><label className="auth-field"><span>Context</span><input value={reminderContext} onChange={event=>setReminderContext(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Due date</span><input type="date" value={reminderDueDate} onChange={event=>setReminderDueDate(event.target.value)}/></label><button className="dark full" disabled={saving} onClick={()=>void saveReminderEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setReminderEdit(null)}>Cancel</button></div></div>}
 
   {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
  if(!quickProposal){

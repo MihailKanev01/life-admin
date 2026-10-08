@@ -83,10 +83,10 @@ class SearchIntegrationTests {
                         .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(3))
-                .andExpect(jsonPath("$.items[0].kind").value("THING"))
-                .andExpect(jsonPath("$.items[0].title").value("Mazda Car"))
+                .andExpect(jsonPath("$.items[0].kind").value("PAYMENT"))
+                .andExpect(jsonPath("$.items[0].title").value("Car insurance"))
                 .andExpect(jsonPath("$.items[1].kind").value("REMINDER"))
-                .andExpect(jsonPath("$.items[2].kind").value("PAYMENT"));
+                .andExpect(jsonPath("$.items[2].kind").value("THING"));
     }
 
     @Test

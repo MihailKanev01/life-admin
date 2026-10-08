@@ -482,7 +482,7 @@ export default function App(){
    thingMutationVersion.current+=1;
    setThings(items=>[created,...items]);
   }else if(quickProposal.type==="Payment"){
-   const amountMatch=quickText.match(/€?\\s*(\\d+(?:[.,]\\d{1,2})?)/);
+   const amountMatch=quickText.match(/€?\s*(\d+(?:[.,]\d{1,2})?)/);
    setPaymentName(quickProposal.title==="New payment"?"":quickProposal.title);
    setPaymentAmount(amountMatch?amountMatch[1].replace(",","."):"");
    setPaymentFrequency("MONTHLY");

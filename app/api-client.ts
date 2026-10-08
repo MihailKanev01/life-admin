@@ -271,3 +271,11 @@ export async function rescheduleReminder(id:string,dueDate:string){
   body:JSON.stringify({dueDate}),
  });
 }
+
+export async function updateThing(id:string,payload:{
+ name:string;
+ type:string;
+ detail?:string|null;
+}){
+ return apiRequest<ApiThing>("/things/"+id,{method:"PATCH",body:JSON.stringify(payload)});
+}

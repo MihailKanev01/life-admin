@@ -288,11 +288,16 @@ export default function App(){
   const next=saved==="dark"||saved==="light"?saved:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
   setTheme(next);
   document.documentElement.dataset.theme=next;
+
+  // Do not block the initial UI on the remote session check.
+  // The login screen remains usable even when the API is unavailable.
+  setReady(true);
+
   getCurrentUser().then(({user})=>{
    const current=mapUser(user);
    setAccount(current);
    setShowWalkthrough(!current.onboardingComplete);
-  }).catch(()=>{}).finally(()=>setReady(true));
+  }).catch(()=>{});
  },[]);
 
  useEffect(()=>{

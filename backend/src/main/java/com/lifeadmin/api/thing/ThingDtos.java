@@ -16,6 +16,11 @@ public final class ThingDtos {
             @NotBlank @Size(max = 80) String type,
             @Size(max = 200) String detail) {}
 
+    public record UpdateRequest(
+            @NotBlank @Size(max = 200) String name,
+            @NotBlank @Size(max = 80) String type,
+            @Size(max = 200) String detail) {}
+
     public record ThingResponse(
             UUID id,
             String name,

@@ -16,6 +16,8 @@ public interface ThingRepository extends JpaRepository<Thing, UUID> {
 
     boolean existsByUserIdAndNameIgnoreCase(UUID userId, String name);
 
+    boolean existsByUserIdAndNameIgnoreCaseAndIdNot(UUID userId, String name, UUID id);
+
     @Query("""
             select t from Thing t
             where t.userId = :userId

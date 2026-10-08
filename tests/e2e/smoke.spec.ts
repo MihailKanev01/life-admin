@@ -102,9 +102,8 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Review details" }).click();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
 
-    await expect(page.getByRole("button", { name: /Car insurance/i })).toBeVisible();
-    await page.getByRole("button", { name: /Things/i }).first().click();
-    await page.getByRole("button", { name: /Mazda 6/i }).click();
+    await expect(page.locator(".thinggrid").getByRole("button", { name: /Mazda 6/i })).toContainText("1 attention");
+    await page.getByRole("button", { name: /Mazda 6/i }).first().click();
     await expect(page.getByText("1 reminder", { exact: true })).toBeVisible();
   });
 

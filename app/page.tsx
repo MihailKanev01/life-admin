@@ -24,6 +24,7 @@ import {
   searchLife,
   snoozeReminder,
   updateReminder,
+  updateThing,
 } from "./api-client";
 
 type Section="home"|"things"|"payments"|"search";
@@ -663,6 +664,10 @@ export default function App(){
  const [paymentDueDate,setPaymentDueDate]=useState("");
  const [paymentThingId,setPaymentThingId]=useState("");
  const [selectedThing,setSelectedThing]=useState<ApiThing|null>(null);
+ const [thingEdit,setThingEdit]=useState<ApiThing|null>(null);
+ const [editThingName,setEditThingName]=useState("");
+ const [editThingType,setEditThingType]=useState("Vehicle");
+ const [editThingDetail,setEditThingDetail]=useState("");
  const [thingModal,setThingModal]=useState(false);
  const [quickThingId,setQuickThingId]=useState<string|null>(null);
  const [thingName,setThingName]=useState("");
@@ -769,6 +774,35 @@ export default function App(){
 
  const openThingModal=()=>{
   setThingName("");setThingType("Vehicle");setThingDetail("");setThingModal(true);
+ };
+
+ const openThingEdit=(thing:ApiThing)=>{
+  setThingEdit(thing);
+  setEditThingName(thing.name);
+  setEditThingType(thing.type);
+  setEditThingDetail(thing.detail||"");
+  setSelectedThing(null);
+ };
+
+ const saveThingEdit=async()=>{
+  if(!thingEdit)return;
+  if(!editThingName.trim()){setAppError("Give this thing a name.");return;}
+  setSaving(true);
+  setAppError("");
+  try{
+   const updated=await updateThing(thingEdit.id,{
+    name:editThingName.trim(),
+    type:editThingType,
+    detail:editThingDetail.trim()||null,
+   });
+   thingMutationVersion.current+=1;
+   setThings(items=>items.map(item=>item.id===updated.id?updated:item));
+   setThingEdit(null);
+  }catch(caught){
+   setAppError(caught instanceof Error?caught.message:"Could not update this thing.");
+  }finally{
+   setSaving(false);
+  }
  };
 
  const openReminderEdit=(item:AttentionItem)=>{
@@ -936,11 +970,13 @@ export default function App(){
  
   {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowProductTour(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
 
-  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14",id);}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
+  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>openThingEdit(selectedThing)}>Edit Thing</button><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14",id);}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>
 
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><div className="reminder-actions"><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={()=>openReminderEdit(selected)}>Edit reminder</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await rescheduleReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
      setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not reschedule reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div></div>}
+
+  {thingEdit&&<div className="backdrop" onClick={()=>setThingEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>Edit Thing</h2></div><button className="close" onClick={()=>setThingEdit(null)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={editThingName} onChange={event=>setEditThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={editThingType} onChange={event=>setEditThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={editThingDetail} onChange={event=>setEditThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThingEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setThingEdit(null)}>Cancel</button></div></div>}
 
   {reminderEdit&&<div className="backdrop" onClick={()=>setReminderEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Reminder</p><h2>Edit reminder</h2></div><button className="close" onClick={()=>setReminderEdit(null)}>×</button></div><label className="auth-field"><span>Title</span><input autoFocus value={reminderTitle} onChange={event=>setReminderTitle(event.target.value)} placeholder="e.g. Car insurance"/></label><label className="auth-field"><span>Context</span><input value={reminderContext} onChange={event=>setReminderContext(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Due date</span><input type="date" value={reminderDueDate} onChange={event=>setReminderDueDate(event.target.value)}/></label><button className="dark full" disabled={saving} onClick={()=>void saveReminderEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setReminderEdit(null)}>Cancel</button></div></div>}
 

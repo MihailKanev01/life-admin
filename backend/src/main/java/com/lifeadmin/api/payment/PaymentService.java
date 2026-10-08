@@ -1,0 +1,87 @@
+package com.lifeadmin.api.payment;
+
+import java.util.List;
+import java.util.UUID;
+
+import com.lifeadmin.api.security.UserPrincipal;
+import com.lifeadmin.api.thing.ThingRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class PaymentService {
+
+    private final PaymentRepository payments;
+    private final ThingRepository things;
+
+    public PaymentService(PaymentRepository payments, ThingRepository things) {
+        this.payments = payments;
+        this.things = things;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Payment> list(UserPrincipal principal) {
+        return payments.findByUserIdAndStatusOrderByNextDueDateAscCreatedAtDesc(principal.getId(), "ACTIVE");
+    }
+
+    @Transactional(readOnly = true)
+    public Payment get(UserPrincipal principal, UUID id) {
+        return payments.findByIdAndUserId(id, principal.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
+    }
+
+    @Transactional
+    public Payment create(UserPrincipal principal, PaymentDtos.CreateRequest request) {
+        UUID thingId = request.thingId();
+        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
+        }
+
+        String name = request.name().trim();
+        String type = request.type().trim().toUpperCase();
+        String currency = request.currency() == null ? "EUR" : request.currency().trim().toUpperCase();
+        String frequency = request.frequency().trim().toUpperCase();
+
+        if (!List.of("BILL", "SUBSCRIPTION", "RENEWAL").contains(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported payment type");
+        }
+        if (!List.of("WEEKLY", "MONTHLY", "YEARLY").contains(frequency)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported payment frequency");
+        }
+
+        return payments.save(new Payment(
+                principal.getId(),
+                thingId,
+                name,
+                type,
+                request.amount(),
+                currency,
+                frequency,
+                request.nextDueDate()));
+    }
+
+    @Transactional
+    public Payment markPaid(UserPrincipal principal, UUID id) {
+        Payment payment = payments.findByIdAndUserId(id, principal.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
+        payment.markPaid();
+        return payment;
+    }
+
+    public PaymentDtos.PaymentResponse response(Payment payment) {
+        return new PaymentDtos.PaymentResponse(
+                payment.getId(),
+                payment.getThingId(),
+                payment.getName(),
+                payment.getType(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getFrequency(),
+                payment.getNextDueDate(),
+                payment.getStatus(),
+                payment.getLastPaidAt(),
+                payment.getCreatedAt());
+    }
+}

@@ -121,10 +121,16 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByLabel("Email address").fill(account.email);
     await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
     await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+    const registerResponsePromise = page.waitForResponse(response =>
+      response.url().includes("/api/v1/auth/register") &&
+      response.request().method() === "POST",
+    );
     await page.getByRole("button", { name: "Create account", exact: true }).click();
+    const registerResponse = await registerResponsePromise;
+    console.log("Duplicate registration response", registerResponse.status(), await registerResponse.text());
 
-    await expect(page.getByRole("alert")).toContainText("already exists");
-    await expect(page.getByRole("alert")).toContainText("Forgot your password");
+    await expect(page.locator(".auth-error")).toContainText("already exists");
+    await expect(page.locator(".auth-error")).toContainText("Forgot your password");
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {

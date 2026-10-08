@@ -424,7 +424,17 @@ test.describe("Life Admin comprehensive functional coverage", () => {
       ).toHaveValue(chip);
     }
 
-    await page.getByPlaceholder(/Try “car”/i).fill("");
+    const searchInput = page.getByPlaceholder(/Try “car”/i);
+    await searchInput.fill("Quick Payment");
+    await expect(page.locator(".result").filter({ hasText: "Quick Payment" })).toContainText("Payment");
+
+    await searchInput.fill("Car service");
+    await expect(page.locator(".result").filter({ hasText: "Car service" })).toContainText("Reminder");
+
+    await searchInput.fill("New thing");
+    await expect(page.locator(".result").filter({ hasText: "New thing" })).toContainText("Thing");
+
+    await searchInput.fill("");
     await expect(page.locator(".result")).toHaveCount(0);
   });
 

@@ -73,4 +73,8 @@ public class User {
     public void completeOnboarding() {
         onboardingCompletedAt = Instant.now();
     }
+
+    public void changePassword(String newPasswordHash) {
+        passwordHash = newPasswordHash;
+    }
 }

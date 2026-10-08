@@ -396,7 +396,6 @@ function formatPaymentMoney(amount:number,currency:string){
 export default function App(){
  const [ready,setReady]=useState(true);
  const [account,setAccount]=useState<Account|null>(null);
- const productTourCheckedForAccount=useRef<string|null>(null);
  const [section,setSection]=useState<Section>("home");
  const [attention,setAttention]=useState<AttentionItem[]>(initialAttention);
  const [modal,setModal]=useState(false);
@@ -439,16 +438,14 @@ export default function App(){
    const current=mapUser(user);
    setAccount(current);
    setShowWalkthrough(!current.onboardingComplete);
+   if(current.onboardingComplete){
+    const key="life-admin-product-tour-"+current.id+"-v1";
+    setShowProductTour(window.localStorage.getItem(key)!=="1");
+   }else{
+    setShowProductTour(false);
+   }
   }).catch(()=>{});
  },[]);
-
- useEffect(()=>{
-  if(!ready||!account||showWalkthrough)return;
-  if(productTourCheckedForAccount.current===account.id)return;
-  productTourCheckedForAccount.current=account.id;
-  const key="life-admin-product-tour-"+account.id+"-v1";
-  setShowProductTour(window.localStorage.getItem(key)!=="1");
- },[ready,account,showWalkthrough]);
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
@@ -534,17 +531,26 @@ export default function App(){
   setAccount(nextAccount);
   setAttention([]);
   setShowWalkthrough(!nextAccount.onboardingComplete);
+  if(nextAccount.onboardingComplete){
+   const key="life-admin-product-tour-"+nextAccount.id+"-v1";
+   setShowProductTour(window.localStorage.getItem(key)!=="1");
+  }else{
+   setShowProductTour(false);
+  }
   setSection("home");
  };
 
  const finishWalkthrough=()=>{
   setShowWalkthrough(false);
+  if(account){
+   const key="life-admin-product-tour-"+account.id+"-v1";
+   if(window.localStorage.getItem(key)!=="1")setShowProductTour(true);
+  }
  };
 
  const signOut=async()=>{
   try{await logoutAccount();}catch{}
   setAccount(null);
-  productTourCheckedForAccount.current=null;
   setShowProductTour(false);
   setAccountSheet(false);
   setSection("home");

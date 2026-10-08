@@ -12,7 +12,17 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(
       page.getByRole("heading", { name: "What do you want to remember?" }),
     ).toBeVisible();
-    await expect(page.getByPlaceholder("e.g. Car insurance expires June 14")).toBeVisible();
+    const input = page.getByPlaceholder("e.g. Car insurance expires June 14");
+    await expect(input).toBeVisible();
+    await input.fill("Car insurance expires December 14");
+    await page.getByRole("button", { name: "Review details" }).click();
+
+    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("Mazda 6", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("December 14", { exact: true }).last()).toBeVisible();
+
+    await page.getByRole("button", { name: "Save to Life Admin" }).click();
+    await expect(page.getByRole("button", { name: /Car insurance/i }).first()).toContainText("Reminder");
   });
 
   test("completes and snoozes attention items", async ({ page }) => {
@@ -47,6 +57,23 @@ test.describe("Life Admin prototype smoke", () => {
     const search = page.getByPlaceholder(/Try “car”/i);
     await search.fill("insurance");
     await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+  });
+
+  test("opens a Thing and sees connected context", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await page.getByRole("button", { name: /Mazda 6/i }).click();
+
+    await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
+    await expect(page.getByText("Car insurance", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("Insurance policy", { exact: true })).toBeVisible();
+    await expect(page.getByText("Car service", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("€120 · yearly", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
+    await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
+    await expect(page.getByPlaceholder("e.g. Car insurance expires June 14")).toHaveValue("Car insurance expires December 14");
   });
 
   test("toggles dark mode and back", async ({ page }) => {

@@ -12,7 +12,12 @@ Success:
 "Add a reminder that your car insurance expires on June 14."
 
 Success:
-- user creates it without needing to understand internal terminology.
+- user creates it without needing to understand internal terminology;
+- user notices and understands the proposed context/date before saving.
+
+Validation note:
+- Do not explain the proposed Type / Context / When fields before the task.
+- Record whether the user trusts the proposal, edits it, or asks why the app chose that context.
 
 ## Task 3 — Add a Thing
 "Add your car and show me where you would keep its insurance document."

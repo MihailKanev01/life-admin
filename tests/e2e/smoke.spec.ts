@@ -233,6 +233,29 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("Internet", { exact: true }).last()).toBeVisible();
   });
 
+  test("edits a Thing and persists the changes", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page);
+
+    await page.getByRole("button", { name: /Mazda 6/i }).click();
+    await page.getByRole("button", { name: "Edit Thing", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit Thing" })).toBeVisible();
+
+    await page.getByLabel("Name").fill("Mazda 6 Daily");
+    await page.getByLabel("Type").selectOption("Vehicle");
+    await page.getByLabel("Detail").fill("240,000 km");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
+    await page.getByRole("button", { name: /Mazda 6 Daily/i }).click();
+    await expect(page.getByRole("heading", { name: "Mazda 6 Daily" })).toBeVisible();
+    await expect(page.getByText("240,000 km", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
+  });
+
   test("opens a Thing and connects a reminder to it", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);

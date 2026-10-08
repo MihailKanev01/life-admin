@@ -1,7 +1,19 @@
 type ApiErrorShape={message?:string;detail?:string;error?:{message?:string}};
 
+const API_REQUEST_TIMEOUT_MS=10_000;
+
+async function fetchWithTimeout(input:RequestInfo|URL,init:RequestInit={},timeoutMs=API_REQUEST_TIMEOUT_MS){
+ const controller=new AbortController();
+ const timeoutId=window.setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  return await fetch(input,{...init,signal:controller.signal});
+ }finally{
+  window.clearTimeout(timeoutId);
+ }
+}
+
 async function csrfToken():Promise<string>{
- const response=await fetch("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"});
+ const response=await fetchWithTimeout("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"});
  if(!response.ok)throw new Error("Authentication service is unavailable.");
  const data=await response.json() as {token?:string};
  if(!data.token)throw new Error("Could not initialize secure authentication.");
@@ -15,13 +27,21 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
  if(!["GET","HEAD","OPTIONS"].includes(method)){
   headers.set("X-XSRF-TOKEN",await csrfToken());
  }
- const response=await fetch("/api/v1"+path,{
-  ...init,
-  method,
-  headers,
-  credentials:"include",
-  cache:"no-store",
- });
+ let response:Response;
+ try{
+  response=await fetchWithTimeout("/api/v1"+path,{
+   ...init,
+   method,
+   headers,
+   credentials:"include",
+   cache:"no-store",
+  });
+ }catch(caught){
+  if(caught instanceof DOMException&&caught.name==="AbortError"){
+   throw new Error("Authentication service is unavailable.");
+  }
+  throw caught;
+ }
  if(!response.ok){
   let message="Something went wrong.";
   try{

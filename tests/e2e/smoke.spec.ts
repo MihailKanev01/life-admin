@@ -1,4 +1,4 @@
-import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough} from "./test-helpers";
+import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough,makeTestAccount} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
@@ -44,6 +44,26 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Snooze until tomorrow" }).click();
 
     await expect(page.getByRole("button", { name: /Car insurance/i })).toContainText("Tomorrow");
+  });
+
+  test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {
+    const account = makeTestAccount("login");
+    await createAccountAndFinishWalkthrough(page, account);
+
+    await page.locator(".sidebar").getByRole("button", { name: "Account", exact: true }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Already have an account? Sign in" }).click();
+    await expect(page.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
+    await page.getByLabel("Email address").fill(account.email);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {

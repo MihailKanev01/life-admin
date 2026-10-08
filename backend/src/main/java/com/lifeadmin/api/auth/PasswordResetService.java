@@ -129,7 +129,7 @@ public class PasswordResetService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
         }
         String email = value.trim().toLowerCase(Locale.ROOT);
-        if (!email.matches("^[^\s@]+@[^\s@]+\.[^\s@]+$")) {
+if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid email address");
         }
         return email;

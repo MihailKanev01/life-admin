@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -18,7 +19,7 @@ public final class PaymentDtos {
     public record CreateRequest(
             @NotBlank @Size(max = 200) String name,
             @NotBlank @Size(max = 24) String type,
-            @DecimalMin(value = "0.01") BigDecimal amount,
+            @NotNull @DecimalMin(value = "0.01") BigDecimal amount,
             @Pattern(regexp = "(?i)[A-Z]{3}") String currency,
             @NotBlank @Size(max = 16) String frequency,
             LocalDate nextDueDate,

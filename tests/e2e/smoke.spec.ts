@@ -114,6 +114,28 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("button", { name: /Car insurance/i })).toContainText("Tomorrow");
   });
 
+  test("edits and reschedules an attention reminder through the UI", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addReminder(page,"Car insurance expires December 14");
+
+    await page.getByRole("button", { name: /Car insurance/i }).click();
+    await page.getByRole("button", { name: "Edit reminder", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit reminder" })).toBeVisible();
+
+    await page.getByLabel("Title").fill("Car insurance renewal");
+    await page.getByLabel("Context").fill("Mazda 6");
+    await page.getByLabel("Due date").fill("2026-12-20");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: /Car insurance renewal/i })).toBeVisible();
+    await page.getByRole("button", { name: /Car insurance renewal/i }).click();
+    await expect(page.getByRole("heading", { name: "Car insurance renewal" })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy")).toContainText("Dec 20");
+
+    await page.getByRole("button", { name: "Reschedule to tomorrow", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Car insurance renewal/i })).toContainText("Tomorrow");
+  });
+
   test("shows forgot password recovery from sign in", async ({ page }) => {
     const account = makeTestAccount("recovery");
     await createAccountAndFinishWalkthrough(page, account);

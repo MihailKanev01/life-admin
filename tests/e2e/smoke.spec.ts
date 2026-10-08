@@ -109,7 +109,10 @@ test.describe("Life Admin prototype smoke", () => {
     const account = makeTestAccount("duplicate");
     await createAccountAndFinishWalkthrough(page, account);
 
-    const duplicatePage = await page.context().newPage();
+    const browser = page.context().browser();
+    if (!browser) throw new Error("Playwright browser is unavailable");
+    const duplicateContext = await browser.newContext();
+    const duplicatePage = await duplicateContext.newPage();
     try {
       await duplicatePage.goto("/");
       await expect(duplicatePage.getByRole("heading", { name: "Create your account" })).toBeVisible();
@@ -123,7 +126,7 @@ test.describe("Life Admin prototype smoke", () => {
       await expect(duplicatePage.locator(".auth-error")).toContainText("already exists");
       await expect(duplicatePage.locator(".auth-error")).toContainText("Forgot your password");
     } finally {
-      await duplicatePage.close();
+      await duplicateContext.close();
     }
   });
 

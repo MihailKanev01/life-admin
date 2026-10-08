@@ -25,6 +25,15 @@ public final class PaymentDtos {
             LocalDate nextDueDate,
             UUID thingId) {}
 
+    public record UpdateRequest(
+            @NotBlank @Size(max = 200) String name,
+            @NotBlank @Size(max = 24) String type,
+            @NotNull @DecimalMin(value = "0.01") BigDecimal amount,
+            @Pattern(regexp = "(?i)[A-Z]{3}") String currency,
+            @NotBlank @Size(max = 16) String frequency,
+            LocalDate nextDueDate,
+            UUID thingId) {}
+
     public record PaymentResponse(
             UUID id,
             UUID thingId,

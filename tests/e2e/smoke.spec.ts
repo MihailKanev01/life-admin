@@ -110,7 +110,11 @@ test.describe("Life Admin prototype smoke", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
-    await page.route("**/api/v1/auth/register", async route => {
+    await page.route("**/api/v1/auth/*", async route => {
+      if (route.request().method() !== "POST" || !route.request().url().endsWith("/api/v1/auth/register")) {
+        await route.continue();
+        return;
+      }
       await route.fulfill({
         status: 409,
         contentType: "application/json",

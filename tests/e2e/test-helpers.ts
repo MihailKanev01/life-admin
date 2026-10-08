@@ -15,6 +15,8 @@ export async function createAccountAndFinishWalkthrough(
  account:TestAccount=makeTestAccount(),
 ){
  await page.goto("/");
+ await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+ await page.getByRole("button",{name:"Create your account"}).first().click();
  await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
  await page.getByLabel("Your name").fill(account.name);
  await page.getByLabel("Email address").fill(account.email);

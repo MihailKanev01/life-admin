@@ -56,8 +56,4 @@ public class ThingService {
                 thing.getCreatedAt());
     }
 
-    private Thing owned(UserPrincipal principal, UUID id) {
-        return things.findByIdAndUserId(id, principal.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found"));
-    }
 }

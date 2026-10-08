@@ -7,7 +7,7 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
     await expect(page.getByText("Frontend only · mock data")).toBeVisible();
 
-    await page.getByRole("button", { name: "Quick add", exact: true }).first().click();
+    await page.getByRole("button", { name: /Quick add/i }).first().click();
     await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
     const previewInput = page.getByPlaceholder("e.g. Car insurance expires June 14");
     await previewInput.fill("Car insurance expires December 14");
@@ -139,7 +139,9 @@ test.describe("Life Admin prototype smoke", () => {
   test("shows the duplicate registration message", async ({ page }) => {
     const account = makeTestAccount("duplicate");
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.getByRole("button", { name: "Create your account", exact: true }).first().click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
 
     await page.route("**/api/v1/auth/*", async route => {
       if (route.request().method() !== "POST" || !route.request().url().endsWith("/api/v1/auth/register")) {
@@ -159,7 +161,7 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByLabel("Email address").fill(account.email);
     await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
     await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
-    await page.getByRole("button", { name: "Create account", exact: true }).click();
+    await page.locator(".auth-overlay").getByRole("button", { name: "Create account", exact: true }).click();
 
     await expect(page.locator(".auth-error")).toContainText("already exists");
     await expect(page.locator(".auth-error")).toContainText("Forgot your password");

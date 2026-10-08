@@ -74,6 +74,21 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("button", { name: /Car insurance/i })).toContainText("Tomorrow");
   });
 
+  test("shows forgot password recovery from sign in", async ({ page }) => {
+    const account = makeTestAccount("recovery");
+    await createAccountAndFinishWalkthrough(page, account);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await page.getByRole("button", { name: /Already have an account\? Sign in/i }).click();
+
+    await page.getByRole("button", { name: "Forgot your password?", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
+    await page.getByLabel("Email address").fill(account.email);
+    await page.getByRole("button", { name: "Send reset link", exact: true }).click();
+    await expect(page.getByRole("status")).toContainText("If an account exists for that email");
+  });
+
   test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {
     const account = makeTestAccount("login");
     await createAccountAndFinishWalkthrough(page, account);

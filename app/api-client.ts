@@ -253,3 +253,20 @@ export type ApiSearchResponse={items:ApiSearchResult[]};
 export async function searchLife(query:string){
  return apiRequest<ApiSearchResponse>("/search?q="+encodeURIComponent(query.trim()));
 }
+
+
+export async function updateReminder(id:string,payload:{
+ title:string;
+ context:string;
+ dueDate:string|null;
+ thingId?:string|null;
+}){
+ return apiRequest<ApiReminder>("/reminders/"+id,{method:"PATCH",body:JSON.stringify(payload)});
+}
+
+export async function rescheduleReminder(id:string,dueDate:string){
+ return apiRequest<ApiReminder>("/reminders/"+id+"/reschedule",{
+  method:"POST",
+  body:JSON.stringify({dueDate}),
+ });
+}

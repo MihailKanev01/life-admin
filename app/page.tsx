@@ -484,12 +484,7 @@ export default function App(){
    const current=mapUser(user);
    setAccount(current);
    setShowWalkthrough(!current.onboardingComplete);
-   if(current.onboardingComplete){
-    const key="life-admin-product-tour-"+current.id+"-v1";
-    setShowProductTour(window.localStorage.getItem(key)!=="1");
-   }else{
-    setShowProductTour(false);
-   }
+   setShowProductTour(false);
   }).catch(()=>{});
  },[]);
 
@@ -578,21 +573,13 @@ export default function App(){
   setAccount(nextAccount);
   setAttention([]);
   setShowWalkthrough(!nextAccount.onboardingComplete);
-  if(nextAccount.onboardingComplete){
-   const key="life-admin-product-tour-"+nextAccount.id+"-v1";
-   setShowProductTour(window.localStorage.getItem(key)!=="1");
-  }else{
-   setShowProductTour(false);
-  }
+  setShowProductTour(false);
   setSection("home");
  };
 
  const finishWalkthrough=()=>{
   setShowWalkthrough(false);
-  if(account){
-   const key="life-admin-product-tour-"+account.id+"-v1";
-   if(window.localStorage.getItem(key)!=="1")setShowProductTour(true);
-  }
+  setShowProductTour(false);
  };
 
  const signOut=async()=>{

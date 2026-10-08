@@ -187,6 +187,147 @@ function Walkthrough({account,onComplete}:{account:Account;onComplete:()=>void})
  </main>;
 }
 
+const productTourSteps=[
+ {target:"home",title:"Home keeps you focused.",text:"This is your daily overview. Important reminders appear first, while upcoming and waiting items stay close by."},
+ {target:"add",title:"Quick Add is the fastest way in.",text:"Write what you need in normal language — a reminder, a payment, a Thing or a document — and Life Admin proposes the details before saving."},
+ {target:"things",title:"Things connect your real life.",text:"Use Things for your car, home, devices and anything else you manage. Reminders and recurring costs can stay attached to the right Thing."},
+ {target:"payments",title:"Payments show what leaves your account.",text:"Track bills, subscriptions and renewals, see what is coming up, and mark payments as paid."},
+ {target:"search",title:"Search finds what you saved.",text:"Use Search when you remember the information but not where you put it. Things and payments appear together."},
+ {target:"theme",title:"Make the workspace yours.",text:"Switch between light and dark mode whenever you prefer."},
+ {target:"account",title:"Your account is your control center.",text:"Manage your profile, replay this tour and sign out from here."},
+] as const;
+
+function getVisibleTourTarget(target:string):HTMLElement|null{
+ const elements=Array.from(document.querySelectorAll<HTMLElement>(\`[data-tour="\${target}"]\`));
+ return elements.find(element=>{
+  const rect=element.getBoundingClientRect();
+  const style=window.getComputedStyle(element);
+  return rect.width>0&&rect.height>0&&style.display!=="none"&&style.visibility!=="hidden";
+ })??null;
+}
+
+function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void}){
+ const [step,setStep]=useState(0);
+ const [targetRect,setTargetRect]=useState<{top:number;left:number;right:number;bottom:number;width:number;height:number}|null>(null);
+ const [tooltipPosition,setTooltipPosition]=useState({top:120,left:24});
+ const tooltipRef=useRef<HTMLDivElement|null>(null);
+ const current=productTourSteps[step];
+
+ const finish=()=>{
+  window.localStorage.setItem(\`life-admin-product-tour-\${account.id}-v1\`,"1");
+  onComplete();
+ };
+
+ const measure=()=>{
+  const element=getVisibleTourTarget(current.target);
+  if(!element){
+   setTargetRect(null);
+   setTooltipPosition({top:Math.max(24,(window.innerHeight-300)/2),left:16});
+   return;
+  }
+
+  const rect=element.getBoundingClientRect();
+  const nextRect={
+   top:Math.max(6,rect.top-7),
+   left:Math.max(6,rect.left-7),
+   right:Math.min(window.innerWidth-6,rect.right+7),
+   bottom:Math.min(window.innerHeight-6,rect.bottom+7),
+   width:Math.min(window.innerWidth-12,rect.width+14),
+   height:Math.min(window.innerHeight-12,rect.height+14),
+  };
+  setTargetRect(nextRect);
+
+  const tooltip=tooltipRef.current;
+  const width=tooltip?.offsetWidth??340;
+  const height=tooltip?.offsetHeight??230;
+  const gap=22;
+
+  let left=rect.left+rect.width/2-width/2;
+  let top=rect.bottom+gap;
+
+  if(rect.top>window.innerHeight*0.66){
+   left=rect.left+rect.width/2-width/2;
+   top=rect.top-height-gap;
+  }else if(rect.left<window.innerWidth*0.34){
+   left=rect.right+gap;
+   top=rect.top+rect.height/2-height/2;
+  }else if(rect.right>window.innerWidth*0.66){
+   left=rect.left-width-gap;
+   top=rect.top+rect.height/2-height/2;
+  }
+
+  left=Math.min(Math.max(16,left),Math.max(16,window.innerWidth-width-16));
+  top=Math.min(Math.max(16,top),Math.max(16,window.innerHeight-height-16));
+  setTooltipPosition({top,left});
+ };
+
+ useEffect(()=>{
+  const frame=window.requestAnimationFrame(measure);
+  const retry=window.setTimeout(measure,60);
+  const handleResize=()=>window.requestAnimationFrame(measure);
+  window.addEventListener("resize",handleResize);
+  window.addEventListener("scroll",handleResize,{passive:true});
+  return()=>{
+   window.cancelAnimationFrame(frame);
+   window.clearTimeout(retry);
+   window.removeEventListener("resize",handleResize);
+   window.removeEventListener("scroll",handleResize);
+  };
+ },[step]);
+
+ const next=()=>{
+  if(step===productTourSteps.length-1){
+   finish();
+   return;
+  }
+  setStep(value=>value+1);
+ };
+ const previous=()=>setStep(value=>Math.max(0,value-1));
+
+ const focusCenterX=targetRect?(targetRect.left+targetRect.right)/2:window.innerWidth/2;
+ const focusCenterY=targetRect?(targetRect.top+targetRect.bottom)/2:window.innerHeight/2;
+ const tooltipWidth=tooltipRef.current?.offsetWidth??340;
+ const tooltipHeight=tooltipRef.current?.offsetHeight??230;
+
+ let startX=tooltipPosition.left+tooltipWidth/2;
+ let startY=tooltipPosition.top+tooltipHeight/2;
+ if(targetRect){
+  if(focusCenterY>tooltipPosition.top+tooltipHeight)startY=tooltipPosition.top+tooltipHeight;
+  else if(focusCenterY<tooltipPosition.top)startY=tooltipPosition.top;
+  else if(focusCenterX<tooltipPosition.left)startX=tooltipPosition.left;
+  else startX=tooltipPosition.left+tooltipWidth;
+ }
+ const dx=focusCenterX-startX;
+ const dy=focusCenterY-startY;
+ const arrowLength=Math.max(42,Math.sqrt(dx*dx+dy*dy));
+ const arrowAngle=Math.atan2(dy,dx);
+
+ return <div className="product-tour" aria-live="polite">
+  {targetRect?<>
+   <div className="product-tour-shade" style={{top:0,left:0,right:0,height:targetRect.top}}/>
+   <div className="product-tour-shade" style={{top:targetRect.bottom,left:0,right:0,bottom:0}}/>
+   <div className="product-tour-shade" style={{top:targetRect.top,left:0,width:targetRect.left,height:targetRect.height}}/>
+   <div className="product-tour-shade" style={{top:targetRect.top,right:0,width:window.innerWidth-targetRect.right,height:targetRect.height}}/>
+   <div className="product-tour-focus" style={{top:targetRect.top,left:targetRect.left,width:targetRect.width,height:targetRect.height}}/>
+   <div className="product-tour-arrow" style={{left:startX,top:startY,width:arrowLength,transform:\`rotate(\${arrowAngle}rad)\`}}/>
+  </>:<div className="product-tour-shade product-tour-shade-full"/>}
+
+  <div ref={tooltipRef} className="product-tour-card" style={{top:tooltipPosition.top,left:tooltipPosition.left}} role="dialog" aria-modal="true" aria-labelledby="product-tour-title">
+   <div className="product-tour-step">STEP {step+1} OF {productTourSteps.length}</div>
+   <p className="eyebrow">Life Admin tour</p>
+   <h2 id="product-tour-title">{current.title}</h2>
+   <p>{current.text}</p>
+   <div className="product-tour-actions">
+    <button className="text tour-skip" onClick={finish}>Skip tour</button>
+    <div>
+     {step>0&&<button className="light tour-button" onClick={previous}>Back</button>}
+     <button className="dark tour-button" onClick={next}>{step===productTourSteps.length-1?"Done":"Next"}</button>
+    </div>
+   </div>
+  </div>
+ </div>;
+}
+
 function reminderMeta(dueDate:string|null,context:string){
  if(!dueDate)return context;
  const due=new Date(dueDate+"T00:00:00");
@@ -281,7 +422,7 @@ export default function App(){
  const attentionMutationVersion=useRef(0);
  const thingMutationVersion=useRef(0);
  const paymentMutationVersion=useRef(0);
- const [showWalkthrough,setShowWalkthrough]=useState(false),[saving,setSaving]=useState(false),[appError,setAppError]=useState("");
+ const [showWalkthrough,setShowWalkthrough]=useState(false),[showProductTour,setShowProductTour]=useState(false),[saving,setSaving]=useState(false),[appError,setAppError]=useState("");
 
  useEffect(()=>{
   const saved=window.localStorage.getItem("life-admin-theme") as Theme|null;
@@ -299,6 +440,12 @@ export default function App(){
    setShowWalkthrough(!current.onboardingComplete);
   }).catch(()=>{});
  },[]);
+
+ useEffect(()=>{
+  if(!ready||!account||showWalkthrough)return;
+  const key=\`life-admin-product-tour-\${account.id}-v1\`;
+  setShowProductTour(window.localStorage.getItem(key)!=="1");
+ },[ready,account,showWalkthrough]);
 
  useEffect(()=>{
   if(!ready||!account||showWalkthrough)return;
@@ -394,6 +541,7 @@ export default function App(){
  const signOut=async()=>{
   try{await logoutAccount();}catch{}
   setAccount(null);
+  setShowProductTour(false);
   setAccountSheet(false);
   setSection("home");
   setAttention([]);
@@ -406,11 +554,11 @@ export default function App(){
  return <main className="shell">
   <aside className="sidebar">
    <div className="brand">LIFE ADMIN<span>.</span></div>
-   <nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav>
-   <button className="dark add" onClick={()=>openQuickAdd()}>+ Add</button>
+   <nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button data-tour={k} className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav>
+   <button data-tour="add" className="dark add" onClick={()=>openQuickAdd()}>+ Add</button>
    <div className="bottom">
-    <button className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button>
-    <button className="nav" onClick={()=>setAccountSheet(true)}><b>●</b>Account</button>
+    <button data-tour="theme" className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button>
+    <button data-tour="account" className="nav" onClick={()=>setAccountSheet(true)}><b>●</b>Account</button>
     <button className="account" onClick={()=>setAccountSheet(true)}><span>{account.name.slice(0,1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{account.email}</small></div></button>
    </div>
   </aside>
@@ -418,10 +566,10 @@ export default function App(){
   <section className="content">
    <header>
     <div className="mobilebrand">LIFE ADMIN<span>.</span></div>
-    <button className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button>
-    <button className="mobiletheme" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button>
-    <button className="mobileaccount" onClick={()=>setAccountSheet(true)} aria-label="Open account">{account.name.slice(0,1).toUpperCase()}</button>
-    <button className="mobileplus" onClick={()=>openQuickAdd()}>+</button>
+    <button data-tour="search" className="searchbar" onClick={()=>setSection("search")}>⌕ <span>Search your life...</span><kbd>⌘ K</kbd></button>
+    <button data-tour="theme" className="mobiletheme" onClick={toggleTheme aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}>{theme==="dark"?"☀":"☾"}</button>
+    <button data-tour="account" className="mobileaccount" onClick={()=>setAccountSheet(true) aria-label="Open account">{account.name.slice(0,1).toUpperCase()}</button>
+    <button data-tour="add" className="mobileplus" onClick={()=>openQuickAdd()}>+</button>
    </header>
 
    <div className="page">{appError&&<div className="auth-error app-error" role="alert">{appError}<button className="text" onClick={()=>setAppError("")}>Dismiss</button></div>}
@@ -440,13 +588,13 @@ export default function App(){
    </div>
   </section>
 
-  <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>k==="add"?openQuickAdd():setSection(k)}><span>{i}</span><small>{l}</small></button>)}</div>
+  <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button data-tour={k==="add"?"add":k} key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>k==="add"?openQuickAdd():setSection(k)}><span>{i}</span><small>{l}</small></button>)}</div>
 
   {thingModal&&<div className="backdrop" onClick={()=>setThingModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Things</p><h2>Add a thing</h2></div><button className="close" onClick={()=>setThingModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={thingName} onChange={event=>setThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={thingType} onChange={event=>setThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={thingDetail} onChange={event=>setThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThing()}>{saving?"Saving…":"Save thing"}</button><button className="text full" onClick={()=>setThingModal(false)}>Cancel</button></div></div>}
 
   {paymentModal&&<div className="backdrop" onClick={()=>setPaymentModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Payments</p><h2>Add a recurring payment</h2></div><button className="close" onClick={()=>setPaymentModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={paymentName} onChange={event=>setPaymentName(event.target.value)} placeholder="e.g. Internet"/></label><label className="auth-field"><span>Type</span><select value={paymentType} onChange={event=>setPaymentType(event.target.value)}><option value="BILL">Bill</option><option value="SUBSCRIPTION">Subscription</option><option value="RENEWAL">Renewal</option></select></label><label className="auth-field"><span>Amount</span><input inputMode="decimal" type="number" min="0.01" step="0.01" value={paymentAmount} onChange={event=>setPaymentAmount(event.target.value)} placeholder="25.00"/></label><label className="auth-field"><span>Frequency</span><select value={paymentFrequency} onChange={event=>setPaymentFrequency(event.target.value)}><option value="MONTHLY">Every month</option><option value="YEARLY">Every year</option><option value="WEEKLY">Every week</option></select></label><label className="auth-field"><span>Next due date</span><input type="date" value={paymentDueDate} onChange={event=>setPaymentDueDate(event.target.value)}/></label><label className="auth-field"><span>Connected Thing</span><select value={paymentThingId} onChange={event=>setPaymentThingId(event.target.value)}><option value="">None</option>{things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}</select></label><button className="dark full" disabled={saving} onClick={()=>void savePayment()}>{saving?"Saving…":"Save payment"}</button><button className="text full" onClick={()=>setPaymentModal(false)}>Cancel</button></div></div>}
  
-  {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowWalkthrough(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
+  {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowProductTour(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
 
   {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><div><small>Documents</small><strong>Coming next</strong><span>Receipts and warranties</span></div><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14");}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
 
@@ -520,5 +668,6 @@ export default function App(){
   setSaving(false);
  }
 }}>{quickProposal?(saving?"Saving…":"Save to Life Admin"):"Review details"}</button></div></div>}
+  {showProductTour&&<ProductTour account={account} onComplete={()=>setShowProductTour(false)}/>}
  </main>;
 }

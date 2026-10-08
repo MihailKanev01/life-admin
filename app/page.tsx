@@ -198,7 +198,7 @@ const productTourSteps=[
 ] as const;
 
 function getVisibleTourTarget(target:string):HTMLElement|null{
- const elements=Array.from(document.querySelectorAll<HTMLElement>(\`[data-tour="\${target}"]\`));
+ const elements=Array.from(document.querySelectorAll<HTMLElement>('[data-tour="' + target + '"]'));
  return elements.find(element=>{
   const rect=element.getBoundingClientRect();
   const style=window.getComputedStyle(element);
@@ -214,7 +214,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
  const current=productTourSteps[step];
 
  const finish=()=>{
-  window.localStorage.setItem(\`life-admin-product-tour-\${account.id}-v1\`,"1");
+  window.localStorage.setItem("life-admin-product-tour-"+account.id+"-v1","1");
   onComplete();
  };
 
@@ -309,7 +309,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
    <div className="product-tour-shade" style={{top:targetRect.top,left:0,width:targetRect.left,height:targetRect.height}}/>
    <div className="product-tour-shade" style={{top:targetRect.top,right:0,width:window.innerWidth-targetRect.right,height:targetRect.height}}/>
    <div className="product-tour-focus" style={{top:targetRect.top,left:targetRect.left,width:targetRect.width,height:targetRect.height}}/>
-   <div className="product-tour-arrow" style={{left:startX,top:startY,width:arrowLength,transform:\`rotate(\${arrowAngle}rad)\`}}/>
+   <div className="product-tour-arrow" style={{left:startX,top:startY,width:arrowLength,transform:"rotate("+arrowAngle+"rad)"}}/>
   </>:<div className="product-tour-shade product-tour-shade-full"/>}
 
   <div ref={tooltipRef} className="product-tour-card" style={{top:tooltipPosition.top,left:tooltipPosition.left}} role="dialog" aria-modal="true" aria-labelledby="product-tour-title">

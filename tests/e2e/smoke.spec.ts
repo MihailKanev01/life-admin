@@ -7,7 +7,7 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
     await expect(page.getByText("Frontend only · mock data")).toBeVisible();
 
-    await page.locator(".landing-window").getByRole("button", { name: "+ Quick add", exact: true }).click();
+    await page.locator(".landing-window-top").getByRole("button", { name: "+ Quick add", exact: true }).click();
     await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
     const previewInput = page.getByPlaceholder("e.g. Car insurance expires June 14");
     await previewInput.fill("Car insurance expires December 14");
@@ -105,13 +105,14 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
-    await page.getByRole("button", { name: /Already have an account\? Sign in/i }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Forgot your password?", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
-    await page.getByLabel("Email address").fill(account.email);
-    await page.getByRole("button", { name: "Send reset link", exact: true }).click();
-    await expect(page.getByRole("status")).toContainText("If an account exists for that email");
+    await page.locator(".auth-overlay").getByRole("button", { name: "Forgot your password?", exact: true }).click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
+    await expect(page.locator(".auth-overlay").getByRole("status")).toContainText("If an account exists for that email");
   });
 
   test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {
@@ -157,10 +158,10 @@ test.describe("Life Admin prototype smoke", () => {
       });
     });
 
-    await page.getByLabel("Your name").fill(account.name);
-    await page.getByLabel("Email address").fill(account.email);
-    await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
-    await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+    await page.locator(".auth-overlay").getByLabel("Your name").fill(account.name);
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    await page.locator(".auth-overlay").getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
     await page.locator(".auth-overlay").getByRole("button", { name: "Create account", exact: true }).click();
 
     await expect(page.locator(".auth-error")).toContainText("already exists");

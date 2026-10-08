@@ -320,6 +320,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
   setDirection("forward");
   setStep(value=>value+1);
  };
+
  const previous=()=>{
   setDirection("back");
   setStep(value=>Math.max(0,value-1));
@@ -338,6 +339,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
   else if(focusCenterX<tooltipPosition.left)startX=tooltipPosition.left;
   else startX=tooltipPosition.left+tooltipWidth;
  }
+
  const dx=focusCenterX-startX;
  const dy=focusCenterY-startY;
  const arrowLength=Math.max(42,Math.sqrt(dx*dx+dy*dy));
@@ -354,22 +356,22 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
   </>:<div className="product-tour-shade product-tour-shade-full"/>}
 
   <div ref={tooltipRef} className="product-tour-card" style={{top:tooltipPosition.top,left:tooltipPosition.left}} role="dialog" aria-modal="true" aria-labelledby="product-tour-title">
-   <div className="product-tour-step">STEP {step+1} OF {productTourSteps.length}</div>
-   <p className="eyebrow">Life Admin tour</p>
-   <h2 id="product-tour-title">{current.title}</h2>
-   <p>{current.text}</p>
+   <div key={"tour-content-"+step} className={"product-tour-content "+direction}>
+    <div className="product-tour-step">STEP {step+1} OF {productTourSteps.length}</div>
+    <p className="eyebrow">Life Admin tour</p>
+    <h2 id="product-tour-title">{current.title}</h2>
+    <p>{current.text}</p>
+   </div>
    <div className="product-tour-actions">
     <button className="text tour-skip" onClick={finish}>Skip tour</button>
     <div>
      {step>0&&<button className="light tour-button" onClick={previous}>Back</button>}
      <button className="dark tour-button" onClick={next}>{step===productTourSteps.length-1?"Done":"Next"}</button>
     </div>
-    </div>
    </div>
   </div>
  </div>;
 }
-
 function reminderMeta(dueDate:string|null,context:string){
  if(!dueDate)return context;
  const due=new Date(dueDate+"T00:00:00");

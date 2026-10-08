@@ -109,6 +109,24 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
   });
 
+  test("explains when a registration email is already in use", async ({ page }) => {
+    const account = makeTestAccount("duplicate");
+    await createAccountAndFinishWalkthrough(page, account);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+
+    await page.getByLabel("Your name").fill(account.name);
+    await page.getByLabel("Email address").fill(account.email);
+    await page.getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+    await page.getByRole("button", { name: "Create account", exact: true }).click();
+
+    await expect(page.getByRole("alert")).toContainText("already exists");
+    await expect(page.getByRole("alert")).toContainText("Forgot your password");
+  });
+
   test("navigates Things, Payments and Search", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);

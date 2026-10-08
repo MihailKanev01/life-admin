@@ -122,7 +122,7 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
-    await page.getByRole("button", { name: "Create account", exact: true }).first().click();
+    await page.locator(".landing-hero-copy").getByRole("button", { name: /Create your account/ }).click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
 
     await page.locator(".auth-overlay").getByRole("button", { name: "Already have an account? Sign in" }).click();

@@ -50,7 +50,7 @@ test.describe("Life Admin prototype smoke", () => {
     const account = makeTestAccount("login");
     await createAccountAndFinishWalkthrough(page, account);
 
-    await page.locator(".sidebar").getByRole("button", { name: "Account", exact: true }).click();
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
@@ -94,7 +94,7 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.getByRole("button", { name: /Mazda 6/i }).click();
     await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
-    await expect(page.getByText("Nothing right now", { exact: true })).toBeVisible();
+    await expect(page.locator(".contextgrid").getByText("Nothing right now", { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
     await expect(page.getByText("Quick add", { exact: true })).toBeVisible();

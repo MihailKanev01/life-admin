@@ -167,9 +167,17 @@ test.describe("Life Admin comprehensive functional coverage", () => {
       "Saved to the demo preview.",
     );
     await page.getByRole("button", { name: "Try again", exact: true }).click();
+    await page
+      .locator(".landing-window-top")
+      .getByRole("button", { name: "+ Quick add", exact: true })
+      .click();
     await expect(
       page.getByPlaceholder("e.g. Car insurance expires June 14"),
     ).toHaveValue("Car insurance expires December 14");
+    await page
+      .locator(".landing-quick-card")
+      .getByRole("button", { name: "Close preview" })
+      .click();
 
     await page
       .locator(".landing-hero-copy")
@@ -314,7 +322,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
 
     await page.getByRole("button", { name: "+ Add payment", exact: true }).click();
     await page.getByRole("button", { name: "Save payment", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText(
+    await expect(page.locator(".app-error")).toContainText(
       "Give this payment a name",
     );
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -371,6 +379,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await openQuick("Add a thing");
     await expect(page.getByText("Thing", { exact: true }).last()).toBeVisible();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
+    await page.getByRole("button", { name: /Things/i }).first().click();
     await expect(page.getByRole("button", { name: /New thing/i })).toBeVisible();
 
     await openQuick("Add a payment");

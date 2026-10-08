@@ -24,6 +24,7 @@ import {
   searchLife,
   snoozeReminder,
   updateReminder,
+  updatePayment,
   updateThing,
 } from "./api-client";
 
@@ -663,6 +664,13 @@ export default function App(){
  const [paymentFrequency,setPaymentFrequency]=useState("MONTHLY");
  const [paymentDueDate,setPaymentDueDate]=useState("");
  const [paymentThingId,setPaymentThingId]=useState("");
+ const [paymentEdit,setPaymentEdit]=useState<ApiPayment|null>(null);
+ const [editPaymentName,setEditPaymentName]=useState("");
+ const [editPaymentType,setEditPaymentType]=useState("BILL");
+ const [editPaymentAmount,setEditPaymentAmount]=useState("");
+ const [editPaymentFrequency,setEditPaymentFrequency]=useState("MONTHLY");
+ const [editPaymentDueDate,setEditPaymentDueDate]=useState("");
+ const [editPaymentThingId,setEditPaymentThingId]=useState("");
  const [selectedThing,setSelectedThing]=useState<ApiThing|null>(null);
  const [thingEdit,setThingEdit]=useState<ApiThing|null>(null);
  const [editThingName,setEditThingName]=useState("");
@@ -846,6 +854,43 @@ export default function App(){
   setPaymentModal(true);
  };
 
+ const openPaymentEdit=(payment:ApiPayment)=>{
+  setPaymentEdit(payment);
+  setEditPaymentName(payment.name);
+  setEditPaymentType(payment.type);
+  setEditPaymentAmount(String(payment.amount));
+  setEditPaymentFrequency(payment.frequency);
+  setEditPaymentDueDate(payment.nextDueDate||"");
+  setEditPaymentThingId(payment.thingId||"");
+ };
+
+ const savePaymentEdit=async()=>{
+  if(!paymentEdit)return;
+  if(!editPaymentName.trim()){setAppError("Give this payment a name.");return;}
+  const amount=Number(editPaymentAmount);
+  if(!Number.isFinite(amount)||amount<=0){setAppError("Enter a valid amount.");return;}
+  setSaving(true);
+  setAppError("");
+  try{
+   const updated=await updatePayment(paymentEdit.id,{
+    name:editPaymentName.trim(),
+    type:editPaymentType,
+    amount,
+    currency:paymentEdit.currency||"EUR",
+    frequency:editPaymentFrequency,
+    nextDueDate:editPaymentDueDate||null,
+    thingId:editPaymentThingId||null,
+   });
+   paymentMutationVersion.current+=1;
+   setPayments(items=>items.map(item=>item.id===updated.id?updated:item));
+   setPaymentEdit(null);
+  }catch(caught){
+   setAppError(caught instanceof Error?caught.message:"Could not update this payment.");
+  }finally{
+   setSaving(false);
+  }
+ };
+
  const savePayment=async()=>{
   if(!paymentName.trim()){setAppError("Give this payment a name.");return;}
   const amount=Number(paymentAmount);
@@ -956,7 +1001,7 @@ export default function App(){
 
     {section==="payments"&&<><div className="intro"><div><p className="eyebrow">Payments</p><h1>Know what leaves your account</h1><p className="subtitle">Recurring bills and subscriptions — without becoming a banking app.</p></div><button className="dark action" onClick={()=>openPaymentModal()}>+ Add payment</button></div>
      {(()=>{const today=new Date();const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());const end=new Date(start);end.setDate(end.getDate()+30);const upcoming=payments.filter(x=>x.nextDueDate).filter(x=>{const d=new Date(x.nextDueDate+"T00:00:00");return d>=start&&d<=end}).reduce((sum,x)=>sum+x.amount,0);const recurring=payments.reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);const subscriptions=payments.filter(x=>x.type==="SUBSCRIPTION").reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);return <div className="stats"><div className="stat"><small>Upcoming</small><strong>{formatPaymentMoney(upcoming,"EUR")}</strong><span>next 30 days</span></div><div className="stat"><small>Recurring</small><strong>{formatPaymentMoney(recurring,"EUR")}</strong><span>per month equivalent</span></div><div className="stat"><small>Subscriptions</small><strong>{formatPaymentMoney(subscriptions,"EUR")}</strong><span>per month equivalent</span></div></div>})()}
-     <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>Mark paid</button></div>)}</>:<div className="empty"><span>€</span><div><strong>No recurring payments yet.</strong><small>Add bills, subscriptions or renewals so you know what is coming up.</small></div></div>}</section></>}
+     <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={()=>openPaymentEdit(x)}>Edit</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>Mark paid</button></div>)}</>:<div className="empty"><span>€</span><div><strong>No recurring payments yet.</strong><small>Add bills, subscriptions or renewals so you know what is coming up.</small></div></div>}</section></>}
      
 {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things, reminders and payments in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{searchLoading?<div className="search-status">Searching your saved information…</div>:searchResults.length?searchResults.map(result=><div className="result" key={result.kind+":"+result.id}><span>{result.kind==="THING"?"◫":result.kind==="PAYMENT"?"€":"!"}</span><div><strong>{result.title}</strong><small>{result.subtitle}{result.dueDate?" · "+result.dueDate:""}</small></div><em>{result.kind[0]+result.kind.slice(1).toLowerCase()}</em></div>):<div className="empty"><span>⌕</span><div><strong>No matches found.</strong><small>Try another word or one of the suggested searches above.</small></div></div>}</section>}</>}
    </div>
@@ -975,6 +1020,8 @@ export default function App(){
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><div className="reminder-actions"><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={()=>openReminderEdit(selected)}>Edit reminder</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await rescheduleReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
      setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not reschedule reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>Close</button></div></div></div>}
+
+  {paymentEdit&&<div className="backdrop" onClick={()=>setPaymentEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Payments</p><h2>Edit payment</h2></div><button className="close" onClick={()=>setPaymentEdit(null)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={editPaymentName} onChange={event=>setEditPaymentName(event.target.value)} placeholder="e.g. Internet"/></label><label className="auth-field"><span>Type</span><select value={editPaymentType} onChange={event=>setEditPaymentType(event.target.value)}><option value="BILL">Bill</option><option value="SUBSCRIPTION">Subscription</option><option value="RENEWAL">Renewal</option></select></label><label className="auth-field"><span>Amount</span><input inputMode="decimal" type="number" min="0.01" step="0.01" value={editPaymentAmount} onChange={event=>setEditPaymentAmount(event.target.value)} placeholder="25.00"/></label><label className="auth-field"><span>Frequency</span><select value={editPaymentFrequency} onChange={event=>setEditPaymentFrequency(event.target.value)}><option value="MONTHLY">Every month</option><option value="YEARLY">Every year</option><option value="WEEKLY">Every week</option></select></label><label className="auth-field"><span>Next due date</span><input type="date" value={editPaymentDueDate} onChange={event=>setEditPaymentDueDate(event.target.value)}/></label><label className="auth-field"><span>Connected Thing</span><select value={editPaymentThingId} onChange={event=>setEditPaymentThingId(event.target.value)}><option value="">None</option>{things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}</select></label><button className="dark full" disabled={saving} onClick={()=>void savePaymentEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setPaymentEdit(null)}>Cancel</button></div></div>}
 
   {thingEdit&&<div className="backdrop" onClick={()=>setThingEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>Edit Thing</h2></div><button className="close" onClick={()=>setThingEdit(null)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={editThingName} onChange={event=>setEditThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={editThingType} onChange={event=>setEditThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={editThingDetail} onChange={event=>setEditThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThingEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setThingEdit(null)}>Cancel</button></div></div>}
 

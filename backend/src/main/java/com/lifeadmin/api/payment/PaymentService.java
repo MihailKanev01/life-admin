@@ -35,7 +35,7 @@ public class PaymentService {
     @Transactional
     public Payment create(UserPrincipal principal, PaymentDtos.CreateRequest request) {
         UUID thingId = request.thingId();
-        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+        if (thingId != null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
         }
 
@@ -67,7 +67,7 @@ public class PaymentService {
         Payment payment = get(principal, id);
 
         UUID thingId = request.thingId();
-        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+        if (thingId != null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
         }
 

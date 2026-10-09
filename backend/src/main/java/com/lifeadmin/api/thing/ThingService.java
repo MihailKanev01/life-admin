@@ -26,7 +26,7 @@ public class ThingService {
 
     @Transactional(readOnly = true)
     public List<Thing> list(UserPrincipal principal) {
-        return things.findByUserIdOrderByCreatedAtDesc(principal.getId());
+        return things.findByUserIdAndArchivedFalseOrderByCreatedAtDesc(principal.getId());
     }
 
     @Transactional(readOnly = true)

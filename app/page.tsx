@@ -75,6 +75,47 @@ type QuickProposal={
  reminderOn?:string;
 };
 
+function mapUser(user:ApiUser):Account{
+ return {
+  id:user.id,
+  name:user.displayName,
+  email:user.email,
+  timezone:user.timezone,
+  onboardingComplete:user.onboardingComplete,
+  createdAt:user.createdAt,
+ };
+}
+
+const initialAttention:AttentionItem[]=[];
+
+
+const walkthroughSteps=[
+ {
+  eyebrow:"Welcome to Life Admin",
+  title:"Your life admin, without the mental load.",
+  text:"Create one personal workspace for the things you own, the payments you make and the tasks that need attention.",
+  visual:<div className="walkvisual"><div className="walkquote">“What matters right now?”</div><div className="walkline"><span/><span/><span/></div></div>,
+ },
+ {
+  eyebrow:"Things",
+  title:"Start with what you manage.",
+  text:"Cars, homes, devices and other real-world things keep their reminders, documents, payments and history together.",
+  visual:<div className="walkvisual"><div className="walkthing"><span>🚗</span><div><strong>Mazda 6</strong><small>1 thing needs attention</small></div><b>›</b></div><div className="walkcontext"><span>Car insurance</span><span>Insurance policy</span><span>Service history</span></div></div>,
+ },
+ {
+  eyebrow:"Quick Add",
+  title:"Tell us naturally.",
+  text:"Write something the way you would normally say it. Life Admin proposes the details and asks you to confirm before saving.",
+  visual:<div className="walkvisual"><div className="walkinput">Car insurance expires June 14</div><div className="walkproposal"><span>Reminder</span><span>Mazda 6</span><span>June 14</span></div></div>,
+ },
+ {
+  eyebrow:"Home",
+  title:"Know what deserves your attention.",
+  text:"Instead of another giant task list, Home keeps the next important things visible and connected to the context you need.",
+  visual:<div className="walkvisual"><div className="walkhome"><small>Needs attention</small><strong>Car insurance</strong><span>Due in 5 days · Mazda 6</span></div><div className="walkhome mutedwalk"><small>Coming up</small><strong>TV warranty</strong><span>24 days</span></div></div>,
+ },
+];
+
 function subtractDaysFromIso(isoDate:string,days:number):string|null{
  const parts=isoDate.split("-").map(Number);
  if(parts.length!==3||parts.some(value=>!Number.isFinite(value)))return null;

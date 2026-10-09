@@ -502,6 +502,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
 
   test("uploads documents linked to a Thing and persists them until deletion", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
+    await page.getByRole("button", { name: /Things/i }).first().click();
     await saveThing(page, "Document Test Vehicle", "Vehicle", "Document linkage fixture");
 
     await page.getByRole("button", { name: /Documents/ }).click();

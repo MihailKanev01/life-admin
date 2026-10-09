@@ -11,6 +11,7 @@ import {
   completeOnboarding,
   completeReminder,
   createNote,
+  createExpiryQuickAdd,
   createPayment,
   createReminder,
   createThing,
@@ -61,54 +62,88 @@ type AttentionItem={
  thingId:string|null;
 };
 
-type QuickProposal={type:"Reminder"|"Thing"|"Payment"|"Document";title:string;context:string;due:string};
+type QuickProposal={
+ type:"Reminder"|"Thing"|"Payment"|"Document";
+ title:string;
+ context:string;
+ due:string;
+ thingId?:string|null;
+ thingName?:string|null;
+ thingType?:string;
+ recordTitle?:string;
+ expiresOn?:string;
+ reminderOn?:string;
+};
 
-function mapUser(user:ApiUser):Account{
- return {
-  id:user.id,
-  name:user.displayName,
-  email:user.email,
-  timezone:user.timezone,
-  onboardingComplete:user.onboardingComplete,
-  createdAt:user.createdAt,
- };
+function subtractDaysFromIso(isoDate:string,days:number):string|null{
+ const parts=isoDate.split("-").map(Number);
+ if(parts.length!==3||parts.some(value=>!Number.isFinite(value)))return null;
+ const date=new Date(Date.UTC(parts[0],parts[1]-1,parts[2]));
+ if(Number.isNaN(date.getTime()))return null;
+ date.setUTCDate(date.getUTCDate()-days);
+ return date.toISOString().slice(0,10);
 }
 
-const initialAttention:AttentionItem[]=[];
+function formatQuickAddDate(isoDate:string){
+ const parts=isoDate.split("-").map(Number);
+ if(parts.length!==3||parts.some(value=>!Number.isFinite(value)))return isoDate;
+ return new Intl.DateTimeFormat("en-US",{
+  month:"long",day:"numeric",year:"numeric",timeZone:"UTC",
+ }).format(new Date(Date.UTC(parts[0],parts[1]-1,parts[2])));
+}
 
+function inferThingTypeFromQuickAdd(text:string,thingName:string){
+ const lower=(text+" "+thingName).toLowerCase();
+ if(/\b(home|house|flat|apartment|boiler)\b/.test(lower))return "Home";
+ if(/\b(dog|cat|pet|bella)\b/.test(lower))return "Pet";
+ if(/\b(phone|laptop|computer|tablet|device)\b/.test(lower))return "Device";
+ if(/\b(car|vehicle|mazda|toyota|bmw|golf|audi|ford|volkswagen|vw|skoda|honda|volvo)\b/.test(lower))return "Vehicle";
+ return "Other";
+}
 
-const walkthroughSteps=[
- {
-  eyebrow:"Welcome to Life Admin",
-  title:"Your life admin, without the mental load.",
-  text:"Create one personal workspace for the things you own, the payments you make and the tasks that need attention.",
-  visual:<div className="walkvisual"><div className="walkquote">“What matters right now?”</div><div className="walkline"><span/><span/><span/></div></div>,
- },
- {
-  eyebrow:"Things",
-  title:"Start with what you manage.",
-  text:"Cars, homes, devices and other real-world things keep their reminders, documents, payments and history together.",
-  visual:<div className="walkvisual"><div className="walkthing"><span>🚗</span><div><strong>Mazda 6</strong><small>1 thing needs attention</small></div><b>›</b></div><div className="walkcontext"><span>Car insurance</span><span>Insurance policy</span><span>Service history</span></div></div>,
- },
- {
-  eyebrow:"Quick Add",
-  title:"Tell us naturally.",
-  text:"Write something the way you would normally say it. Life Admin proposes the details and asks you to confirm before saving.",
-  visual:<div className="walkvisual"><div className="walkinput">Car insurance expires June 14</div><div className="walkproposal"><span>Reminder</span><span>Mazda 6</span><span>June 14</span></div></div>,
- },
- {
-  eyebrow:"Home",
-  title:"Know what deserves your attention.",
-  text:"Instead of another giant task list, Home keeps the next important things visible and connected to the context you need.",
-  visual:<div className="walkvisual"><div className="walkhome"><small>Needs attention</small><strong>Car insurance</strong><span>Due in 5 days · Mazda 6</span></div><div className="walkhome mutedwalk"><small>Coming up</small><strong>TV warranty</strong><span>24 days</span></div></div>,
- },
-];
-
-function buildQuickProposal(text:string):QuickProposal{
+function buildQuickProposal(text:string,things:ApiThing[]=[],selectedThingId:string|null=null):QuickProposal{
  const normalized=text.trim();
  const lower=normalized.toLowerCase();
  const dateMatch=normalized.match(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b/i);
  const due=dateMatch?dateMatch[0]:"Choose a date";
+
+ // The documented expiry intent captures a Thing, a record and a 30-day reminder.
+ const expiryIntent=Boolean(dateMatch)&&/\b(?:expire(?:s|d|ing)?|expiry|expiration|renew(?:s|al)?)\b/i.test(lower);
+ if(expiryIntent&&dateMatch){
+  const phraseMatch=normalized.match(/\bfor\s+(.+?)\s+(?:expire(?:s|d|ing)?|expiry|expiration|renew(?:s|al)?)\b/i);
+  const requestedThingName=phraseMatch?.[1]?.trim()||null;
+  const selectedThing=selectedThingId?things.find(item=>item.id===selectedThingId):undefined;
+  const namedThing=requestedThingName
+   ?things.find(item=>item.name.toLowerCase()===requestedThingName.toLowerCase())
+      ||things.find(item=>item.name.toLowerCase().includes(requestedThingName.toLowerCase())
+        ||requestedThingName.toLowerCase().includes(item.name.toLowerCase()))
+   :undefined;
+  const linkedThing=namedThing||selectedThing;
+  const thingName=linkedThing?.name||requestedThingName||null;
+  const expiresOn=proposalDueDate(dateMatch[0]);
+  const reminderOn=expiresOn?subtractDaysFromIso(expiresOn,30):null;
+  const recordTitle=lower.includes("insurance")?"Insurance"
+   :lower.includes("warranty")?"Warranty"
+   :lower.includes("registration")?"Registration"
+   :lower.includes("service")||lower.includes("maintenance")?"Service"
+   :lower.includes("subscription")?"Subscription"
+   :"Renewal";
+  if(thingName&&expiresOn&&reminderOn){
+   return {
+    type:"Reminder",
+    title:recordTitle+" reminder",
+    context:thingName,
+    due:dateMatch[0],
+    thingId:linkedThing?.id??null,
+    thingName,
+    thingType:linkedThing?.type||inferThingTypeFromQuickAdd(normalized,thingName),
+    recordTitle,
+    expiresOn,
+    reminderOn,
+   };
+  }
+ }
+
  if(lower.includes("internet payment"))return {type:"Reminder",title:"Internet payment",context:"Personal",due};
  if(lower.includes("insurance")||lower.includes("car insurance"))return {type:"Reminder",title:"Car insurance",context:"Mazda 6",due};
  if(lower.includes("add a thing"))return {type:"Thing",title:"New thing",context:"Personal",due};
@@ -1130,15 +1165,34 @@ export default function App(){
 
   {reminderEdit&&<div className="backdrop" onClick={()=>setReminderEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Reminder</p><h2>Edit reminder</h2></div><button className="close" onClick={()=>setReminderEdit(null)}>×</button></div><label className="auth-field"><span>Title</span><input autoFocus value={reminderTitle} onChange={event=>setReminderTitle(event.target.value)} placeholder="e.g. Car insurance"/></label><label className="auth-field"><span>Context</span><input value={reminderContext} onChange={event=>setReminderContext(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Due date</span><input type="date" value={reminderDueDate} onChange={event=>setReminderDueDate(event.target.value)}/></label><button className="dark full" disabled={saving} onClick={()=>void saveReminderEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setReminderEdit(null)}>Cancel</button></div></div>}
 
-  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>:<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
+  {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Quick add</p><h2>What do you want to remember?</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?(quickProposal.expiresOn&&quickProposal.reminderOn&&quickProposal.recordTitle?<div className="proposal expiry-proposal">
+ <div><small>Thing</small><strong>{quickProposal.thingName||quickProposal.context}</strong></div>
+ <div><small>Record</small><strong>{quickProposal.recordTitle}</strong></div>
+ <div><small>Expiry</small><strong>{formatQuickAddDate(quickProposal.expiresOn)}</strong></div>
+ <div className="proposaltitle"><small>Reminder</small><strong>{formatQuickAddDate(quickProposal.reminderOn)} · 30 days before</strong></div>
+ </div>:<div className="proposal"><div><small>Type</small><strong>{quickProposal.type}</strong></div><div><small>Context</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>Save as</small><strong>{quickProposal.title}</strong></div></div>):<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>Capture it quickly</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
  if(!quickProposal){
-  setQuickProposal(buildQuickProposal(quickText));
+  setQuickProposal(buildQuickProposal(quickText,things,quickThingId));
   return;
  }
  setSaving(true);
  setAppError("");
  try{
-  if(quickProposal.type==="Reminder"){
+  if(quickProposal.expiresOn&&quickProposal.reminderOn&&quickProposal.recordTitle){
+   await createExpiryQuickAdd({
+    thingId:quickProposal.thingId??quickThingId,
+    thingName:(quickProposal.thingId??quickThingId)?null:quickProposal.thingName,
+    thingType:quickProposal.thingType||"Other",
+    recordTitle:quickProposal.recordTitle,
+    expiresOn:quickProposal.expiresOn,
+    reminderOn:quickProposal.reminderOn,
+   });
+   const [updatedThings,updatedReminders]=await Promise.all([getThings(),getReminders()]);
+   thingMutationVersion.current+=1;
+   attentionMutationVersion.current+=1;
+   setThings(updatedThings.items);
+   setAttention(updatedReminders.items.map(reminderAttention));
+  }else if(quickProposal.type==="Reminder"){
    const linkedThing=quickThingId?things.find(item=>item.id===quickThingId):things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase());
    const created=await createReminder({
     title:quickProposal.title,
@@ -1157,7 +1211,7 @@ export default function App(){
   }else if(quickProposal.type==="Thing"){
    const created=await createThing({
     name:quickProposal.title==="New thing"?"New thing":quickProposal.title,
-    type:"Thing",
+    type:"Other",
     detail:null
    });
    thingMutationVersion.current+=1;
@@ -1177,17 +1231,16 @@ export default function App(){
    setPaymentModal(true);
    return;
   }else{
-   attentionMutationVersion.current+=1;
-   setAttention(items=>[{
-    id:crypto.randomUUID(),
-    title:quickProposal.title,
-    meta:quickProposal.type+" · "+quickProposal.due,
-    amount:"",
-    urgent:false,
-    context:quickProposal.context,
-    dueDate:null,
-    thingId:quickThingId
-   },...items]);
+   const linkedThingId=quickThingId
+    ||things.find(item=>item.name.toLowerCase()===quickProposal.context.toLowerCase())?.id
+    ||"";
+   setDocumentsThingFilter(linkedThingId);
+   setSection("documents");
+   setModal(false);
+   setQuickText("");
+   setQuickProposal(null);
+   setQuickThingId(null);
+   return;
   }
   setModal(false);
   setQuickText("");

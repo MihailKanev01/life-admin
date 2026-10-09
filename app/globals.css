@@ -174,3 +174,6 @@ html[data-theme="dark"] .product-tour-focus{box-shadow:0 0 0 5px rgba(255,255,25
  .thing-note-actions{width:100%}
  .thing-note-actions button{flex:1}
 }
+
+.expiry-proposal strong{line-height:1.4;overflow-wrap:anywhere}
+@media(max-width:700px){.expiry-proposal{grid-template-columns:1fr 1fr}.expiry-proposal .proposaltitle{grid-column:1/-1}}

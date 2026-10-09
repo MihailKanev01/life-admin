@@ -14,6 +14,8 @@ public interface ThingRepository extends JpaRepository<Thing, UUID> {
 
     Optional<Thing> findByIdAndUserIdAndArchivedFalse(UUID id, UUID userId);
 
+    Optional<Thing> findByUserIdAndNameIgnoreCaseAndArchivedFalse(UUID userId, String name);
+
     boolean existsByUserIdAndNameIgnoreCaseAndArchivedFalse(UUID userId, String name);
 
     boolean existsByUserIdAndNameIgnoreCaseAndArchivedFalseAndIdNot(UUID userId, String name, UUID id);

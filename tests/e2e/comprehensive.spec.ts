@@ -405,8 +405,9 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await openQuick("Add a document");
     await expect(page.getByText("Document", { exact: true }).last()).toBeVisible();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
-    await page.getByRole("button", { name: /Home/i }).first().click();
-    await expect(page.getByRole("button", { name: /New document/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Documents", exact: true })).toBeVisible();
+    await expect(page.getByLabel("Choose document")).toBeVisible();
+    await page.locator('.sidebar nav button[data-tour="home"]').click();
 
     await openQuick("Car service due November 21");
     await expect(page.getByText("Reminder", { exact: true }).last()).toBeVisible();
@@ -569,6 +570,37 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await page.locator('.sidebar nav button[data-tour="things"]').click();
     await page.locator(".thing").filter({ hasText: "Notes Test Vehicle" }).click();
     await expect(page.locator(".thing-note").filter({ hasText: "Mazda policy details" })).toBeVisible();
+  });
+
+
+  test("Quick Add confirms an expiry, saves a Note and schedules a reminder 30 days before", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await saveThing(page, "Expiry Capture Mazda", "Vehicle", "Quick Add expiry fixture");
+
+    await page.locator('.sidebar button[data-tour="add"]').click();
+    await page.getByPlaceholder("e.g. Car insurance expires June 14")
+      .fill("Insurance for Expiry Capture Mazda expires June 14");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+
+    const proposal = page.locator(".expiry-proposal");
+    await expect(proposal).toContainText("Expiry Capture Mazda");
+    await expect(proposal).toContainText("Insurance");
+    await expect(proposal).toContainText("June 14");
+    await expect(proposal).toContainText("30 days before");
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+
+    await page.locator('.sidebar nav button[data-tour="search"]').click();
+    await page.getByPlaceholder(/Try.*car.*insurance/i).fill("Insurance");
+    const noteResult = page.locator(".result").filter({ hasText: "Expires on" });
+    await expect(noteResult).toBeVisible();
+    await expect(noteResult).toContainText("Expiry Capture Mazda");
+    await expect(noteResult).toContainText("30 days before expiry");
+    await expect(page.locator(".result").filter({ hasText: "Insurance reminder" })).toBeVisible();
+
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await page.locator(".thing").filter({ hasText: "Expiry Capture Mazda" }).click();
+    await expect(page.locator(".thing-note").filter({ hasText: "Insurance" })).toContainText("Expires on");
   });
 
 });

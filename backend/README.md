@@ -119,3 +119,9 @@ Notes are owned by the signed-in user and linked to an active Thing. The note bo
 - \`GET /api/v1/search?q={query}\` — search Things, reminders, payments, documents and notes for the signed-in user.
 
 Notes are exposed in the Thing detail rather than as a new top-level navigation destination.
+
+
+## Quick Add
+
+- \`POST /api/v1/quick-add/expiry\` — transactionally creates an expiry Note and its reminder, 30 days before expiry, linked to an active Thing owned by the signed-in user. If no active Thing is linked, the confirmed capture may create one.
+- Document suggestions route to the Documents upload screen rather than persisting a placeholder item.

@@ -337,6 +337,30 @@ export async function deleteNote(id:string){
 }
 
 
+
+
+export type ApiExpiryQuickAddResponse={
+ thingId:string;
+ thingName:string;
+ thingCreated:boolean;
+ noteId:string;
+ reminderId:string;
+ expiresOn:string;
+ reminderOn:string;
+};
+
+export async function createExpiryQuickAdd(payload:{
+ thingId?:string|null;
+ thingName?:string|null;
+ thingType?:string|null;
+ recordTitle:string;
+ expiresOn:string;
+ reminderOn:string;
+}){
+ return apiRequest<ApiExpiryQuickAddResponse>("/quick-add/expiry",{method:"POST",body:JSON.stringify(payload)});
+}
+
+
 export type ApiDocument={
  id:string;
  fileName:string;

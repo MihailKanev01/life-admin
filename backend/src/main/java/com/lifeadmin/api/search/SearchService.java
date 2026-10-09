@@ -102,7 +102,7 @@ public class SearchService {
                     .filter(thing -> thing.getUserId().equals(principal.getId()))
                     .map(Thing::getName)
                     .orElse(null);
-            String bodySnippet = note.getBody().replaceAll("\\\\s+", " ").trim();
+            String bodySnippet = note.getBody().replaceAll("\\s+", " ").trim();
             if (bodySnippet.length() > 180) bodySnippet = bodySnippet.substring(0, 177) + "…";
             String subtitle = bodySnippet + (thingName == null ? "" : " · " + thingName);
             matches.add(new ScoredResult(

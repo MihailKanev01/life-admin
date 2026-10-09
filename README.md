@@ -24,7 +24,8 @@ Persisted domains:
 - user identity and onboarding completion state;
 - user-owned reminders;
 - Things, contextual Payments and Things-linked Notes;
-- private Documents metadata with file bytes in S3-compatible object storage.
+- private Documents metadata with file bytes in S3-compatible object storage;
+- Things-linked Notes and confirmed Quick Add expiry captures.
 
 ## Local development
 
@@ -87,3 +88,10 @@ The backend must run with:
 - AI proposes; the user confirms.
 - Home must remain attention-first and low-clutter.
 - Backend/API must remain mobile-app ready.
+
+
+## Quick Add and Notes
+
+Notes are saved to an owned Thing and participate in user-scoped Search. The expiry Quick Add path lets the user review a record and expiry date before saving; confirmation saves the expiry as a Note and schedules a reminder 30 days beforehand in one database transaction. If the referenced active Thing does not exist, the confirmed capture can create it.
+
+The Quick Add document option routes to the real private Documents upload screen. It does not create a temporary Home item.

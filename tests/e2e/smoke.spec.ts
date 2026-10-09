@@ -233,6 +233,53 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("Internet", { exact: true }).last()).toBeVisible();
   });
 
+  test("edits a Payment and persists the changes", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page, "Billing Mazda");
+    await addPayment(page, "Internet", "25", "Every month");
+
+    const paymentRow = page.locator(".pay").filter({ hasText: "Internet" });
+    await paymentRow.getByRole("button", { name: "Edit", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit payment" })).toBeVisible();
+
+    await page.getByLabel("Name").fill("Fiber Internet");
+    await page.getByLabel("Type").selectOption("SUBSCRIPTION");
+    await page.getByLabel("Amount").fill("29.99");
+    await page.getByLabel("Frequency").selectOption("YEARLY");
+    await page.getByLabel("Next due date").fill("2027-01-15");
+    await page.getByLabel("Connected Thing").selectOption({ label: "Billing Mazda" });
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    const updatedRow = page.locator(".pay").filter({ hasText: "Fiber Internet" });
+    await expect(updatedRow).toContainText("€29.99");
+    await expect(updatedRow).toContainText("Every year");
+    await expect(updatedRow).toContainText("Connected to a Thing");
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    const reloadedRow = page.locator(".pay").filter({ hasText: "Fiber Internet" });
+    await expect(reloadedRow).toContainText("€29.99");
+    await expect(reloadedRow).toContainText("Every year");
+  });
+
+  test("rejects invalid Payment edit values", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addPayment(page, "Streaming", "12.99", "Every month");
+
+    await page.locator(".pay").filter({ hasText: "Streaming" }).getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByLabel("Name").fill("");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page.locator(".app-error")).toContainText("Give this payment a name");
+
+    await page.getByLabel("Name").fill("Streaming");
+    await page.getByLabel("Amount").fill("0");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page.locator(".app-error")).toContainText("valid amount");
+
+    await page.getByLabel("Amount").fill("12.99");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  });
+
   test("edits a Thing and persists the changes", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);

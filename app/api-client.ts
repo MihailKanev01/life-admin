@@ -50,7 +50,8 @@ async function csrfToken(timeoutMs=API_REQUEST_TIMEOUT_MS):Promise<string>{
 }
 
 function clearCsrfCookie(){
- clearCsrfCookie();
+ const secure=window.location.protocol==="https:"?"; Secure":"";
+ document.cookie="XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Strict"+secure;
 }
 
 async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
@@ -172,8 +173,7 @@ export async function completeOnboarding(){
 
 export async function logoutAccount(){
  const result=await apiRequest<void>("/auth/logout",{method:"POST"});
- const secure=window.location.protocol==="https:"?"; Secure":"";
- document.cookie="XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Strict"+secure;
+ clearCsrfCookie();
  return result;
 }
 

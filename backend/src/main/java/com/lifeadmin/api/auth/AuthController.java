@@ -4,9 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.time.Duration;
 
 import com.lifeadmin.api.domain.User;
 import com.lifeadmin.api.security.UserPrincipal;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -80,13 +83,37 @@ public class AuthController {
         return new AuthDtos.AuthResponse(authService.response(user));
     }
 
+    @PostMapping("/password-reset/request")
+    public AuthDtos.MessageResponse requestPasswordReset(
+            @Valid @RequestBody AuthDtos.PasswordResetRequest request) {
+        authService.requestPasswordReset(request.email());
+        return new AuthDtos.MessageResponse(
+                "If an account exists for that email, a password reset link will be sent.");
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public AuthDtos.MessageResponse confirmPasswordReset(
+            @Valid @RequestBody AuthDtos.PasswordResetConfirmRequest request) {
+        authService.confirmPasswordReset(request.token(), request.password());
+        return new AuthDtos.MessageResponse("Your password has been updated. You can now sign in.");
+    }
+
     @PostMapping("/logout")
-    public void logout(HttpServletRequest request) {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         SecurityContextHolder.clearContext();
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
+
+        ResponseCookie clearedCsrf = ResponseCookie.from("XSRF-TOKEN", "")
+                .maxAge(Duration.ZERO)
+                .path("/")
+                .sameSite("Strict")
+                .httpOnly(false)
+                .secure(request.isSecure())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, clearedCsrf.toString());
     }
 
     private void establishAuthentication(

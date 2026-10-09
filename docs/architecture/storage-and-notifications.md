@@ -22,7 +22,9 @@ Database stores:
 - timestamps
 - extraction status
 
-Application never exposes the bucket directly.
+Application never exposes the bucket directly. Production must use an EU-region bucket, managed credentials/identity, a private access policy with no public listing/read access, server-side encryption, deployed-origin CORS for browser uploads, and documented lifecycle/retention rules. Never commit storage credentials.
+
+The current MVP upload policy accepts PDF, JPEG and PNG files up to 10 MiB. The API signs a 10-minute upload target against the declared content type and SHA-256 checksum. After upload, finalization checks object existence, size, content type, actual checksum and the file signature before exposing the document. Downloads use owner-authorized 10-minute signed URLs. Local development uses MinIO; the in-memory storage adapter exists only in the test profile.
 
 ### Upload
 
@@ -90,3 +92,13 @@ If job volume becomes large:
 - introduce Redis/message broker only when measured load justifies it.
 
 Do not add infrastructure prematurely.
+
+## Implemented notification behaviour
+
+- Persist each reminder email in PostgreSQL with status, scheduled time, next retry time, attempts and sent timestamp.
+- Schedule at 09:00 in the user's time zone, at 7 days before, 2 days before and on the due date. Dates already in the past are not backfilled.
+- Reminder create/update/reschedule/snooze rebuild pending schedules; completion cancels pending schedules.
+- The scheduled worker locks individual due records, checks current reminder state and schedule, then sends. Failures retry after 5 minutes and 30 minutes; after three failed attempts the record is marked failed.
+- A schedule that is more than 24 hours late is cancelled to avoid a burst of stale messages.
+- Configure Spring's standard \`SPRING_MAIL_*\` properties and \`MAIL_FROM\` to enable delivery through a managed mail provider.
+

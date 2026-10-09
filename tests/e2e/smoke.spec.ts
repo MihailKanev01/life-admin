@@ -1,12 +1,58 @@
-import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough} from "./test-helpers";
+import {addPayment,addReminder,addThing,createAccountAndFinishWalkthrough,makeTestAccount} from "./test-helpers";
 import { expect, test } from "@playwright/test";
 
 test.describe("Life Admin prototype smoke", () => {
+  test("shows the public landing and interactive preview", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveTitle("Life Admin — Your life admin, in one place");
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await expect(page.getByText("Frontend only · mock data")).toBeVisible();
+
+    await page.locator(".landing-window-top").getByRole("button", { name: "+ Quick add", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
+    const previewInput = page.getByPlaceholder("e.g. Car insurance expires June 14");
+    await previewInput.fill("Car insurance expires December 14");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Reminder", { exact: true })).toBeVisible();
+    await expect(page.getByText("Mazda 6", { exact: true })).toBeVisible();
+    await expect(page.getByText("December 14", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+    await expect(page.getByRole("status")).toContainText("Saved to the demo preview.");
+
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Things/ }).click();
+    await expect(page.getByRole("heading", { name: "Your real life, organized" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Add thing", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
+    await expect(page.locator("textarea").last()).toHaveValue("Add a thing");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Thing", { exact: true }).last()).toBeVisible();
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Payments/ }).click();
+    await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Add payment", exact: true }).click();
+    await expect(page.locator("textarea").last()).toHaveValue("Add a payment");
+    await page.getByRole("button", { name: "Review details", exact: true }).click();
+    await expect(page.getByText("Payment", { exact: true }).last()).toBeVisible();
+    await page.getByRole("button", { name: "Save to Life Admin", exact: true }).click();
+
+    await page.locator(".landing-window-nav").getByRole("button", { name: /Search/ }).click();
+    await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Capture the thought. Keep the context. Act when it matters." })).toBeVisible();
+
+    await page.locator(".landing-nav-cta").click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+  });
+
   test("renders Home and opens Quick Add", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
 
     await expect(page.getByRole("heading", { name: "Good afternoon, Mihail" })).toBeVisible();
     await expect(page.getByText("Nothing urgent", { exact: true })).toBeVisible();
+    await expect(page.getByText("Nothing upcoming.", { exact: true })).toBeVisible();
+    await expect(page.getByText("No upcoming payments.", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /quick add/i }).first().click();
 
@@ -27,6 +73,34 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Car insurance" })).toBeVisible();
     await expect(page.locator(".sheet .modalcopy").filter({hasText:"Due Dec 14"})).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
+
+    const comingUpPanel = page.locator(".panel").filter({ hasText: "Next on your radar" });
+    await expect(comingUpPanel.getByText("Car insurance", { exact: true })).toBeVisible();
+    await expect(comingUpPanel.getByText(/Dec 14/i)).toBeVisible();
+  });
+
+  test("shows an interactive product tour and can replay it", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Replay walkthrough", exact: true }).click();
+
+    await expect(page.getByRole("dialog", { name: "Home keeps you focused." })).toBeVisible();
+    await expect(page.getByText("STEP 1 OF 7", { exact: true })).toBeVisible();
+    await expect(page.locator(".product-tour-focus")).toBeVisible();
+    await expect(page.locator(".product-tour-arrow")).toBeVisible();
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Quick Add is the fastest way in." })).toBeVisible();
+    await expect(page.getByText("STEP 2 OF 7", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Skip tour", exact: true }).click();
+    await expect(page.locator(".product-tour")).toHaveCount(0);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Replay walkthrough", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Home keeps you focused." })).toBeVisible();
+    await page.getByRole("button", { name: "Skip tour", exact: true }).click();
   });
 
   test("completes and snoozes attention items", async ({ page }) => {
@@ -44,6 +118,105 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Snooze until tomorrow" }).click();
 
     await expect(page.getByRole("button", { name: /Car insurance/i })).toContainText("Tomorrow");
+  });
+
+  test("edits and reschedules an attention reminder through the UI", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addReminder(page,"Car insurance expires December 14");
+
+    await page.getByRole("button", { name: /Car insurance/i }).click();
+    await page.getByRole("button", { name: "Edit reminder", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit reminder" })).toBeVisible();
+
+    await page.getByLabel("Title").fill("Car insurance renewal");
+    await page.getByLabel("Context").fill("Mazda 6");
+    await page.getByLabel("Due date").fill("2026-12-20");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: /Car insurance renewal/i })).toBeVisible();
+    await page.getByRole("button", { name: /Car insurance renewal/i }).click();
+    await expect(page.getByRole("heading", { name: "Car insurance renewal" })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy")).toContainText("Dec 20");
+
+    await page.getByRole("button", { name: "Snooze until tomorrow", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Car insurance renewal/i })).toContainText("Tomorrow");
+  });
+
+  test("shows forgot password recovery from sign in", async ({ page }) => {
+    const account = makeTestAccount("recovery");
+    await createAccountAndFinishWalkthrough(page, account);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
+
+    await page.locator(".auth-overlay").getByRole("button", { name: "Forgot your password?", exact: true }).click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    const resetResponses: import("@playwright/test").Response[] = [];
+    page.on("response", response => {
+      if (response.request().method() === "POST" && response.url().includes("/api/v1/auth/password-reset/request")) {
+        resetResponses.push(response);
+      }
+    });
+    await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
+    await expect(page.locator(".auth-overlay").getByRole("alert")).toContainText("Password reset is temporarily unavailable");
+    expect(resetResponses.length).toBeGreaterThan(0);
+    expect(resetResponses.at(-1)?.status(), `Unexpected final password reset API response: ${resetResponses.map(response => response.status()).join(", ")}`).toBe(503);
+  });
+
+  test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {
+    const account = makeTestAccount("login");
+    await createAccountAndFinishWalkthrough(page, account);
+
+    await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.locator(".landing-hero-copy").getByRole("button", { name: /Create your account/ }).click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
+
+    await page.locator(".auth-overlay").getByRole("button", { name: "Already have an account? Sign in" }).click();
+    await expect(page.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    await page.locator(".auth-overlay").getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("button", { name: "Sign in", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
+  });
+
+  test("shows the duplicate registration message", async ({ page }) => {
+    const account = makeTestAccount("duplicate");
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.getByRole("button", { name: "Create account", exact: true }).first().click();
+    await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
+
+    await page.route("**/api/v1/auth/*", async route => {
+      if (route.request().method() !== "POST" || !route.request().url().endsWith("/api/v1/auth/register")) {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({
+          detail: "An account with this email already exists",
+        }),
+      });
+    });
+
+    await page.locator(".auth-overlay").getByLabel("Your name").fill(account.name);
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    await page.locator(".auth-overlay").getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("textbox", { name: "Confirm password", exact: true }).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("button", { name: "Create account", exact: true }).click();
+
+    await expect(page.locator(".auth-error")).toContainText("already exists");
+    await expect(page.locator(".auth-error")).toContainText("Forgot your password");
   });
 
   test("navigates Things, Payments and Search", async ({ page }) => {
@@ -68,13 +241,138 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByText("Internet", { exact: true }).last()).toBeVisible();
   });
 
+  test("edits a Payment and persists the changes", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page, "Billing Mazda");
+    await addPayment(page, "Internet", "25", "Every month");
+
+    const paymentRow = page.locator(".pay").filter({ hasText: "Internet" });
+    await paymentRow.getByRole("button", { name: "Edit", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit payment" })).toBeVisible();
+
+    await page.getByLabel("Name").fill("Fiber Internet");
+    await page.getByLabel("Type").selectOption("SUBSCRIPTION");
+    await page.getByLabel("Amount").fill("29.99");
+    await page.getByLabel("Frequency").selectOption("YEARLY");
+    await page.getByLabel("Next due date").fill("2027-01-15");
+    await page.getByLabel("Connected Thing").selectOption({ label: "Billing Mazda" });
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    const updatedRow = page.locator(".pay").filter({ hasText: "Fiber Internet" });
+    await expect(updatedRow).toContainText("€29.99");
+    await expect(updatedRow).toContainText("Every year");
+    await expect(updatedRow).toContainText("Connected to a Thing");
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    const reloadedRow = page.locator(".pay").filter({ hasText: "Fiber Internet" });
+    await expect(reloadedRow).toContainText("€29.99");
+    await expect(reloadedRow).toContainText("Every year");
+  });
+
+  test("rejects invalid Payment edit values", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addPayment(page, "Streaming", "12.99", "Every month");
+
+    await page.locator(".pay").filter({ hasText: "Streaming" }).getByRole("button", { name: "Edit", exact: true }).click();
+    await page.getByLabel("Name").fill("");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page.locator(".app-error")).toContainText("Give this payment a name");
+
+    await page.getByLabel("Name").fill("Streaming");
+    await page.getByLabel("Amount").fill("0");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page.locator(".app-error")).toContainText("valid amount");
+
+    await page.getByLabel("Amount").fill("12.99");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  });
+
+  test("skips and cancels recurring Payments", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addPayment(page, "Internet", "25", "Every month");
+
+    const paymentRow = page.locator(".pay").filter({ hasText: "Internet" });
+    await paymentRow.getByRole("button", { name: "Edit", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit payment" })).toBeVisible();
+    await page.getByLabel("Next due date").fill("2026-11-15");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await paymentRow.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(paymentRow).toContainText("Dec 15");
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    const reloadedInternet = page.locator(".pay").filter({ hasText: "Internet" });
+    await expect(reloadedInternet).toContainText("Dec 15");
+
+    await addPayment(page, "Cancelled Streaming", "9.99", "Every month");
+    const cancelledRow = page.locator(".pay").filter({ hasText: "Cancelled Streaming" });
+    page.once("dialog", dialog => dialog.accept());
+    await cancelledRow.getByRole("button", { name: "Cancel tracking", exact: true }).click();
+    await expect(page.locator(".pay").filter({ hasText: "Cancelled Streaming" })).toHaveCount(0);
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    await expect(page.locator(".pay").filter({ hasText: "Cancelled Streaming" })).toHaveCount(0);
+    await expect(page.locator(".pay").filter({ hasText: "Internet" })).toContainText("Dec 15");
+  });
+
+  test("edits a Thing and persists the changes", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page);
+
+    await page.getByRole("button", { name: /Mazda 6/i }).click();
+    await page.getByRole("button", { name: "Edit Thing", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit Thing" })).toBeVisible();
+
+    await page.getByLabel("Name").fill("Mazda 6 Daily");
+    await page.getByLabel("Type").selectOption("Vehicle");
+    await page.getByLabel("Detail").fill("240,000 km");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
+    await page.getByRole("button", { name: /Mazda 6 Daily/i }).click();
+    await expect(page.getByRole("heading", { name: "Mazda 6 Daily" })).toBeVisible();
+    await expect(page.locator(".sheet .modalcopy").filter({ hasText: "240,000 km" })).toBeVisible();
+
+    await page.reload();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
+  });
+
+  test("archives a Thing and allows the name to be reused", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page, "Archiveable Mazda");
+
+    await page.getByRole("button", { name: /Archiveable Mazda/i }).click();
+    await expect(page.getByRole("heading", { name: "Archiveable Mazda" })).toBeVisible();
+
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Archive Thing", exact: true }).click();
+
+    await expect(page.locator(".sheet").filter({ hasText: "Archiveable Mazda" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toHaveCount(0);
+
+    await page.reload();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "+ Add thing", exact: true }).click();
+    await page.getByLabel("Name").fill("Archiveable Mazda");
+    await page.getByLabel("Type").selectOption({ label: "Vehicle" });
+    await page.getByLabel("Detail").fill("Fresh record");
+    await page.getByRole("button", { name: "Save thing", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toBeVisible();
+  });
+
   test("opens a Thing and connects a reminder to it", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);
 
     await page.getByRole("button", { name: /Mazda 6/i }).click();
     await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
-    await expect(page.getByText("Nothing right now", { exact: true })).toBeVisible();
+    await expect(page.locator(".contextgrid").getByText("Nothing right now", { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
     await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
@@ -82,9 +380,8 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Review details" }).click();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
 
-    await expect(page.getByRole("button", { name: /Car insurance/i })).toBeVisible();
-    await page.getByRole("button", { name: /Things/i }).first().click();
-    await page.getByRole("button", { name: /Mazda 6/i }).click();
+    await expect(page.locator(".thinggrid").getByRole("button", { name: /Mazda 6/i })).toContainText("1 attention");
+    await page.getByRole("button", { name: /Mazda 6/i }).first().click();
     await expect(page.getByText("1 reminder", { exact: true })).toBeVisible();
   });
 

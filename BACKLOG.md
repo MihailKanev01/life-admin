@@ -106,10 +106,10 @@
 - [ ] Implement Reminders
 - [ ] Implement Home
 - [ ] Implement Payments
-- [ ] Implement Documents
-- [ ] Implement Search
-- [ ] Implement Quick Add
-- [ ] Implement notifications
+- [x] Implement Documents
+- [x] Implement Search
+- [x] Implement Quick Add
+- [x] Implement notifications
 
 ## Phase 7 — Beta
 

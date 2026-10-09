@@ -31,6 +31,9 @@ public class Thing {
     @Column(length = 200)
     private String detail;
 
+    @Column(nullable = false)
+    private boolean archived;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -45,6 +48,7 @@ public class Thing {
         this.name = name;
         this.type = type;
         this.detail = detail;
+        this.archived = false;
     }
 
     @PrePersist
@@ -58,6 +62,18 @@ public class Thing {
     void onUpdate() {
         updatedAt = Instant.now();
     }
+
+    public void update(String name, String type, String detail) {
+        this.name = name;
+        this.type = type;
+        this.detail = detail;
+    }
+
+    public void archive() {
+        this.archived = true;
+    }
+
+    public boolean isArchived() { return archived; }
 
     public UUID getId() { return id; }
     public UUID getUserId() { return userId; }

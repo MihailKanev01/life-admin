@@ -6,12 +6,14 @@ test.describe("Life Admin account and onboarding",()=>{
     const account=makeTestAccount("Mihail Test");
     await page.goto("/");
 
-    await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
-    await page.getByLabel("Your name").fill(account.name);
-    await page.getByLabel("Email address").fill(account.email);
-    await page.getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
-    await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
-    await page.getByRole("button",{name:"Create account"}).click();
+    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await page.getByRole("button",{name:"Create your account"}).first().click();
+    await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Create your account"})).toBeVisible();
+    await page.locator(".auth-overlay").getByLabel("Your name").fill(account.name);
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    await page.locator(".auth-overlay").getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
+    await page.locator(".auth-overlay").getByRole("button",{name:"Create account",exact:true}).click();
 
     await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();
     await page.getByRole("button",{name:"Next",exact:true}).click();
@@ -35,24 +37,29 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await page.getByRole("button",{name:"Account"}).click();
     await page.getByRole("button",{name:"Sign out"}).click();
+    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await page.getByRole("button",{name:"Create your account"}).first().click();
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
 
     await page.getByLabel("Your name").fill(accountB.name);
     await page.getByLabel("Email address").fill(accountB.email);
     await page.getByRole("textbox",{name:"Password",exact:true}).fill(accountB.password);
     await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(accountB.password);
-    await page.getByRole("button",{name:"Create account"}).click();
+    await page.locator(".auth-overlay").getByRole("button",{name:"Create account",exact:true}).click();
     await page.getByRole("button",{name:"Skip walkthrough"}).click();
 
     await expect(page.getByRole("heading",{name:"Good afternoon, "+accountB.name})).toBeVisible();
+    await expect(page.locator(".product-tour")).toHaveCount(0);
     await expect(page.getByRole("button",{name:/Passport renewal/i})).toHaveCount(0);
 
     await page.getByRole("button",{name:"Account"}).click();
     await page.getByRole("button",{name:"Sign out"}).click();
-    await page.getByRole("button",{name:/Already have an account\? Sign in/i}).click();
-    await page.getByLabel("Email address").fill(accountA.email);
-    await page.getByLabel("Password").fill(accountA.password);
-    await page.getByRole("button",{name:"Sign in"}).click();
+    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await page.getByRole("button",{name:"Sign in",exact:true}).click();
+    await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Sign in to Life Admin"})).toBeVisible();
+    await page.locator(".auth-overlay").getByLabel("Email address").fill(accountA.email);
+    await page.locator(".auth-overlay").getByRole("textbox",{name:"Password",exact:true}).fill(accountA.password);
+    await page.locator(".auth-overlay").getByRole("button",{name:"Sign in",exact:true}).click();
 
     await expect(page.getByRole("heading",{name:"Good afternoon, "+accountA.name})).toBeVisible();
     await expect(page.getByRole("button",{name:/Passport renewal/i})).toBeVisible();

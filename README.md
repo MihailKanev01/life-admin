@@ -20,16 +20,16 @@ The product should prioritize **attention over inventory**:
 
 Every user has a personal account and their own server-backed workspace.
 
-Current persisted domain:
-- user identity;
-- onboarding completion state;
-- reminders.
-
-The next persisted domain is Things, followed by contextual Payments and Documents.
+Persisted domains:
+- user identity and onboarding completion state;
+- user-owned reminders and scheduled email notifications;
+- Things, contextual Payments and Things-linked Notes;
+- private Documents metadata with file bytes in S3-compatible object storage;
+- confirmed Quick Add expiry captures.
 
 ## Local development
 
-Start the API database:
+Start PostgreSQL and local private object storage (MinIO). The Compose setup creates the `life-admin-documents` bucket and disables anonymous access:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
@@ -49,7 +49,11 @@ npm install
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api/v1 npm run dev
 ```
 
-The web client proxies `/api/v1/*` to the configured backend origin.
+The web client proxies `/api/v1/*` to the configured backend origin. Local uploads go directly to MinIO at `http://localhost:9000`; its console is at `http://localhost:9001`. Copy `.env.example` values into your shell or environment when overriding the defaults.
+
+Documents support PDF, JPEG and PNG files up to 10 MiB. The API creates random storage keys, checks the uploaded bytes against the requested size, MIME type, file signature and SHA-256 checksum, and issues short-lived signed upload/download URLs. The production bucket must remain private and have browser CORS configured for the deployed web origin.
+
+Email notifications are scheduled at 09:00 in the user's timezone for 7 days before, 2 days before and the due date. To deliver real email, configure a managed SMTP/email provider through Spring Boot's `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, credentials and `MAIL_FROM` environment settings; never commit live credentials. Without a configured sender, deliveries are recorded as failed/retried and are not falsely marked as sent.
 
 ## Production deployment
 
@@ -63,7 +67,9 @@ The backend must run with:
 - Flyway migrations;
 - secure HttpOnly session cookies;
 - server-side authorization;
-- production secrets from managed secret storage.
+- production secrets from managed secret storage;
+- a private EU-region S3-compatible bucket with server-side encryption, private access policy, browser CORS for the deployed web origin, and lifecycle/retention rules;
+- a managed email provider and verified sender domain for reminder delivery.
 
 ## Delivery strategy
 
@@ -85,3 +91,10 @@ The backend must run with:
 - AI proposes; the user confirms.
 - Home must remain attention-first and low-clutter.
 - Backend/API must remain mobile-app ready.
+
+
+## Quick Add and Notes
+
+Notes are saved to an owned Thing and participate in user-scoped Search. The expiry Quick Add path lets the user review a record and expiry date before saving; confirmation saves the expiry as a Note and schedules a reminder 30 days beforehand in one database transaction. If the referenced active Thing does not exist, the confirmed capture can create it.
+
+The Quick Add document option routes to the real private Documents upload screen. It does not create a temporary Home item.

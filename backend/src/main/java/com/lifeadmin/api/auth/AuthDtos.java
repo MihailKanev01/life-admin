@@ -32,4 +32,13 @@ public final class AuthDtos {
     public record AuthResponse(UserResponse user) {}
 
     public record CsrfResponse(String token) {}
+
+    public record PasswordResetRequest(
+            @NotBlank @Email @Size(max = 320) String email) {}
+
+    public record PasswordResetConfirmRequest(
+            @NotBlank String token,
+            @NotBlank @Size(min = 12, max = 256) String password) {}
+
+    public record MessageResponse(String message) {}
 }

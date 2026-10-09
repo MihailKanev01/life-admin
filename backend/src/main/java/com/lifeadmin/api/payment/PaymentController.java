@@ -38,10 +38,32 @@ public class PaymentController {
         return payments.response(payments.create(principal, request));
     }
 
+    @PatchMapping("/{id}")
+    public PaymentDtos.PaymentResponse update(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody PaymentDtos.UpdateRequest request) {
+        return payments.response(payments.update(principal, id, request));
+    }
+
     @PostMapping("/{id}/mark-paid")
     public PaymentDtos.PaymentResponse markPaid(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable UUID id) {
         return payments.response(payments.markPaid(principal, id));
+    }
+
+    @PostMapping("/{id}/skip")
+    public PaymentDtos.PaymentResponse skip(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id) {
+        return payments.response(payments.skip(principal, id));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public PaymentDtos.PaymentResponse cancel(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id) {
+        return payments.response(payments.cancelTracking(principal, id));
     }
 }

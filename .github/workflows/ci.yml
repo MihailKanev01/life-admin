@@ -41,7 +41,7 @@ jobs:
           cd backend
           mvn -B -ntp -Dspring.profiles.active=test test-compile dependency:build-classpath -Dmdep.scope=test -Dmdep.outputFile=/tmp/life-admin-api-classpath
           api_classpath="target/classes:$(cat /tmp/life-admin-api-classpath)"
-          nohup java -cp "$api_classpath" com.lifeadmin.api.LifeAdminApiApplication --spring.profiles.active=test >/tmp/life-admin-api.log 2>&1 &
+          nohup java -cp "$api_classpath" com.lifeadmin.api.LifeAdminApiApplication --spring.profiles.active=test --logging.level.org.springframework.security=TRACE >/tmp/life-admin-api.log 2>&1 &
           api_pid=$!
           echo "$api_pid" >/tmp/life-admin-api.pid
 
@@ -64,6 +64,14 @@ jobs:
 
       - name: Run Playwright smoke tests
         run: npm run test:e2e
+
+      - name: Dump API password-reset security trace on failure
+        if: failure()
+        run: |
+          echo "=== Password-reset request path and surrounding security decisions ==="
+          grep -n -C 18 -E 'Securing POST /api/v1/auth/password-reset/request|Secured POST /api/v1/auth/password-reset/request|Securing POST /api/v1/auth/password-reset/confirm|Secured POST /api/v1/auth/password-reset/confirm|AuthenticationEntryPoint|AccessDeniedException|Invalid CSRF token' /tmp/life-admin-api.log | tail -n 500 || true
+          echo "=== All authentication endpoint requests ==="
+          grep -n -E 'Securing (GET|POST|PATCH) /api/v1/auth/|Authorizing (GET|POST|PATCH) /api/v1/auth/|Secured (GET|POST|PATCH) /api/v1/auth/' /tmp/life-admin-api.log | tail -n 250 || true
 
   api:
     name: API checks

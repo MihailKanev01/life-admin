@@ -1,3 +1,4 @@
+
 package com.lifeadmin.api.reminder;
 
 import java.time.Instant;
@@ -12,6 +13,12 @@ public final class ReminderDtos {
     private ReminderDtos() {}
 
     public record CreateRequest(
+            @NotBlank @Size(max = 200) String title,
+            @NotBlank @Size(max = 160) String context,
+            LocalDate dueDate,
+            UUID thingId) {}
+
+    public record UpdateRequest(
             @NotBlank @Size(max = 200) String title,
             @NotBlank @Size(max = 160) String context,
             LocalDate dueDate,

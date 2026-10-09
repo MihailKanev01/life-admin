@@ -15,18 +15,24 @@ export async function createAccountAndFinishWalkthrough(
  account:TestAccount=makeTestAccount(),
 ){
  await page.goto("/");
- await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
- await page.getByLabel("Your name").fill(account.name);
- await page.getByLabel("Email address").fill(account.email);
- await page.getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
- await page.getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
- await page.getByRole("button",{name:"Create account"}).click();
+ await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+ await page.getByRole("button",{name:"Create your account"}).first().click();
+ await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Create your account"})).toBeVisible();
+ await page.locator(".auth-overlay").getByLabel("Your name").fill(account.name);
+ await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+ await page.locator(".auth-overlay").getByRole("textbox",{name:"Password",exact:true}).fill(account.password);
+ await page.locator(".auth-overlay").getByRole("textbox",{name:"Confirm password",exact:true}).fill(account.password);
+ await page.locator(".auth-overlay").getByRole("button",{name:"Create account",exact:true}).click();
 
+ // Registration completes into the original 4-screen onboarding walkthrough.
+ // Wait for its first heading before interacting so the ProductTour cannot race it.
+ await expect(page.getByRole("heading",{name:"Your life admin, without the mental load."})).toBeVisible();
  for(let index=0;index<3;index++){
   await page.getByRole("button",{name:"Next",exact:true}).click();
  }
- await page.getByRole("button",{name:"Start using Life Admin"}).click();
+ await page.getByRole("button",{name:"Start using Life Admin",exact:true}).click();
  await expect(page.getByRole("heading",{name:"Good afternoon, "+account.name})).toBeVisible();
+
  return account;
 }
 

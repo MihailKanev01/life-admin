@@ -35,7 +35,7 @@ public class PaymentService {
     @Transactional
     public Payment create(UserPrincipal principal, PaymentDtos.CreateRequest request) {
         UUID thingId = request.thingId();
-        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+        if (thingId != null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
         }
 
@@ -63,10 +63,60 @@ public class PaymentService {
     }
 
     @Transactional
+    public Payment update(UserPrincipal principal, UUID id, PaymentDtos.UpdateRequest request) {
+        Payment payment = get(principal, id);
+
+        UUID thingId = request.thingId();
+        if (thingId != null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
+        }
+
+        String name = request.name().trim();
+        String type = request.type().trim().toUpperCase();
+        String currency = request.currency() == null ? "EUR" : request.currency().trim().toUpperCase();
+        String frequency = request.frequency().trim().toUpperCase();
+
+        if (!List.of("BILL", "SUBSCRIPTION", "RENEWAL").contains(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported payment type");
+        }
+        if (!List.of("WEEKLY", "MONTHLY", "YEARLY").contains(frequency)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported payment frequency");
+        }
+
+        payment.update(name, type, request.amount(), currency, frequency, request.nextDueDate(), thingId);
+        return payment;
+    }
+
+    @Transactional
     public Payment markPaid(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        payment.markPaid();
+        return payment;
+    }
+
+    @Transactional
+    public Payment skip(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        if (payment.getNextDueDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This payment needs a next due date before it can be skipped");
+        }
+        payment.skip();
+        return payment;
+    }
+
+    @Transactional
+    public Payment cancelTracking(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        payment.cancelTracking();
+        return payment;
+    }
+
+    private Payment requireActive(UserPrincipal principal, UUID id) {
         Payment payment = payments.findByIdAndUserId(id, principal.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
-        payment.markPaid();
+        if (!"ACTIVE".equals(payment.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Payment is no longer active");
+        }
         return payment;
     }
 

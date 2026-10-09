@@ -2,6 +2,7 @@ package com.lifeadmin.api.thing;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,6 +18,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,6 +27,9 @@ class ThingIntegrationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ThingRepository things;
 
     @Test
     void thingsAreIsolatedByAuthenticatedUser() throws Exception {
@@ -55,6 +60,160 @@ class ThingIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(1))
                 .andExpect(jsonPath("$.items[0].name").value("Mazda 6"));
+    }
+
+    @Test
+    void thingCanBeArchivedAndReusedWithTheSameName() throws Exception {
+        MockHttpSession session = register(email("archive-thing"), "User");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Archive Me",
+                                  "type":"Vehicle",
+                                  "detail":"100,000 km"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = created.getResponse().getContentAsString()
+                .replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
+
+        mockMvc.perform(post("/api/v1/reminders")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title":"Archive-related reminder",
+                                  "context":"Keep linked data",
+                                  "dueDate":"2027-12-14",
+                                  "thingId":"%s"
+                                }
+                                """.formatted(id)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/things/" + id + "/archive")
+                        .with(csrf()).session(session))
+                .andExpect(status().isNoContent());
+
+        Thing archivedThing = things.findById(UUID.fromString(id)).orElseThrow();
+        assertTrue(archivedThing.isArchived(), "Archive must persist as a soft archive in the database");
+
+        mockMvc.perform(get("/api/v1/reminders").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.title == 'Archive-related reminder')]").exists());
+
+        mockMvc.perform(get("/api/v1/things").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty());
+
+        mockMvc.perform(get("/api/v1/things/" + id).session(session))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Archive Me",
+                                  "type":"Vehicle",
+                                  "detail":"new record"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Archive Me"));
+    }
+
+    @Test
+    void thingCannotBeArchivedThroughAnotherUsersSession() throws Exception {
+        MockHttpSession owner = register(email("archive-owner"), "Owner");
+        MockHttpSession other = register(email("archive-other"), "Other");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Private Thing",
+                                  "type":"Vehicle",
+                                  "detail":"Private"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = created.getResponse().getContentAsString()
+                .replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
+
+        mockMvc.perform(post("/api/v1/things/" + id + "/archive")
+                        .with(csrf()).session(other))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/things/" + id).session(owner))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Private Thing"));
+    }
+
+    @Test
+    void thingCanBeUpdatedAndDuplicateNameIsRejected() throws Exception {
+        MockHttpSession session = register(email("update-thing"), "User");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Old Car",
+                                  "type":"Vehicle",
+                                  "detail":"100,000 km"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = created.getResponse().getContentAsString()
+                .replaceAll(".*\\\"id\\\":\\\"([^\\\"]+)\\\".*", "$1");
+
+        mockMvc.perform(patch("/api/v1/things/" + id)
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"New Car",
+                                  "type":"Vehicle",
+                                  "detail":"120,000 km"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("New Car"))
+                .andExpect(jsonPath("$.detail").value("120,000 km"));
+
+        mockMvc.perform(post("/api/v1/things")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Other Car",
+                                  "type":"Vehicle",
+                                  "detail":"Test"
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(patch("/api/v1/things/" + id)
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Other Car",
+                                  "type":"Vehicle",
+                                  "detail":"120,000 km"
+                                }
+                                """))
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -165,3 +324,4 @@ class ThingIntegrationTests {
         return prefix + "-" + UUID.randomUUID() + "@example.com";
     }
 }
+

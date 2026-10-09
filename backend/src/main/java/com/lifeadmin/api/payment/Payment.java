@@ -105,6 +105,37 @@ public class Payment {
     public Instant getLastPaidAt() { return lastPaidAt; }
     public Instant getCreatedAt() { return createdAt; }
 
+    public void update(
+            String name,
+            String type,
+            BigDecimal amount,
+            String currency,
+            String frequency,
+            LocalDate nextDueDate,
+            UUID thingId) {
+        this.name = name;
+        this.type = type;
+        this.amount = amount;
+        this.currency = currency;
+        this.frequency = frequency;
+        this.nextDueDate = nextDueDate;
+        this.thingId = thingId;
+    }
+
+    public void skip() {
+        if (nextDueDate != null) {
+            nextDueDate = switch (frequency) {
+                case "WEEKLY" -> nextDueDate.plusWeeks(1);
+                case "YEARLY" -> nextDueDate.plusYears(1);
+                default -> nextDueDate.plusMonths(1);
+            };
+        }
+    }
+
+    public void cancelTracking() {
+        status = "CANCELLED";
+    }
+
     public void markPaid() {
         lastPaidAt = Instant.now();
         if (nextDueDate != null) {

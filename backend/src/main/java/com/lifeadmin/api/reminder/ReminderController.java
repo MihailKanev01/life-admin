@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import com.lifeadmin.api.security.UserPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +36,22 @@ public class ReminderController {
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody ReminderDtos.CreateRequest request) {
         return reminders.response(reminders.create(principal, request));
+    }
+
+    @PatchMapping("/{id}")
+    public ReminderDtos.ReminderResponse update(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody ReminderDtos.UpdateRequest request) {
+        return reminders.response(reminders.update(principal, id, request));
+    }
+
+    @PostMapping("/{id}/reschedule")
+    public ReminderDtos.ReminderResponse reschedule(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody ReminderDtos.SnoozeRequest request) {
+        return reminders.response(reminders.reschedule(principal, id, request.dueDate()));
     }
 
     @PostMapping("/{id}/complete")

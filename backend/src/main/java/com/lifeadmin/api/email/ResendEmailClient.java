@@ -28,8 +28,8 @@ public class ResendEmailClient {
 
     public ResendEmailClient(
             ObjectMapper objectMapper,
-            @Value("\${RESEND_API_KEY:}") String apiKey,
-            @Value("\${life-admin.mail.from}") String from) {
+            @Value("${RESEND_API_KEY:}") String apiKey,
+            @Value("${life-admin.mail.from}") String from) {
         this(objectMapper, apiKey, from, URI.create("https://api.resend.com/emails"),
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build());
     }

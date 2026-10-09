@@ -34,7 +34,7 @@ public class PasswordResetService {
 
     public PasswordResetService(UserRepository users, PasswordResetTokenRepository tokens,
             PasswordEncoder passwordEncoder, PasswordResetEmailSender emailSender,
-            @Value("\${life-admin.app.base-url}") String baseUrl) {
+            @Value("${life-admin.app.base-url}") String baseUrl) {
         this.users = users;
         this.tokens = tokens;
         this.passwordEncoder = passwordEncoder;

@@ -978,7 +978,7 @@ export default function App(){
  return <main className="shell">
   <aside className="sidebar">
    <div className="brand">LIFE ADMIN<span>.</span></div>
-   <nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button data-tour={k} className={section===k?"nav active":"nav"} key={k} onClick={()=>setSection(k)}><b>{i}</b>{l}</button>)}</nav>
+   <nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button data-tour={k} className={section===k?"nav active":"nav"} key={k} onClick={()=>{setSection(k);if(k==="things")setQ("");}}><b>{i}</b>{l}</button>)}</nav>
    <button data-tour="add" className="dark add" onClick={()=>openQuickAdd()}>+ Add</button>
    <div className="bottom">
     <button data-tour="theme" className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button>
@@ -1013,7 +1013,7 @@ export default function App(){
    </div>
   </section>
 
-  <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button data-tour={k==="add"?"add":k} key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>k==="add"?openQuickAdd():setSection(k)}><span>{i}</span><small>{l}</small></button>)}</div>
+  <div className="mobileNav">{([["home","Home","⌂"],["things","Things","◫"],["add","Add","+"],["payments","Payments","€"]] as const).map(([k,l,i])=><button data-tour={k==="add"?"add":k} key={k} className={k==="add"?"mobadd":section===k?"sel":""} onClick={()=>{if(k==="add"){openQuickAdd();return;}setSection(k);if(k==="things")setQ("");}}><span>{i}</span><small>{l}</small></button>)}</div>
 
   {thingModal&&<div className="backdrop" onClick={()=>setThingModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Things</p><h2>Add a thing</h2></div><button className="close" onClick={()=>setThingModal(false)}>×</button></div><label className="auth-field"><span>Name</span><input autoFocus value={thingName} onChange={event=>setThingName(event.target.value)} placeholder="e.g. Mazda 6"/></label><label className="auth-field"><span>Type</span><select value={thingType} onChange={event=>setThingType(event.target.value)}><option>Vehicle</option><option>Home</option><option>Device</option><option>Pet</option><option>Other</option></select></label><label className="auth-field"><span>Detail</span><input value={thingDetail} onChange={event=>setThingDetail(event.target.value)} placeholder="e.g. 235,420 km"/></label><button className="dark full" disabled={saving} onClick={()=>void saveThing()}>{saving?"Saving…":"Save thing"}</button><button className="text full" onClick={()=>setThingModal(false)}>Cancel</button></div></div>}
 

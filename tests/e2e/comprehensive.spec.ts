@@ -103,13 +103,15 @@ test.describe("Life Admin comprehensive functional coverage", () => {
       overlay.getByRole("heading", { name: "Forgot your password?" }),
     ).toBeVisible();
     await overlay.getByLabel("Email address").fill("valid@example.com");
-    const resetRequest = page.waitForRequest(request =>
-      request.method() === "POST" && request.url().includes("/api/v1/auth/password-reset/request"),
+    const resetResponse = page.waitForResponse(response =>
+      response.request().method() === "POST" && response.url().includes("/api/v1/auth/password-reset/request"),
     );
     await overlay
       .getByRole("button", { name: "Send reset link", exact: true })
       .click();
-    await resetRequest;
+    const response = await resetResponse;
+    const responseBody = await response.clone().text();
+    expect(response.status(), `Unexpected password reset API response: ${response.status()} ${responseBody}`).toBe(503);
     await expect(overlay.getByRole("alert")).toContainText("Password reset is temporarily unavailable");
 
     await overlay.getByRole("button", { name: "Back to sign in" }).click();

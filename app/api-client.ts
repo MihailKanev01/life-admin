@@ -35,10 +35,10 @@ async function warmUpApi(){
  await apiWarmupPromise;
 }
 
-async function csrfToken():Promise<string>{
+async function csrfToken(timeoutMs=API_REQUEST_TIMEOUT_MS):Promise<string>{
  let response:Response;
  try{
-  response=await fetchWithTimeout("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"});
+  response=await fetchWithTimeout("/api/v1/auth/csrf",{credentials:"include",cache:"no-store"},timeoutMs);
  }catch(caught){
   if(caught instanceof DOMException&&caught.name==="AbortError")throw new Error("Authentication service is unavailable.");
   throw caught;
@@ -50,12 +50,16 @@ async function csrfToken():Promise<string>{
 }
 
 async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
- await warmUpApi();
  const method=(init.method||"GET").toUpperCase();
  const headers=new Headers(init.headers);
  headers.set("Content-Type","application/json");
  if(!["GET","HEAD","OPTIONS"].includes(method)){
-  headers.set("X-XSRF-TOKEN",await csrfToken());
+  // Wake the free-tier backend and fetch the CSRF token in parallel rather
+  // than making the user wait for two serial round trips on a cold start.
+  const [,token]=await Promise.all([warmUpApi(),csrfToken(API_WARMUP_TIMEOUT_MS)]);
+  headers.set("X-XSRF-TOKEN",token);
+ }else{
+  await warmUpApi();
  }
  let response:Response;
  try{

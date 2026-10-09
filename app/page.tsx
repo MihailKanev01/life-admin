@@ -334,7 +334,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
  </section>;
 }
 
-function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
+function LandingPage({onOpenAuth,theme,onToggleTheme}:{onOpenAuth:(mode:AuthMode)=>void;theme:Theme;onToggleTheme:()=>void}){
  const openPreview=()=>{
   window.setTimeout(()=>document.getElementById("landing-preview")?.scrollIntoView({behavior:"smooth",block:"center"}),0);
  };
@@ -343,6 +343,7 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
   <header className="landing-nav">
    <div className="landing-brand">LIFE ADMIN<span>.</span></div>
    <nav aria-label="Account actions">
+    <button className="landing-theme-toggle" type="button" onClick={onToggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"} title={theme==="dark"?"Use light theme":"Use dark theme"}>{theme==="dark"?"☀":"☾"}</button>
     <button className="landing-nav-link" onClick={()=>onOpenAuth("login")}>Sign in</button>
     <button className="dark landing-nav-cta" onClick={()=>onOpenAuth("create")}>Create account</button>
    </nav>
@@ -1117,7 +1118,7 @@ export default function App(){
 
  if(!ready)return <main className="auth-shell"><div className="auth-loading">Loading your workspace…</div></main>;
  if(!account)return <>
-  <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}}/>
+  <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}} theme={theme} onToggleTheme={toggleTheme}/>
   {showAuth&&<div className="auth-overlay" role="dialog" aria-modal="true" aria-label={authMode==="login"?"Sign in":"Create account"}>
    <button className="auth-overlay-close" aria-label="Close" onClick={()=>setShowAuth(false)}>×</button>
    <AccountGate key={authMode} initialMode={authMode} onAuthenticated={authenticate}/>

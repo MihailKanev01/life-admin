@@ -49,6 +49,10 @@ async function csrfToken(timeoutMs=API_REQUEST_TIMEOUT_MS):Promise<string>{
  return data.token;
 }
 
+function clearCsrfCookie(){
+ clearCsrfCookie();
+}
+
 async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
  const method=(init.method||"GET").toUpperCase();
  const headers=new Headers(init.headers);
@@ -83,7 +87,9 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
   // A stale anonymous CSRF cookie after logout can surface as 401. Refresh
   // the token and retry the public reset-request endpoint once.
   if(method==="POST"&&path==="/auth/password-reset/request"&&response.status===401){
-   headers.set("X-XSRF-TOKEN",await csrfToken());
+   try{await response.body?.cancel();}catch{}
+   clearCsrfCookie();
+   headers.set("X-XSRF-TOKEN",await csrfToken(5_000));
    response=await fetchWithTimeout(requestUrl,requestInit);
   }
  }catch(caught){

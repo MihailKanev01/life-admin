@@ -159,8 +159,7 @@ test.describe("Life Admin prototype smoke", () => {
     );
     await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
     const response = await resetResponse;
-    const responseBody = await response.text();
-    expect(response.status(), `Unexpected password reset API response: ${response.status()} ${responseBody}`).toBe(503);
+    expect(response.status(), `Unexpected password reset API response: ${response.status()}`).toBe(503);
     await expect(page.locator(".auth-overlay").getByRole("alert")).toContainText("Password reset is temporarily unavailable");
   });
 

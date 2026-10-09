@@ -117,6 +117,8 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
    message=path==="/auth/password-reset/request"
     ?"Password reset is temporarily unavailable. Please try again later."
     :"The security check failed. Please refresh the page and try again.";
+  }else if(response.status>=500&&path==="/auth/password-reset/request"){
+   message="Password reset is temporarily unavailable. Please try again later.";
   }else if(message==="Something went wrong."&&response.status>=500){
    message="The service is temporarily unavailable. Please try again in a moment.";
   }

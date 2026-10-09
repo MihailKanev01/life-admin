@@ -89,5 +89,8 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Verify constrained-container JVM flags
+        run: java -XX:TieredStopAtLevel=1 -XX:+UseSerialGC -XX:ActiveProcessorCount=1 -version
+
       - name: Test API
         run: mvn -B -ntp test

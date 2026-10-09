@@ -47,7 +47,13 @@ public class SecurityConfig {
 
         http
             .securityContext(context -> context.securityContextRepository(securityContextRepository))
-            .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(csrfTokenRepository)
+                // Password-reset endpoints rely on the submitted email or
+                // single-use reset token, not on a browser-authenticated session.
+                .ignoringRequestMatchers(
+                    "/api/v1/auth/password-reset/request",
+                    "/api/v1/auth/password-reset/confirm"))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth

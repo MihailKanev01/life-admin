@@ -58,41 +58,38 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
  const method=(init.method||"GET").toUpperCase();
  const headers=new Headers(init.headers);
  headers.set("Content-Type","application/json");
+ const isPasswordResetEndpoint=path==="/auth/password-reset/request"||path==="/auth/password-reset/confirm";
  if(!["GET","HEAD","OPTIONS"].includes(method)){
-  // Warm the free-tier API while bootstrapping CSRF. A sleeping server can
-  // reject the first token request before the health check wakes it.
-  const warmup=warmUpApi();
-  let token:string;
-  try{
-   token=await csrfToken(API_WARMUP_TIMEOUT_MS);
-  }catch{
+  if(isPasswordResetEndpoint){
+   // Reset is anonymous and token-based; do not depend on a stale CSRF cookie
+   // from a previous session or make an additional token request.
+   await warmUpApi();
+  }else{
+   // Warm the free-tier API while bootstrapping CSRF. A sleeping server can
+   // reject the first token request before the health check wakes it.
+   const warmup=warmUpApi();
+   let token:string;
+   try{
+    token=await csrfToken(API_WARMUP_TIMEOUT_MS);
+   }catch{
+    await warmup;
+    token=await csrfToken();
+   }
    await warmup;
-   token=await csrfToken();
+   headers.set("X-XSRF-TOKEN",token);
   }
-  await warmup;
-  headers.set("X-XSRF-TOKEN",token);
  }else{
   await warmUpApi();
  }
  let response:Response;
- const requestUrl="/api/v1"+path;
- const requestInit:RequestInit={
-  ...init,
-  method,
-  headers,
-  credentials:"include",
-  cache:"no-store",
- };
  try{
-  response=await fetchWithTimeout(requestUrl,requestInit);
-  // A stale anonymous CSRF cookie after logout can surface as 401. Refresh
-  // the token and retry the public reset-request endpoint once.
-  if(method==="POST"&&path==="/auth/password-reset/request"&&response.status===401){
-   try{await response.body?.cancel();}catch{}
-   clearCsrfCookie();
-   headers.set("X-XSRF-TOKEN",await csrfToken(5_000));
-   response=await fetchWithTimeout(requestUrl,requestInit);
-  }
+  response=await fetchWithTimeout("/api/v1"+path,{
+   ...init,
+   method,
+   headers,
+   credentials:"include",
+   cache:"no-store",
+  });
  }catch(caught){
   if(caught instanceof DOMException&&caught.name==="AbortError"){
    throw new Error("Authentication service is unavailable.");

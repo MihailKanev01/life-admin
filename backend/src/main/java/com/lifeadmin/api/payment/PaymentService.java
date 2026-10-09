@@ -89,9 +89,34 @@ public class PaymentService {
 
     @Transactional
     public Payment markPaid(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        payment.markPaid();
+        return payment;
+    }
+
+    @Transactional
+    public Payment skip(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        if (payment.getNextDueDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This payment needs a next due date before it can be skipped");
+        }
+        payment.skip();
+        return payment;
+    }
+
+    @Transactional
+    public Payment cancelTracking(UserPrincipal principal, UUID id) {
+        Payment payment = requireActive(principal, id);
+        payment.cancelTracking();
+        return payment;
+    }
+
+    private Payment requireActive(UserPrincipal principal, UUID id) {
         Payment payment = payments.findByIdAndUserId(id, principal.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
-        payment.markPaid();
+        if (!"ACTIVE".equals(payment.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Payment is no longer active");
+        }
         return payment;
     }
 

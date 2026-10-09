@@ -35,9 +35,11 @@ function formatDocumentDate(value:string){
 export default function DocumentsPanel({
   things,
   initialThingId="",
+  onBackToThing,
 }:{
   things:ApiThing[];
   initialThingId?:string;
+  onBackToThing?:()=>void;
 }){
   const [items,setItems]=useState<ApiDocument[]>([]);
   const [filterThingId,setFilterThingId]=useState(initialThingId);
@@ -155,9 +157,12 @@ export default function DocumentsPanel({
         <h1>Documents</h1>
         <p className="subtitle">Keep receipts, warranties and important files alongside the things they belong to.</p>
       </div>
-      <button className="light documents-refresh" type="button" onClick={()=>void refresh()} disabled={loading||busy}>
-        {loading?"Refreshing…":"Refresh"}
-      </button>
+      <div className="documents-heading-actions">
+        {initialThingId&&onBackToThing&&<button className="light documents-back" type="button" onClick={onBackToThing}>Back to Thing</button>}
+        <button className="light documents-refresh" type="button" onClick={()=>void refresh()} disabled={loading||busy}>
+          {loading?"Refreshing…":"Refresh"}
+        </button>
+      </div>
     </div>
 
     <form className="panel documents-upload" onSubmit={handleUpload}>

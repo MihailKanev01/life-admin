@@ -502,10 +502,10 @@ test.describe("Life Admin comprehensive functional coverage", () => {
 
   test("uploads documents linked to a Thing and persists them until deletion", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
-    await page.getByRole("button", { name: /Things/i }).first().click();
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
     await saveThing(page, "Document Test Vehicle", "Vehicle", "Document linkage fixture");
-
-    await page.getByRole("button", { name: /Documents/ }).click();
+    await page.locator(".thing").filter({ hasText: "Document Test Vehicle" }).click();
+    await page.getByRole("button", { name: /Open related documents/ }).click();
     await expect(page.getByRole("heading", { name: "Documents", exact: true })).toBeVisible();
     await page.getByLabel("Choose document").setInputFiles({
       name: "vehicle-insurance.pdf",
@@ -525,10 +525,14 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await page.getByPlaceholder(/Try.*car.*insurance/i).fill("vehicle-insurance.pdf");
     await expect(page.getByText("vehicle-insurance.pdf", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: /Documents/ }).click();
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await page.locator(".thing").filter({ hasText: "Document Test Vehicle" }).click();
+    await page.getByRole("button", { name: /Open related documents/ }).click();
     await expect(page.locator(".document-row").filter({ hasText: "vehicle-insurance.pdf" })).toBeVisible();
     await page.reload();
-    await page.getByRole("button", { name: /Documents/ }).click();
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await page.locator(".thing").filter({ hasText: "Document Test Vehicle" }).click();
+    await page.getByRole("button", { name: /Open related documents/ }).click();
     const persistedRow = page.locator(".document-row").filter({ hasText: "vehicle-insurance.pdf" });
     await expect(persistedRow).toBeVisible();
 

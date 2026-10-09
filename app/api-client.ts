@@ -238,6 +238,14 @@ export async function markPaymentPaid(id:string){
  return apiRequest<ApiPayment>("/payments/"+id+"/mark-paid",{method:"POST"});
 }
 
+export async function skipPayment(id:string){
+ return apiRequest<ApiPayment>("/payments/"+id+"/skip",{method:"POST"});
+}
+
+export async function cancelPayment(id:string){
+ return apiRequest<ApiPayment>("/payments/"+id+"/cancel",{method:"POST"});
+}
+
 
 export type ApiSearchResult={
  id:string;

@@ -1,5 +1,6 @@
 package com.lifeadmin.api.auth;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -49,8 +50,17 @@ public class PasswordResetService {
     @Transactional
     public void request(String rawEmail) {
         String email = normalizeEmail(rawEmail);
-        var userOptional = users.findByEmail(email);
 
+        // Check delivery readiness before looking up the email. This gives registered
+        // and unregistered addresses the same response while mail delivery is offline.
+        if (!emailSender.isConfigured() || !isResetBaseUrlConfigured()) {
+            LOGGER.warn("Password reset is unavailable: configure SMTP and APP_BASE_URL before accepting requests");
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Password reset is temporarily unavailable. Please try again later.");
+        }
+
+        var userOptional = users.findByEmail(email);
         if (userOptional.isEmpty()) {
             return;
         }
@@ -73,6 +83,8 @@ public class PasswordResetService {
         try {
             emailSender.send(user.getEmail(), user.getDisplayName(), resetUrl);
         } catch (RuntimeException exception) {
+            // Avoid exposing account existence through a different response. Keep
+            // the failure visible in server logs so mail delivery can be diagnosed.
             LOGGER.error("Unable to deliver password reset email", exception);
         }
     }
@@ -100,8 +112,31 @@ public class PasswordResetService {
         token.markUsed();
     }
 
+    private boolean isResetBaseUrlConfigured() {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(baseUrl.trim());
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            if (host == null) {
+                return false;
+            }
+            if ("https".equalsIgnoreCase(scheme)) {
+                return true;
+            }
+            return "http".equalsIgnoreCase(scheme)
+                    && ("localhost".equalsIgnoreCase(host)
+                    || "127.0.0.1".equals(host)
+                    || "::1".equals(host));
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
     private String buildResetUrl(String token) {
-        String normalizedBase = baseUrl == null ? "" : baseUrl.trim();
+        String normalizedBase = baseUrl.trim();
         if (normalizedBase.endsWith("/")) {
             normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
         }

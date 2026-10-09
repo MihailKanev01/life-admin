@@ -27,7 +27,8 @@ docker compose -f ../infra/docker-compose.yml up -d
 
 Run API:
 
-```mvn spring-boot:run -Dspring-boot.run.profiles=local
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 The project does not currently include Maven Wrapper files.
@@ -61,6 +62,8 @@ POST /api/v1/auth/login
 GET  /api/v1/auth/me
 PATCH /api/v1/auth/me/onboarding
 POST /api/v1/auth/logout
+POST /api/v1/auth/password-reset/request
+POST /api/v1/auth/password-reset/confirm
 ```
 
 The web client uses a secure session cookie rather than storing credentials or session identifiers in browser storage.
@@ -76,6 +79,18 @@ Path=/
 ```
 
 Local development overrides the cookie name and Secure flag so HTTP localhost works.
+
+Password recovery sends a single-use reset link with a 30-minute expiry; it does not send a numeric verification code. The request endpoint returns the same response for existing and non-existing emails to prevent account enumeration. Before querying accounts, it verifies that outbound SMTP and the reset-link origin are configured; if either is missing, it returns HTTP 503 instead of claiming that recovery is available.
+
+For Render/production, set these environment variables using the deployed service's environment settings (never commit actual credentials):
+
+- `APP_BASE_URL` — the public HTTPS origin of the web app, such as `https://your-app.example.com`. Do not leave this unset; production will not generate links to `localhost`.
+- `SPRING_MAIL_HOST` and `SPRING_MAIL_PORT` — SMTP host and port from a mail provider.
+- `SPRING_MAIL_USERNAME` and `SPRING_MAIL_PASSWORD` — credentials supplied by that provider.
+- `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true` and `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true` — SMTP authentication and STARTTLS, when required by the provider.
+- `MAIL_FROM` — sender address verified with the mail provider.
+
+If SMTP is configured but delivery still fails, check the Render application logs for `Unable to deliver password reset email`; the public API intentionally does not disclose whether an email address has an account.
 
 ## User-scoped reminders
 

@@ -13,36 +13,53 @@ public class PasswordResetEmailConfiguration {
     @Bean
     PasswordResetEmailSender passwordResetEmailSender(
             ObjectProvider<JavaMailSender> mailSenderProvider,
-            @Value("${life-admin.mail.from}") String from) {
-        return (email, displayName, resetUrl) -> {
-            JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
-            if (mailSender == null) {
-                throw new IllegalStateException("Password reset email delivery is not configured");
+            @Value("${life-admin.mail.from}") String from,
+            @Value("${spring.mail.host:}") String smtpHost) {
+        return new PasswordResetEmailSender() {
+            private JavaMailSender configuredMailSender() {
+                if (smtpHost == null || smtpHost.isBlank()) {
+                    return null;
+                }
+                return mailSenderProvider.getIfAvailable();
             }
 
-            try {
-                var message = mailSender.createMimeMessage();
-                var helper = new MimeMessageHelper(message, "UTF-8");
-                helper.setFrom(from);
-                helper.setTo(email);
-                helper.setSubject("Reset your Life Admin password");
-                helper.setText("""
-                        Hi %s,
+            @Override
+            public boolean isConfigured() {
+                return configuredMailSender() != null;
+            }
 
-                        We received a request to reset your Life Admin password.
+            @Override
+            public void send(String email, String displayName, String resetUrl) {
+                JavaMailSender mailSender = configuredMailSender();
+                if (mailSender == null) {
+                    throw new IllegalStateException(
+                            "Password reset email delivery is not configured. Configure SPRING_MAIL_HOST and SMTP credentials.");
+                }
 
-                        Use this link to choose a new password:
-                        %s
+                try {
+                    var message = mailSender.createMimeMessage();
+                    var helper = new MimeMessageHelper(message, "UTF-8");
+                    helper.setFrom(from);
+                    helper.setTo(email);
+                    helper.setSubject("Reset your Life Admin password");
+                    helper.setText("""
+                            Hi %s,
 
-                        This link expires in 30 minutes and can only be used once.
+                            We received a request to reset your Life Admin password.
 
-                        If you did not request this, you can safely ignore this email.
+                            Use this link to choose a new password:
+                            %s
 
-                        Life Admin
-                        """.formatted(displayName, resetUrl));
-                mailSender.send(message);
-            } catch (Exception exception) {
-                throw new IllegalStateException("Could not send password reset email", exception);
+                            This link expires in 30 minutes and can only be used once.
+
+                            If you did not request this, you can safely ignore this email.
+
+                            Life Admin
+                            """.formatted(displayName, resetUrl));
+                    mailSender.send(message);
+                } catch (Exception exception) {
+                    throw new IllegalStateException("Could not send password reset email", exception);
+                }
             }
         };
     }

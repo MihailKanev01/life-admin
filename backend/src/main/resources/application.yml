@@ -26,7 +26,7 @@ server:
         path: /
 life-admin:
   app:
-    base-url: ${APP_BASE_URL:http://localhost:3000}
+    base-url: ${APP_BASE_URL:}
   mail:
     from: ${MAIL_FROM:noreply@localhost}
   notifications:
@@ -67,6 +67,8 @@ spring:
     jdbc:
       initialize-schema: never
 life-admin:
+  app:
+    base-url: ${APP_BASE_URL:http://localhost:3000}
   storage:
     s3:
       endpoint: ${LIFE_ADMIN_S3_ENDPOINT:http://localhost:9000}
@@ -110,7 +112,8 @@ server:
         http-only: true
         secure: false
         same-site: strict
-        path: /
 life-admin:
+  app:
+    base-url: ${APP_BASE_URL:http://localhost:3000}
   notifications:
     fixed-delay-ms: 3600000

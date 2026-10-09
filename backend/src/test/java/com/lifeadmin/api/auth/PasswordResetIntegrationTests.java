@@ -135,6 +135,11 @@ class PasswordResetIntegrationTests {
         private final AtomicReference<String> lastUrl = new AtomicReference<>();
 
         @Override
+        public boolean isConfigured() {
+            return true;
+        }
+
+        @Override
         public void send(String email, String displayName, String resetUrl) {
             lastUrl.set(resetUrl);
         }

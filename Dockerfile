@@ -15,4 +15,7 @@ COPY --from=build /build/backend/target/life-admin-api-*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Render Free gives this service only a fraction of a CPU core.
+# Favor faster JVM startup and lower background-thread overhead over peak throughput.
+# Revisit these settings if the service moves to a larger instance or has sustained traffic.
+ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC", "-XX:ActiveProcessorCount=1", "-jar", "app.jar"]

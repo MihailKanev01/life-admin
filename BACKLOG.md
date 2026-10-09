@@ -109,7 +109,7 @@
 - [x] Implement Documents
 - [x] Implement Search
 - [x] Implement Quick Add
-- [ ] Implement notifications
+- [x] Implement notifications
 
 ## Phase 7 — Beta
 

@@ -333,6 +333,31 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("button", { name: /Mazda 6 Daily/i })).toBeVisible();
   });
 
+  test("archives a Thing and allows the name to be reused", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addThing(page, "Archiveable Mazda");
+
+    await page.getByRole("button", { name: /Archiveable Mazda/i }).click();
+    await expect(page.getByRole("heading", { name: "Archiveable Mazda" })).toBeVisible();
+
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Archive Thing", exact: true }).click();
+
+    await expect(page.locator(".sheet").filter({ hasText: "Archiveable Mazda" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toHaveCount(0);
+
+    await page.reload();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "+ Add thing", exact: true }).click();
+    await page.getByLabel("Name").fill("Archiveable Mazda");
+    await page.getByLabel("Type").selectOption({ label: "Vehicle" });
+    await page.getByLabel("Detail").fill("Fresh record");
+    await page.getByRole("button", { name: "Save thing", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Archiveable Mazda/i })).toBeVisible();
+  });
+
   test("opens a Thing and connects a reminder to it", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);

@@ -108,7 +108,7 @@
 - [ ] Implement Payments
 - [x] Implement Documents
 - [x] Implement Search
-- [ ] Implement Quick Add
+- [x] Implement Quick Add
 - [ ] Implement notifications
 
 ## Phase 7 — Beta

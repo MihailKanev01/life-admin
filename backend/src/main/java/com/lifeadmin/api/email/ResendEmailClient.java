@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,7 @@ public class ResendEmailClient {
     private final URI endpoint;
     private final HttpClient httpClient;
 
+    @Autowired
     public ResendEmailClient(
             @Value("${RESEND_API_KEY:}") String apiKey,
             @Value("${life-admin.mail.from}") String from) {

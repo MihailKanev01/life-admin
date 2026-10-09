@@ -520,7 +520,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await expect(row).toContainText("PDF");
     await expect(row).toContainText("Ready");
 
-    await page.getByRole("button", { name: /Search/ }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     await page.getByPlaceholder(/Try.*car.*insurance/i).fill("vehicle-insurance.pdf");
     await expect(page.getByText("vehicle-insurance.pdf", { exact: true })).toBeVisible();
 

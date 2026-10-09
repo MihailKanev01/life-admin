@@ -438,6 +438,27 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await expect(page.locator(".result")).toHaveCount(0);
   });
 
+  test("archives a Thing without deleting its data and persists the archive across reload", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await saveThing(page, "Archive Persistence Car", "Vehicle", "Archive persistence E2E");
+
+    await page.getByRole("button", { name: /Archive Persistence Car/i }).click();
+    await expect(page.getByRole("heading", { name: "Archive Persistence Car" })).toBeVisible();
+
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Archive Thing", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: /Archive Persistence Car/i })).toHaveCount(0);
+    await page.reload();
+    await page.getByRole("button", { name: /Things/i }).first().click();
+    await expect(page.getByRole("button", { name: /Archive Persistence Car/i })).toHaveCount(0);
+
+    await saveThing(page, "Archive Persistence Car", "Vehicle", "New active Thing with reused name");
+    await expect(page.getByRole("button", { name: /Archive Persistence Car/i })).toBeVisible();
+  });
+
   test("persists theme preference across reload and keeps public landing after sign out", async ({
     page,
   }) => {

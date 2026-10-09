@@ -22,10 +22,10 @@ Every user has a personal account and their own server-backed workspace.
 
 Persisted domains:
 - user identity and onboarding completion state;
-- user-owned reminders;
+- user-owned reminders and scheduled email notifications;
 - Things, contextual Payments and Things-linked Notes;
 - private Documents metadata with file bytes in S3-compatible object storage;
-- Things-linked Notes and confirmed Quick Add expiry captures.
+- confirmed Quick Add expiry captures.
 
 ## Local development
 
@@ -53,6 +53,8 @@ The web client proxies `/api/v1/*` to the configured backend origin. Local uploa
 
 Documents support PDF, JPEG and PNG files up to 10 MiB. The API creates random storage keys, checks the uploaded bytes against the requested size, MIME type, file signature and SHA-256 checksum, and issues short-lived signed upload/download URLs. The production bucket must remain private and have browser CORS configured for the deployed web origin.
 
+Email notifications are scheduled at 09:00 in the user's timezone for 7 days before, 2 days before and the due date. To deliver real email, configure a managed SMTP/email provider through Spring Boot's `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, credentials and `MAIL_FROM` environment settings; never commit live credentials. Without a configured sender, deliveries are recorded as failed/retried and are not falsely marked as sent.
+
 ## Production deployment
 
 Set `NEXT_PUBLIC_API_BASE_URL` in the deployed web environment to the real backend origin ending in `/api/v1`.
@@ -66,7 +68,8 @@ The backend must run with:
 - secure HttpOnly session cookies;
 - server-side authorization;
 - production secrets from managed secret storage;
-- a private EU-region S3-compatible bucket with server-side encryption, private access policy, browser CORS for the deployed web origin, and lifecycle/retention rules.
+- a private EU-region S3-compatible bucket with server-side encryption, private access policy, browser CORS for the deployed web origin, and lifecycle/retention rules;
+- a managed email provider and verified sender domain for reminder delivery.
 
 ## Delivery strategy
 

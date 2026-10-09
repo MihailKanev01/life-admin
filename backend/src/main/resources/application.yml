@@ -29,6 +29,8 @@ life-admin:
     base-url: ${APP_BASE_URL:http://localhost:3000}
   mail:
     from: ${MAIL_FROM:noreply@localhost}
+  notifications:
+    fixed-delay-ms: ${LIFE_ADMIN_NOTIFICATIONS_FIXED_DELAY_MS:60000}
   storage:
     s3:
       endpoint: ${LIFE_ADMIN_S3_ENDPOINT:}
@@ -109,3 +111,6 @@ server:
         secure: false
         same-site: strict
         path: /
+life-admin:
+  notifications:
+    fixed-delay-ms: 3600000

@@ -104,6 +104,7 @@ Current migrations:
 - V9 — Thing archive
 - V10 — document metadata
 - V11 — Things-linked notes
+- V12 — reminder email notifications
 
 Do not use Hibernate schema auto-update in production.
 
@@ -112,16 +113,25 @@ Do not use Hibernate schema auto-update in production.
 
 Notes are owned by the signed-in user and linked to an active Thing. The note body and title are persisted in PostgreSQL and included in user-scoped search results.
 
-- \`GET /api/v1/notes?thingId={id}\` — list notes in a Thing.
-- \`POST /api/v1/notes\` — create a note with \`title\`, \`body\` and \`thingId\`.
-- \`PATCH /api/v1/notes/{id}\` — edit a note the signed-in user owns.
-- \`DELETE /api/v1/notes/{id}\` — delete a note the signed-in user owns.
-- \`GET /api/v1/search?q={query}\` — search Things, reminders, payments, documents and notes for the signed-in user.
+- `GET /api/v1/notes?thingId={id}` — list notes in a Thing.
+- `POST /api/v1/notes` — create a note with `title`, `body` and `thingId`.
+- `PATCH /api/v1/notes/{id}` — edit a note the signed-in user owns.
+- `DELETE /api/v1/notes/{id}` — delete a note the signed-in user owns.
+- `GET /api/v1/search?q={query}` — search Things, reminders, payments, documents and notes for the signed-in user.
 
 Notes are exposed in the Thing detail rather than as a new top-level navigation destination.
 
 
 ## Quick Add
 
-- \`POST /api/v1/quick-add/expiry\` — transactionally creates an expiry Note and its reminder, 30 days before expiry, linked to an active Thing owned by the signed-in user. If no active Thing is linked, the confirmed capture may create one.
+- `POST /api/v1/quick-add/expiry` — transactionally creates an expiry Note and its reminder, 30 days before expiry, linked to an active Thing owned by the signed-in user. If no active Thing is linked, the confirmed capture may create one.
 - Document suggestions route to the Documents upload screen rather than persisting a placeholder item.
+
+
+## Reminder email notifications
+
+- Creating or changing an open reminder with a due date schedules email notifications 7 days before, 2 days before and on the due date, at 09:00 in the user's timezone.
+- Updating the due date cancels the old pending schedule and rebuilds it. Completing a reminder cancels all pending notifications.
+- `notifications` stores channel, schedule, status, send timestamp, attempt count and a bounded error code. Workers lock one due row at a time before sending to prevent concurrent workers from sending the same row.
+- Transient send errors retry after 5 minutes and then 30 minutes; after 3 failed attempts the notification is marked `FAILED`. Stale schedules more than 24 hours late are cancelled rather than sent as a burst.
+- Configure a managed mail provider with `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH`, `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE` and `MAIL_FROM`. Use secret management for credentials. If email delivery is unconfigured, messages are not marked as sent.

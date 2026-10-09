@@ -92,3 +92,13 @@ If job volume becomes large:
 - introduce Redis/message broker only when measured load justifies it.
 
 Do not add infrastructure prematurely.
+
+## Implemented notification behaviour
+
+- Persist each reminder email in PostgreSQL with status, scheduled time, next retry time, attempts and sent timestamp.
+- Schedule at 09:00 in the user's time zone, at 7 days before, 2 days before and on the due date. Dates already in the past are not backfilled.
+- Reminder create/update/reschedule/snooze rebuild pending schedules; completion cancels pending schedules.
+- The scheduled worker locks individual due records, checks current reminder state and schedule, then sends. Failures retry after 5 minutes and 30 minutes; after three failed attempts the record is marked failed.
+- A schedule that is more than 24 hours late is cancelled to avoid a burst of stale messages.
+- Configure Spring's standard \`SPRING_MAIL_*\` properties and \`MAIL_FROM\` to enable delivery through a managed mail provider.
+

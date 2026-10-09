@@ -22,8 +22,8 @@ services:
     command: server /data --console-address ":9001"
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ${LIFE_ADMIN_S3_ACCESS_KEY:life_admin_minio}
-      MINIO_ROOT_PASSWORD: ${LIFE_ADMIN_S3_SECRET_KEY:life_admin_minio_dev_password}
+      MINIO_ROOT_USER: ${LIFE_ADMIN_S3_ACCESS_KEY:-life_admin_minio}
+      MINIO_ROOT_PASSWORD: ${LIFE_ADMIN_S3_SECRET_KEY:-life_admin_minio_dev_password}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -42,8 +42,8 @@ services:
       mc cors set local/life-admin-documents /etc/minio/cors.xml
       '
     environment:
-      MINIO_ROOT_USER: ${LIFE_ADMIN_S3_ACCESS_KEY:life_admin_minio}
-      MINIO_ROOT_PASSWORD: ${LIFE_ADMIN_S3_SECRET_KEY:life_admin_minio_dev_password}
+      MINIO_ROOT_USER: ${LIFE_ADMIN_S3_ACCESS_KEY:-life_admin_minio}
+      MINIO_ROOT_PASSWORD: ${LIFE_ADMIN_S3_SECRET_KEY:-life_admin_minio_dev_password}
     volumes:
       - ./minio-cors.xml:/etc/minio/cors.xml:ro
     restart: "no"

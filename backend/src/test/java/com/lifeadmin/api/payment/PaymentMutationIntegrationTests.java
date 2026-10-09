@@ -97,7 +97,7 @@ class PaymentMutationIntegrationTests {
                         .with(csrf()).session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nextDueDate").value("2026-12-15"))
-                .andExpect(jsonPath("$.lastPaidAt").doesNotExist());
+                .andExpect(jsonPath("$.lastPaidAt").value(org.hamcrest.Matchers.nullValue()));
 
         mockMvc.perform(get("/api/v1/payments/" + id)
                         .with(csrf()).session(session))

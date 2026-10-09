@@ -280,6 +280,36 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
   });
 
+  test("skips and cancels recurring Payments", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await addPayment(page, "Internet", "25", "Every month");
+
+    const paymentRow = page.locator(".pay").filter({ hasText: "Internet" });
+    await paymentRow.getByRole("button", { name: "Edit", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit payment" })).toBeVisible();
+    await page.getByLabel("Next due date").fill("2026-11-15");
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+
+    await paymentRow.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(paymentRow).toContainText("Dec 15");
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    const reloadedInternet = page.locator(".pay").filter({ hasText: "Internet" });
+    await expect(reloadedInternet).toContainText("Dec 15");
+
+    await addPayment(page, "Cancelled Streaming", "9.99", "Every month");
+    const cancelledRow = page.locator(".pay").filter({ hasText: "Cancelled Streaming" });
+    page.once("dialog", dialog => dialog.accept());
+    await cancelledRow.getByRole("button", { name: "Cancel tracking", exact: true }).click();
+    await expect(page.locator(".pay").filter({ hasText: "Cancelled Streaming" })).toHaveCount(0);
+
+    await page.reload();
+    await page.getByRole("button", { name: /Payments/i }).first().click();
+    await expect(page.locator(".pay").filter({ hasText: "Cancelled Streaming" })).toHaveCount(0);
+    await expect(page.locator(".pay").filter({ hasText: "Internet" })).toContainText("Dec 15");
+  });
+
   test("edits a Thing and persists the changes", async ({ page }) => {
     await createAccountAndFinishWalkthrough(page);
     await addThing(page);

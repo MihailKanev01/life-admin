@@ -1,0 +1,37 @@
+name: Keep Render API warm
+
+on:
+  # Run away from the top of the hour to reduce GitHub schedule delays.
+  schedule:
+    - cron: "7,17,27,37,47,57 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-api-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Wake and check the free Render API
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Request the API health endpoint
+        env:
+          HEALTH_URL: https://life-admin-api-9xep.onrender.com/api/v1/system/health
+        run: |
+          # Render Free sleeps after 15 minutes without inbound traffic.
+          # This scheduled request runs every 10 minutes to keep the API warm.
+          # The first request can wake a sleeping instance and take several minutes.
+          status="$(curl --location --silent --show-error --output /tmp/health-response.txt --write-out '%{http_code}' --max-time 210 "$HEALTH_URL" || true)"
+          echo "Health endpoint HTTP status: ${status:-request-failed}"
+          if [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
+            cat /tmp/health-response.txt
+            exit 0
+          fi
+          echo "The endpoint did not return a successful HTTP status."
+          cat /tmp/health-response.txt || true
+          exit 1

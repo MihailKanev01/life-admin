@@ -31,7 +31,7 @@ public class ReminderService {
         String title = request.title().trim();
         String context = request.context().trim();
         UUID thingId=request.thingId();
-        if(thingId!=null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()){
+        if(thingId!=null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
         }
         return reminders.save(new Reminder(principal.getId(), title, context, request.dueDate(), thingId));
@@ -41,7 +41,7 @@ public class ReminderService {
     public Reminder update(UserPrincipal principal, UUID id, ReminderDtos.UpdateRequest request) {
         Reminder reminder = findOwned(principal, id);
         UUID thingId = request.thingId();
-        if (thingId != null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()) {
+        if (thingId != null && things.findByIdAndUserIdAndArchivedFalse(thingId, principal.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
         }
         reminder.update(

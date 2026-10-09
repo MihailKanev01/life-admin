@@ -1,7 +1,6 @@
 package com.lifeadmin.api.document;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -17,8 +16,6 @@ import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -34,7 +31,6 @@ import org.springframework.test.web.servlet.MvcResult;
 @ActiveProfiles("test")
 class DocumentIntegrationTests {
     @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
 
     @Test
     void uploadFinalizeListDownloadAndDeleteWorkEndToEnd() throws Exception {
@@ -70,8 +66,8 @@ class DocumentIntegrationTests {
 
         MvcResult signed=mockMvc.perform(get("/api/v1/documents/"+upload.documentId()+"/download-url").session(owner))
                 .andExpect(status().isOk()).andReturn();
-        JsonNode signedJson=objectMapper.readTree(signed.getResponse().getContentAsString());
-        URI download=URI.create(signedJson.get("url").asText());
+        String signedJson=signed.getResponse().getContentAsString();
+        URI download=URI.create(jsonField(signedJson,"url"));
         mockMvc.perform(get(download.getPath()).param("token",queryParameter(download.getRawQuery(),"token")).session(owner))
                 .andExpect(status().isOk())
                 .andExpect(result->assertArrayEquals(pdf,result.getResponse().getContentAsByteArray()));
@@ -135,8 +131,8 @@ class DocumentIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(uploadRequest(name,type,bytes,checksum,thingId)))
                 .andExpect(status().isOk()).andReturn();
-        JsonNode body=objectMapper.readTree(result.getResponse().getContentAsString());
-        return new Upload(body.get("documentId").asText(),body.get("uploadUrl").asText());
+        String body=result.getResponse().getContentAsString();
+        return new Upload(jsonField(body,"documentId"),jsonField(body,"uploadUrl"));
     }
 
     private String createThing(MockHttpSession session,String name) throws Exception {
@@ -146,7 +142,7 @@ class DocumentIntegrationTests {
                             {"name":"%s","type":"Vehicle","detail":"integration test"}
                             """.formatted(name)))
                 .andExpect(status().isOk()).andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+        return jsonField(result.getResponse().getContentAsString(),"id");
     }
 
     private String uploadRequest(String name,String type,byte[] bytes,String checksum,String thingId) {
@@ -164,6 +160,12 @@ class DocumentIntegrationTests {
                             """.formatted(email,name)))
                 .andExpect(status().isOk()).andReturn();
         return (MockHttpSession)result.getRequest().getSession(false);
+    }
+
+    private static String jsonField(String json,String field) {
+        String value=json.replaceAll(".*\\\"" + field + "\\\":\\\"([^\\\"]*)\\\".*", "$1");
+        if(value.equals(json))throw new AssertionError("Missing JSON field " + field + " in " + json);
+        return value;
     }
 
     private static String email(String prefix){return prefix+"-"+UUID.randomUUID()+"@example.com";}

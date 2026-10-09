@@ -154,7 +154,11 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".auth-overlay").getByRole("button", { name: "Forgot your password?", exact: true }).click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
+    const resetRequest = page.waitForRequest(request =>
+      request.method() === "POST" && request.url().includes("/api/v1/auth/password-reset/request"),
+    );
     await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
+    await resetRequest;
     await expect(page.locator(".auth-overlay").getByRole("alert")).toContainText("Password reset is temporarily unavailable");
   });
 

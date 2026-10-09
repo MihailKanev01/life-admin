@@ -403,6 +403,25 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
  const [notice,setNotice]=useState("");
  const [busy,setBusy]=useState(false);
 
+ const submitPasswordReset=async()=>{
+  setError("");
+  setNotice("");
+  const normalizedEmail=email.trim().toLowerCase();
+  if(!/^\S+@\S+\.\S+$/.test(normalizedEmail)){
+   setError("Enter a valid email address.");
+   return;
+  }
+  setBusy(true);
+  try{
+   const result=await requestPasswordReset(normalizedEmail);
+   setNotice(result.message);
+  }catch(caught){
+   setError(caught instanceof Error?caught.message:"Could not start password recovery.");
+  }finally{
+   setBusy(false);
+  }
+ };
+
  const submit=async()=>{
   setError("");
   setNotice("");
@@ -410,19 +429,6 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
 
   if(!/^\S+@\S+\.\S+$/.test(normalizedEmail)){
    setError("Enter a valid email address.");
-   return;
-  }
-
-  if(mode==="forgot"){
-   setBusy(true);
-   try{
-    const result=await requestPasswordReset(normalizedEmail);
-    setNotice(result.message);
-   }catch(caught){
-    setError(caught instanceof Error?caught.message:"Could not start password recovery.");
-   }finally{
-    setBusy(false);
-   }
    return;
   }
 
@@ -471,7 +477,7 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
    {mode==="create"&&<label className="auth-field"><span>Confirm password</span><input value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Repeat your password" type="password" autoComplete="new-password"/></label>}
    {error&&<div className="auth-error" role="alert">{error}</div>}
    {notice&&<div className="auth-notice" role="status">{notice}</div>}
-   <button className="dark full auth-submit" disabled={busy} onClick={submit}>{busy?"Please wait…":mode==="create"?"Create account":mode==="login"?"Sign in":"Send reset link"}</button>
+   <button type="button" className="dark full auth-submit" disabled={busy} onClick={mode==="forgot"?submitPasswordReset:submit}>{busy?"Please wait…":mode==="create"?"Create account":mode==="login"?"Sign in":"Send reset link"}</button>
    {mode==="login"&&<button className="text full auth-secondary" disabled={busy} onClick={()=>switchMode("forgot")}>Forgot your password?</button>}
    {mode==="forgot"
     ?<button className="text full" disabled={busy} onClick={()=>switchMode("login")}>Back to sign in</button>

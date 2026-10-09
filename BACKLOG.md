@@ -106,7 +106,7 @@
 - [ ] Implement Reminders
 - [ ] Implement Home
 - [ ] Implement Payments
-- [ ] Implement Documents
+- [x] Implement Documents
 - [ ] Implement Search
 - [ ] Implement Quick Add
 - [ ] Implement notifications

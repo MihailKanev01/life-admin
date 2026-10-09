@@ -20,16 +20,15 @@ The product should prioritize **attention over inventory**:
 
 Every user has a personal account and their own server-backed workspace.
 
-Current persisted domain:
-- user identity;
-- onboarding completion state;
-- reminders.
-
-The next persisted domain is Things, followed by contextual Payments and Documents.
+Persisted domains:
+- user identity and onboarding completion state;
+- user-owned reminders;
+- Things and contextual Payments;
+- private Documents metadata with file bytes in S3-compatible object storage.
 
 ## Local development
 
-Start the API database:
+Start PostgreSQL and local private object storage (MinIO). The Compose setup creates the `life-admin-documents` bucket and disables anonymous access:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
@@ -49,7 +48,9 @@ npm install
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api/v1 npm run dev
 ```
 
-The web client proxies `/api/v1/*` to the configured backend origin.
+The web client proxies `/api/v1/*` to the configured backend origin. Local uploads go directly to MinIO at `http://localhost:9000`; its console is at `http://localhost:9001`. Copy `.env.example` values into your shell or environment when overriding the defaults.
+
+Documents support PDF, JPEG and PNG files up to 10 MiB. The API creates random storage keys, checks the uploaded bytes against the requested size, MIME type, file signature and SHA-256 checksum, and issues short-lived signed upload/download URLs. The production bucket must remain private and have browser CORS configured for the deployed web origin.
 
 ## Production deployment
 
@@ -63,7 +64,8 @@ The backend must run with:
 - Flyway migrations;
 - secure HttpOnly session cookies;
 - server-side authorization;
-- production secrets from managed secret storage.
+- production secrets from managed secret storage;
+- a private EU-region S3-compatible bucket with server-side encryption, private access policy, browser CORS for the deployed web origin, and lifecycle/retention rules.
 
 ## Delivery strategy
 

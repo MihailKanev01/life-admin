@@ -22,7 +22,9 @@ Database stores:
 - timestamps
 - extraction status
 
-Application never exposes the bucket directly.
+Application never exposes the bucket directly. Production must use an EU-region bucket, managed credentials/identity, a private access policy with no public listing/read access, server-side encryption, deployed-origin CORS for browser uploads, and documented lifecycle/retention rules. Never commit storage credentials.
+
+The current MVP upload policy accepts PDF, JPEG and PNG files up to 10 MiB. The API signs a 10-minute upload target against the declared content type and SHA-256 checksum. After upload, finalization checks object existence, size, content type, actual checksum and the file signature before exposing the document. Downloads use owner-authorized 10-minute signed URLs. Local development uses MinIO; the in-memory storage adapter exists only in the test profile.
 
 ### Upload
 

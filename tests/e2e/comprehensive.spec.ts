@@ -499,4 +499,41 @@ test.describe("Life Admin comprehensive functional coverage", () => {
       page.getByRole("heading", { name: "Good afternoon, " + account.name }),
     ).toBeVisible();
   });
+
+  test("uploads documents linked to a Thing and persists them until deletion", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await saveThing(page, "Document Test Vehicle", "Vehicle", "Document linkage fixture");
+
+    await page.getByRole("button", { name: /Documents/ }).click();
+    await expect(page.getByRole("heading", { name: "Documents", exact: true })).toBeVisible();
+    await page.getByLabel("Choose document").setInputFiles({
+      name: "vehicle-insurance.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.7\\nLife Admin E2E document fixture\\n", "utf8"),
+    });
+    await page.getByLabel("Link to a Thing").selectOption({ label: "Document Test Vehicle" });
+    await page.getByRole("button", { name: "Upload document", exact: true }).click();
+
+    const row = page.locator(".document-row").filter({ hasText: "vehicle-insurance.pdf" });
+    await expect(row).toBeVisible();
+    await expect(row).toContainText("Document Test Vehicle");
+    await expect(row).toContainText("PDF");
+    await expect(row).toContainText("Ready");
+
+    await page.getByRole("button", { name: /Search/ }).click();
+    await page.getByPlaceholder(/Try.*car.*insurance/i).fill("vehicle-insurance.pdf");
+    await expect(page.getByText("vehicle-insurance.pdf", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /Documents/ }).click();
+    await expect(page.locator(".document-row").filter({ hasText: "vehicle-insurance.pdf" })).toBeVisible();
+    await page.reload();
+    await page.getByRole("button", { name: /Documents/ }).click();
+    const persistedRow = page.locator(".document-row").filter({ hasText: "vehicle-insurance.pdf" });
+    await expect(persistedRow).toBeVisible();
+
+    page.once("dialog", dialog => dialog.accept());
+    await persistedRow.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(persistedRow).toHaveCount(0);
+  });
+
 });

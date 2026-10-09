@@ -304,3 +304,77 @@ export async function updatePayment(id:string,payload:{
 }){
  return apiRequest<ApiPayment>("/payments/"+id,{method:"PATCH",body:JSON.stringify(payload)});
 }
+
+
+export type ApiDocument={
+ id:string;
+ fileName:string;
+ contentType:string;
+ sizeBytes:number;
+ checksumSha256:string;
+ thingId:string|null;
+ thingName:string|null;
+ createdAt:string;
+ status:string;
+ extractionStatus:string;
+};
+export type ApiDocumentList={items:ApiDocument[]};
+export type ApiDocumentUploadSession={
+ documentId:string;
+ uploadUrl:string;
+ headers:Record<string,string>;
+ expiresAt:string;
+};
+export type ApiDocumentDownloadUrl={url:string;expiresAt:string};
+
+export async function getDocuments(thingId?:string){
+ const suffix=thingId?"?thingId="+encodeURIComponent(thingId):"";
+ return apiRequest<ApiDocumentList>("/documents"+suffix);
+}
+
+export async function getDocumentDownloadUrl(id:string){
+ return apiRequest<ApiDocumentDownloadUrl>("/documents/"+encodeURIComponent(id)+"/download-url");
+}
+
+export async function deleteDocument(id:string){
+ return apiRequest<void>("/documents/"+encodeURIComponent(id),{method:"DELETE"});
+}
+
+async function sha256Base64(file:File){
+ const digest=await window.crypto.subtle.digest("SHA-256",await file.arrayBuffer());
+ return window.btoa(String.fromCharCode(...new Uint8Array(digest)));
+}
+
+export async function uploadDocument(file:File,thingId?:string|null){
+ if(file.size<=0)throw new Error("Choose a non-empty file.");
+ if(file.size>10*1024*1024)throw new Error("Documents must be 10 MiB or smaller.");
+ const checksumSha256=await sha256Base64(file);
+ const session=await apiRequest<ApiDocumentUploadSession>("/documents/upload-sessions",{
+  method:"POST",
+  body:JSON.stringify({
+   fileName:file.name,
+   contentType:file.type,
+   sizeBytes:file.size,
+   checksumSha256,
+   thingId:thingId||null,
+  }),
+ });
+ try{
+  const uploadTarget=new URL(session.uploadUrl,window.location.origin);
+  const sameOrigin=uploadTarget.origin===window.location.origin;
+  const headers=new Headers(session.headers);
+  if(sameOrigin)headers.set("X-XSRF-TOKEN",await csrfToken());
+  const uploaded=await fetchWithTimeout(uploadTarget.href,{
+   method:"PUT",
+   headers,
+   body:file,
+   credentials:sameOrigin?"include":"omit",
+   cache:"no-store",
+  },120_000);
+  if(!uploaded.ok)throw new Error("The document could not be uploaded to storage. Please try again.");
+  return await apiRequest<ApiDocument>("/documents/"+encodeURIComponent(session.documentId)+"/finalize",{method:"POST"});
+ }catch(error){
+  await deleteDocument(session.documentId).catch(()=>undefined);
+  throw error;
+ }
+}

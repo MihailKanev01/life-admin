@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -26,6 +27,9 @@ class ThingIntegrationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ThingRepository things;
 
     @Test
     void thingsAreIsolatedByAuthenticatedUser() throws Exception {
@@ -78,9 +82,29 @@ class ThingIntegrationTests {
         String id = created.getResponse().getContentAsString()
                 .replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
 
+        mockMvc.perform(post("/api/v1/reminders")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title":"Archive-related reminder",
+                                  "context":"Keep linked data",
+                                  "dueDate":"2027-12-14",
+                                  "thingId":"%s"
+                                }
+                                """.formatted(id)))
+                .andExpect(status().isOk());
+
         mockMvc.perform(post("/api/v1/things/" + id + "/archive")
                         .with(csrf()).session(session))
                 .andExpect(status().isNoContent());
+
+        Thing archivedThing = things.findById(UUID.fromString(id)).orElseThrow();
+        assertTrue(archivedThing.isArchived(), "Archive must persist as a soft archive in the database");
+
+        mockMvc.perform(get("/api/v1/reminders").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.title == 'Archive-related reminder')]").exists());
 
         mockMvc.perform(get("/api/v1/things").session(session))
                 .andExpect(status().isOk())

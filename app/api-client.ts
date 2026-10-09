@@ -197,6 +197,10 @@ export async function createThing(payload:{name:string;type:string;detail?:strin
  return apiRequest<ApiThing>("/things",{method:"POST",body:JSON.stringify(payload)});
 }
 
+export async function archiveThing(id:string){
+ return apiRequest<void>("/things/"+id+"/archive",{method:"POST"});
+}
+
 
 export type ApiPayment={
  id:string;

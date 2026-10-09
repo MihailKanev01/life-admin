@@ -54,22 +54,38 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
  const headers=new Headers(init.headers);
  headers.set("Content-Type","application/json");
  if(!["GET","HEAD","OPTIONS"].includes(method)){
-  // Wake the free-tier backend and fetch the CSRF token in parallel rather
-  // than making the user wait for two serial round trips on a cold start.
-  const [,token]=await Promise.all([warmUpApi(),csrfToken(API_WARMUP_TIMEOUT_MS)]);
+  // Warm the free-tier API while bootstrapping CSRF. A sleeping server can
+  // reject the first token request before the health check wakes it.
+  const warmup=warmUpApi();
+  let token:string;
+  try{
+   token=await csrfToken(API_WARMUP_TIMEOUT_MS);
+  }catch{
+   await warmup;
+   token=await csrfToken();
+  }
+  await warmup;
   headers.set("X-XSRF-TOKEN",token);
  }else{
   await warmUpApi();
  }
  let response:Response;
+ const requestUrl="/api/v1"+path;
+ const requestInit:RequestInit={
+  ...init,
+  method,
+  headers,
+  credentials:"include",
+  cache:"no-store",
+ };
  try{
-  response=await fetchWithTimeout("/api/v1"+path,{
-   ...init,
-   method,
-   headers,
-   credentials:"include",
-   cache:"no-store",
-  });
+  response=await fetchWithTimeout(requestUrl,requestInit);
+  // A stale anonymous CSRF cookie after logout can surface as 401. Refresh
+  // the token and retry the public reset-request endpoint once.
+  if(method==="POST"&&path==="/auth/password-reset/request"&&response.status===401){
+   headers.set("X-XSRF-TOKEN",await csrfToken());
+   response=await fetchWithTimeout(requestUrl,requestInit);
+  }
  }catch(caught){
   if(caught instanceof DOMException&&caught.name==="AbortError"){
    throw new Error("Authentication service is unavailable.");
@@ -85,14 +101,20 @@ async function apiRequest<T>(path:string,init:RequestInit={}):Promise<T>{
 
   if(response.status===409){
    message="An account with this email already exists. Sign in or use Forgot your password.";
-  }else if(message==="Something went wrong."){
-   if(response.status===401){
+  }else if(response.status===401){
+   if(path==="/auth/login"){
     message="Invalid email or password.";
-   }else if(response.status===403){
-    message="The security check failed. Please refresh the page and try again.";
-   }else if(response.status>=500){
-    message="The service is temporarily unavailable. Please try again in a moment.";
+   }else if(path==="/auth/password-reset/request"){
+    message="Password reset is temporarily unavailable. Please try again later.";
+   }else if(message==="Something went wrong."){
+    message="Your session has expired. Please sign in again.";
    }
+  }else if(response.status===403){
+   message=path==="/auth/password-reset/request"
+    ?"Password reset is temporarily unavailable. Please try again later."
+    :"The security check failed. Please refresh the page and try again.";
+  }else if(message==="Something went wrong."&&response.status>=500){
+   message="The service is temporarily unavailable. Please try again in a moment.";
   }
 
   throw new Error(message);

@@ -31,7 +31,7 @@ public class ThingService {
 
     @Transactional(readOnly = true)
     public Thing get(UserPrincipal principal, UUID id) {
-        return things.findByIdAndUserId(id, principal.getId())
+        return things.findByIdAndUserIdAndArchivedFalse(id, principal.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found"));
     }
 
@@ -42,7 +42,7 @@ public class ThingService {
         String type = request.type().trim();
         String detail = request.detail() == null ? null : request.detail().trim();
 
-        if (things.existsByUserIdAndNameIgnoreCaseAndIdNot(principal.getId(), name, id)) {
+        if (things.existsByUserIdAndNameIgnoreCaseAndArchivedFalseAndIdNot(principal.getId(), name, id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A thing with this name already exists");
         }
 
@@ -51,12 +51,18 @@ public class ThingService {
     }
 
     @Transactional
+    public void archive(UserPrincipal principal, UUID id) {
+        Thing thing = get(principal, id);
+        thing.archive();
+    }
+
+    @Transactional
     public Thing create(UserPrincipal principal, ThingDtos.CreateRequest request) {
         String name = request.name().trim();
         String type = request.type().trim();
         String detail = request.detail() == null ? null : request.detail().trim();
 
-        if (things.existsByUserIdAndNameIgnoreCase(principal.getId(), name)) {
+        if (things.existsByUserIdAndNameIgnoreCaseAndArchivedFalse(principal.getId(), name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A thing with this name already exists");
         }
 

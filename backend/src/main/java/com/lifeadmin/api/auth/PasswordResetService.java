@@ -45,13 +45,14 @@ public class PasswordResetService {
     @Transactional
     public void request(String rawEmail) {
         String email = normalizeEmail(rawEmail);
-        // Keep behavior identical for known and unknown accounts while email is unavailable.
+        // Always query the account repository, including while delivery is unavailable.
+        // Return the same failure for known and unknown addresses if recovery is misconfigured.
+        var userOptional = users.findByEmail(email);
         if (!emailSender.isConfigured() || !isResetBaseUrlConfigured()) {
             LOGGER.warn("Password reset is unavailable: configure RESEND_API_KEY, a verified MAIL_FROM and APP_BASE_URL");
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Password reset is temporarily unavailable. Please try again later.");
         }
-        var userOptional = users.findByEmail(email);
         if (userOptional.isEmpty()) {
             return;
         }

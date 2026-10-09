@@ -106,7 +106,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await overlay
       .getByRole("button", { name: "Send reset link", exact: true })
       .click();
-    await expect(overlay.getByRole("status")).toContainText("If an account exists");
+    await expect(overlay.getByRole("alert")).toContainText("Password reset is temporarily unavailable");
 
     await overlay.getByRole("button", { name: "Back to sign in" }).click();
     await expect(

@@ -1,12 +1,11 @@
 package com.lifeadmin.api.email;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,8 +16,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 class ResendEmailClientTest {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Test
     void sendsAuthenticatedJsonThroughEmailApi() throws Exception {
         AtomicReference<String> authorization = new AtomicReference<>();
@@ -31,11 +28,10 @@ class ResendEmailClientTest {
             client.send("person@example.com", "Reset your password", "Use this secure link.");
             assertEquals("Bearer re_test_key", authorization.get());
             assertTrue(contentType.get().startsWith("application/json"));
-            JsonNode payload = objectMapper.readTree(body.get());
-            assertEquals("noreply@example.com", payload.path("from").asText());
-            assertEquals("person@example.com", payload.path("to").get(0).asText());
-            assertEquals("Reset your password", payload.path("subject").asText());
-            assertEquals("Use this secure link.", payload.path("text").asText());
+            assertTrue(body.get().contains("\"from\":\"noreply@example.com\""));
+            assertTrue(body.get().contains("\"to\":[\"person@example.com\"]"));
+            assertTrue(body.get().contains("\"subject\":\"Reset your password\""));
+            assertTrue(body.get().contains("\"text\":\"Use this secure link.\""));
         } finally {
             server.stop(0);
         }
@@ -52,7 +48,7 @@ class ResendEmailClientTest {
             assertFalse(client.isConfigured());
             assertThrows(IllegalStateException.class,
                     () -> client.send("person@example.com", "Reset your password", "Body"));
-            assertEquals(null, authorization.get());
+            assertNull(authorization.get());
         } finally {
             server.stop(0);
         }
@@ -77,7 +73,7 @@ class ResendEmailClientTest {
 
     private ResendEmailClient client(HttpServer server, String apiKey, String from) {
         URI endpoint = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/emails");
-        return new ResendEmailClient(objectMapper, apiKey, from, endpoint, HttpClient.newHttpClient());
+        return new ResendEmailClient(apiKey, from, endpoint, HttpClient.newHttpClient());
     }
 
     private HttpServer server(int status, AtomicReference<String> authorization,

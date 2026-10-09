@@ -80,17 +80,17 @@ Path=/
 
 Local development overrides the cookie name and Secure flag so HTTP localhost works.
 
-Password recovery sends a single-use reset link with a 30-minute expiry; it does not send a numeric verification code. The request endpoint returns the same response for existing and non-existing emails to prevent account enumeration. Before querying accounts, it verifies that outbound SMTP and the reset-link origin are configured; if either is missing, it returns HTTP 503 instead of claiming that recovery is available.
+Password recovery sends a single-use reset link with a 30-minute expiry; it does not send a numeric verification code. The request endpoint returns the same success response for known and unknown emails when delivery is configured, to prevent account enumeration. When recovery is not configured, it returns the same HTTP 503 for either address. The account repository is queried on every valid recovery request.
 
-For Render/production, set these environment variables using the deployed service's environment settings (never commit actual credentials):
+### Transactional email
 
-- `APP_BASE_URL` — the public HTTPS origin of the web app, such as `https://your-app.example.com`. Do not leave this unset; production will not generate links to `localhost`.
-- `SPRING_MAIL_HOST` and `SPRING_MAIL_PORT` — SMTP host and port from a mail provider.
-- `SPRING_MAIL_USERNAME` and `SPRING_MAIL_PASSWORD` — credentials supplied by that provider.
-- `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true` and `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true` — SMTP authentication and STARTTLS, when required by the provider.
-- `MAIL_FROM` — sender address verified with the mail provider.
+Password-reset links and reminder emails are sent via the Resend email API over HTTPS, compatible with Render Free's outbound network restrictions. Configure these variables through hosting environment settings, not source control:
 
-If SMTP is configured but delivery still fails, check the Render application logs for `Unable to deliver password reset email`; the public API intentionally does not disclose whether an email address has an account.
+- `RESEND_API_KEY` — secret API key from Resend.
+- `MAIL_FROM` — sender identity verified with the provider.
+- `APP_BASE_URL` — public HTTPS origin of the deployed web app (e.g. `https://life-admin-mauve.vercel.app`). Local development may use `http://localhost:3000`.
+
+If the API key or sender isn't configured, reset requests return HTTP 503 for both known and unknown addresses, rather than falsely claiming a link was sent. Provider failures are logged without exposing account existence or provider response bodies.
 
 ## User-scoped reminders
 

@@ -155,7 +155,7 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
     await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
-    await expect(page.locator(".auth-overlay").getByRole("status")).toContainText("If an account exists for that email");
+    await expect(page.locator(".auth-overlay").getByRole("alert")).toContainText("Password reset is temporarily unavailable");
   });
 
   test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {

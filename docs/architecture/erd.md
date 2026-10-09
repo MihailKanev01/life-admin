@@ -59,6 +59,15 @@ THING 1..* ───────────────> DOCUMENT
                          extracted_text
                          status
 
+THING 1..* ───────────────> NOTE
+                         id
+                         user_id
+                         thing_id
+                         title
+                         body
+                         created_at
+                         updated_at
+
 THING 1..* ───────────────> PAYMENT
                          id
                          thing_id (nullable)
@@ -142,6 +151,7 @@ A small entity for obligations blocked on an external person/company.
 - reminder (thing_id, due_at)
 - payment (household_id, next_due_at)
 - document (thing_id, created_at)
+- note (user_id, thing_id, updated_at)
 - audit_event (household_id, created_at)
 
 ## Search

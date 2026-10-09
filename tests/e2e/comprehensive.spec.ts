@@ -541,4 +541,34 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await expect(persistedRow).toHaveCount(0);
   });
 
+
+  test("notes attached to a Thing persist and appear in Search", async ({ page }) => {
+    await createAccountAndFinishWalkthrough(page);
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await saveThing(page, "Notes Test Vehicle", "Vehicle", "Notes linkage fixture");
+    await page.locator(".thing").filter({ hasText: "Notes Test Vehicle" }).click();
+    await expect(page.getByText(/No notes yet/)).toBeVisible();
+
+    await page.getByRole("button", { name: "+ Add note", exact: true }).click();
+    await page.getByLabel("Note title").fill("Mazda policy details");
+    await page.getByLabel("Note details").fill("Allianz policy reference POLICY-42");
+    await page.getByRole("button", { name: "Save note", exact: true }).click();
+
+    const note = page.locator(".thing-note").filter({ hasText: "Mazda policy details" });
+    await expect(note).toBeVisible();
+    await expect(note).toContainText("Allianz policy reference POLICY-42");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+
+    await page.locator('.sidebar nav button[data-tour="search"]').click();
+    await page.getByPlaceholder(/Try.*car.*insurance/i).fill("POLICY-42");
+    const result = page.locator(".result").filter({ hasText: "Mazda policy details" });
+    await expect(result).toBeVisible();
+    await expect(result).toContainText("Notes Test Vehicle");
+    await expect(result).toContainText("Allianz policy reference POLICY-42");
+
+    await page.locator('.sidebar nav button[data-tour="things"]').click();
+    await page.locator(".thing").filter({ hasText: "Notes Test Vehicle" }).click();
+    await expect(page.locator(".thing-note").filter({ hasText: "Mazda policy details" })).toBeVisible();
+  });
+
 });

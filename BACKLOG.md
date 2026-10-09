@@ -107,7 +107,7 @@
 - [ ] Implement Home
 - [ ] Implement Payments
 - [x] Implement Documents
-- [ ] Implement Search
+- [x] Implement Search
 - [ ] Implement Quick Add
 - [ ] Implement notifications
 

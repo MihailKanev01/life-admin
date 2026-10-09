@@ -23,7 +23,7 @@ Every user has a personal account and their own server-backed workspace.
 Persisted domains:
 - user identity and onboarding completion state;
 - user-owned reminders;
-- Things and contextual Payments;
+- Things, contextual Payments and Things-linked Notes;
 - private Documents metadata with file bytes in S3-compatible object storage.
 
 ## Local development

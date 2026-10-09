@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {
   ApiReminder,
+  ApiNote,
   ApiPayment,
   ApiThing,
   ApiSearchResult,
@@ -9,16 +10,19 @@ import {
   archiveThing,
   completeOnboarding,
   completeReminder,
+  createNote,
   createPayment,
   createReminder,
   createThing,
   cancelPayment,
   getCurrentUser,
+  getNotes,
   getPayments,
   getReminders,
   getThings,
   loginAccount,
   logoutAccount,
+  deleteNote,
   markPaymentPaid,
   registerAccount,
   requestPasswordReset,
@@ -27,6 +31,7 @@ import {
   searchLife,
   snoozeReminder,
   updateReminder,
+  updateNote,
   updatePayment,
   updateThing,
 } from "./api-client";
@@ -677,6 +682,12 @@ export default function App(){
  const [editPaymentDueDate,setEditPaymentDueDate]=useState("");
  const [editPaymentThingId,setEditPaymentThingId]=useState("");
  const [selectedThing,setSelectedThing]=useState<ApiThing|null>(null);
+ const [thingNotes,setThingNotes]=useState<ApiNote[]>([]);
+ const [thingNotesLoading,setThingNotesLoading]=useState(false);
+ const [noteModal,setNoteModal]=useState(false);
+ const [noteEdit,setNoteEdit]=useState<ApiNote|null>(null);
+ const [noteTitle,setNoteTitle]=useState("");
+ const [noteBody,setNoteBody]=useState("");
  const [thingEdit,setThingEdit]=useState<ApiThing|null>(null);
  const [editThingName,setEditThingName]=useState("");
  const [editThingType,setEditThingType]=useState("Vehicle");
@@ -735,6 +746,24 @@ export default function App(){
   const requestVersion=paymentMutationVersion.current;
   getPayments().then(data=>{if(requestVersion===paymentMutationVersion.current)setPayments(data.items);}).catch(()=>{});
  },[ready,account,showWalkthrough]);
+
+ useEffect(()=>{
+  if(!ready||!account||showWalkthrough||!selectedThing){
+   setThingNotes([]);
+   setThingNotesLoading(false);
+   return;
+  }
+  let active=true;
+  setThingNotesLoading(true);
+  getNotes(selectedThing.id).then(data=>{
+   if(active)setThingNotes(data.items);
+  }).catch(caught=>{
+   if(active)setAppError(caught instanceof Error?caught.message:"Could not load notes for this Thing.");
+  }).finally(()=>{
+   if(active)setThingNotesLoading(false);
+  });
+  return ()=>{active=false;};
+ },[ready,account,showWalkthrough,selectedThing?.id]);
  useEffect(()=>{
   if(!ready||!account||showWalkthrough||section!=="search"){
    setSearchResults([]);
@@ -787,6 +816,55 @@ export default function App(){
 
  const openThingModal=()=>{
   setThingName("");setThingType("Vehicle");setThingDetail("");setThingModal(true);
+ };
+
+ const openNoteCreate=()=>{
+  setNoteEdit(null);
+  setNoteTitle("");
+  setNoteBody("");
+  setNoteModal(true);
+ };
+
+ const openNoteUpdate=(note:ApiNote)=>{
+  setNoteEdit(note);
+  setNoteTitle(note.title);
+  setNoteBody(note.body);
+  setNoteModal(true);
+ };
+
+ const saveThingNote=async()=>{
+  if(!selectedThing)return;
+  if(!noteTitle.trim()||!noteBody.trim()){
+   setAppError("Add a title and some note details.");
+   return;
+  }
+  setSaving(true);
+  setAppError("");
+  try{
+   const payload={title:noteTitle.trim(),body:noteBody.trim()};
+   const saved=noteEdit
+    ?await updateNote(noteEdit.id,payload)
+    :await createNote({...payload,thingId:selectedThing.id});
+   setThingNotes(items=>noteEdit
+    ?items.map(item=>item.id===saved.id?saved:item)
+    :[saved,...items]);
+   setNoteModal(false);
+  }catch(caught){
+   setAppError(caught instanceof Error?caught.message:"Could not save this note.");
+  }finally{
+   setSaving(false);
+  }
+ };
+
+ const removeThingNote=async(note:ApiNote)=>{
+  if(!window.confirm("Delete this note?"))return;
+  setAppError("");
+  try{
+   await deleteNote(note.id);
+   setThingNotes(items=>items.filter(item=>item.id!==note.id));
+  }catch(caught){
+   setAppError(caught instanceof Error?caught.message:"Could not delete this note.");
+  }
  };
 
  const openThingEdit=(thing:ApiThing)=>{
@@ -1009,7 +1087,7 @@ export default function App(){
      <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={()=>openPaymentEdit(x)}>Edit</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await skipPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not skip this payment.")}}}>Skip</button><button className="light" disabled={saving} onClick={async()=>{if(!window.confirm("Stop tracking this payment?"))return;try{await cancelPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.filter(item=>item.id!==x.id));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not cancel this payment.")}}}>Cancel tracking</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>Mark paid</button></div>)}</>:<div className="empty"><span>€</span><div><strong>No recurring payments yet.</strong><small>Add bills, subscriptions or renewals so you know what is coming up.</small></div></div>}</section></>}
      
 {section==="documents"&&<DocumentsPanel things={things} initialThingId={documentsThingFilter} onBackToThing={()=>{const thing=things.find(item=>item.id===documentsThingFilter);setSection("things");setSelectedThing(thing||null);}}/>}
-     {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things, reminders, payments and documents in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{searchLoading?<div className="search-status">Searching your saved information…</div>:searchResults.length?searchResults.map(result=><div className="result" key={result.kind+":"+result.id}><span>{result.kind==="THING"?"◫":result.kind==="DOCUMENT"?"▤":result.kind==="PAYMENT"?"€":"!"}</span><div><strong>{result.title}</strong><small>{result.subtitle}{result.dueDate?" · "+result.dueDate:""}</small></div><em>{result.kind[0]+result.kind.slice(1).toLowerCase()}</em></div>):<div className="empty"><span>⌕</span><div><strong>No matches found.</strong><small>Try another word or one of the suggested searches above.</small></div></div>}</section>}</>}
+     {section==="search"&&<><div className="intro"><div><p className="eyebrow">Search</p><h1>Find anything you saved</h1><p className="subtitle">Things, reminders, payments and documents in one search.</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder="Try “car”, “insurance”, or “internet”..."/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{searchLoading?<div className="search-status">Searching your saved information…</div>:searchResults.length?searchResults.map(result=><div className="result" key={result.kind+":"+result.id}><span>{result.kind==="THING"?"◫":result.kind==="DOCUMENT"?"▤":result.kind==="NOTE"?"✎":result.kind==="PAYMENT"?"€":"!"}</span><div><strong>{result.title}</strong><small>{result.subtitle}{result.dueDate?" · "+result.dueDate:""}</small></div><em>{result.kind[0]+result.kind.slice(1).toLowerCase()}</em></div>):<div className="empty"><span>⌕</span><div><strong>No matches found.</strong><small>Try another word or one of the suggested searches above.</small></div></div>}</section>}</>}
    </div>
   </section>
 
@@ -1021,7 +1099,26 @@ export default function App(){
  
   {accountSheet&&<div className="backdrop" onClick={()=>setAccountSheet(false)}><div className="sheet account-sheet" onClick={event=>event.stopPropagation()}><div className="account-profile"><span>{account.name.slice(0,1).toUpperCase()}</span><div><p className="eyebrow">Your account</p><h2>{account.name}</h2><p className="modalcopy">{account.email}</p></div></div><div className="account-details"><div><small>Workspace</small><strong>Personal</strong><span>Your own Life Admin data</span></div><div><small>Storage</small><strong>Account-backed</strong><span>Your account owns your reminders</span></div></div><button className="light full" onClick={()=>{setAccountSheet(false);setShowProductTour(true)}}>Replay walkthrough</button><button className="text full" onClick={()=>{void signOut();}}>Sign out</button></div></div>}
 
-  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><button className="document-context-link" onClick={()=>{setDocumentsThingFilter(selectedThing.id);setSelectedThing(null);setSection("documents");}}><small>Documents</small><strong>Open related documents</strong><span>Receipts and warranties</span></button><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><button className="light full" onClick={()=>openThingEdit(selectedThing)}>Edit Thing</button><button className="light full" onClick={async()=>{if(!window.confirm("Archive this Thing? It will leave the active list, but its data will be kept."))return;try{await archiveThing(selectedThing.id);thingMutationVersion.current+=1;setThings(items=>items.filter(item=>item.id!==selectedThing.id));setSelectedThing(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not archive this Thing.")}}}>Archive Thing</button><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14",id);}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
+  {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">Thing</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>Needs attention</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><button className="document-context-link" onClick={()=>{setDocumentsThingFilter(selectedThing.id);setSelectedThing(null);setSection("documents");}}><small>Documents</small><strong>Open related documents</strong><span>Receipts and warranties</span></button><div><small>History</small><strong>Coming next</strong><span>Service and changes</span></div><div><small>Payment</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>Recurring costs connected to this Thing</span></div></div><section className="thing-notes" aria-labelledby="thing-notes-heading">
+    <div className="thing-notes-heading">
+     <div><h3 id="thing-notes-heading">Notes</h3><p>Keep useful details with {selectedThing.name}.</p></div>
+     <button className="light" disabled={thingNotesLoading} onClick={openNoteCreate}>+ Add note</button>
+    </div>
+    {thingNotesLoading?<p className="thing-notes-empty">Loading notes…</p>
+     :thingNotes.length?<div className="thing-notes-list">{thingNotes.map(note=><article className="thing-note" key={note.id}>
+      <div className="thing-note-copy"><strong>{note.title}</strong><p>{note.body}</p><small>Updated {new Intl.DateTimeFormat(undefined,{year:"numeric",month:"short",day:"numeric"}).format(new Date(note.updatedAt))}</small></div>
+      <div className="thing-note-actions"><button className="light" onClick={()=>openNoteUpdate(note)}>Edit</button><button className="text" onClick={()=>void removeThingNote(note)}>Delete</button></div>
+     </article>)}</div>
+     :<p className="thing-notes-empty">No notes yet. Add a useful detail, reference or contact for this Thing.</p>}
+    </section><button className="light full" onClick={()=>openThingEdit(selectedThing)}>Edit Thing</button><button className="light full" onClick={async()=>{if(!window.confirm("Archive this Thing? It will leave the active list, but its data will be kept."))return;try{await archiveThing(selectedThing.id);thingMutationVersion.current+=1;setThings(items=>items.filter(item=>item.id!==selectedThing.id));setSelectedThing(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not archive this Thing.")}}}>Archive Thing</button><button className="light full" onClick={()=>{const id=selectedThing.id;setSelectedThing(null);openQuickAdd("Car insurance expires December 14",id);}}>+ Add something to {selectedThing.name}</button><button className="text full" onClick={()=>setSelectedThing(null)}>Close</button></div></div>}
+  
+  {noteModal&&<div className="backdrop" onClick={()=>setNoteModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}>
+   <div className="sheettop"><div><p className="eyebrow">Notes · {selectedThing?.name||"Thing"}</p><h2>{noteEdit?"Edit note":"Add a note"}</h2></div><button className="close" onClick={()=>setNoteModal(false)}>×</button></div>
+   <label className="auth-field"><span>Title</span><input aria-label="Note title" autoFocus maxLength={160} value={noteTitle} onChange={event=>setNoteTitle(event.target.value)} placeholder="e.g. Insurance contact"/></label>
+   <label className="auth-field"><span>Details</span><textarea aria-label="Note details" maxLength={5000} rows={5} value={noteBody} onChange={event=>setNoteBody(event.target.value)} placeholder="Add a reference number, contact details or anything worth keeping."/></label>
+   <button className="dark full" disabled={saving||!noteTitle.trim()||!noteBody.trim()} onClick={()=>void saveThingNote()}>{saving?"Saving…":noteEdit?"Save changes":"Save note"}</button>
+   <button className="text full" disabled={saving} onClick={()=>setNoteModal(false)}>Cancel</button>
+  </div></div>}
 
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">Needs attention</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><div className="reminder-actions"><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>Done</button><button className="light full" onClick={()=>openReminderEdit(selected)}>Edit reminder</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await rescheduleReminder(selected.id,dueDate);attentionMutationVersion.current+=1;

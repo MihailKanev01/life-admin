@@ -146,3 +146,31 @@ html[data-theme="dark"] .product-tour-focus{box-shadow:0 0 0 5px rgba(255,255,25
 .documents-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .documents-back{white-space:nowrap}
 @media(max-width:700px){.documents-heading-actions{align-items:stretch;flex-direction:column}.documents-back,.documents-refresh{width:100%}}
+
+
+/* Notes live inside the Thing detail, not in the main navigation. */
+.sheet{max-height:calc(100dvh - 32px);overflow-y:auto}
+.auth-field textarea{width:100%;min-height:120px;padding:12px 13px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:inherit;line-height:1.5;resize:vertical}
+.auth-field textarea:focus{outline:0;border-color:#c9c9c2;box-shadow:0 0 0 4px rgba(36,36,33,.05)}
+.thing-notes{margin:16px 0 14px;padding:15px;border:1px solid var(--border);border-radius:15px;background:var(--surface)}
+.thing-notes-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.thing-notes-heading h3{margin:0 0 5px;font-size:15px;letter-spacing:-.02em}
+.thing-notes-heading p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.thing-notes-heading button{white-space:nowrap;padding:8px 11px;font-size:12px}
+.thing-notes-empty{margin:12px 0 2px;color:var(--muted);font-size:13px;line-height:1.6}
+.thing-notes-list{display:grid}
+.thing-note{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:13px 0;border-top:1px solid var(--border)}
+.thing-note-copy{min-width:0;flex:1}
+.thing-note-copy strong{display:block;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.thing-note-copy p{margin:5px 0;color:var(--text);font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.thing-note-copy small{display:block;color:var(--muted);font-size:11px;line-height:1.4}
+.thing-note-actions{display:flex;gap:6px;flex-shrink:0}
+.thing-note-actions button{padding:7px 9px;font-size:11px;white-space:nowrap}
+@media(max-width:700px){
+ .thing-notes{padding:12px}
+ .thing-notes-heading{align-items:stretch;flex-direction:column}
+ .thing-notes-heading button{width:100%}
+ .thing-note{flex-direction:column;gap:9px}
+ .thing-note-actions{width:100%}
+ .thing-note-actions button{flex:1}
+}

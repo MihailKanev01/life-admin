@@ -103,5 +103,19 @@ Current migrations:
 - V8 — password-reset tokens
 - V9 — Thing archive
 - V10 — document metadata
+- V11 — Things-linked notes
 
 Do not use Hibernate schema auto-update in production.
+
+
+## Notes and Search
+
+Notes are owned by the signed-in user and linked to an active Thing. The note body and title are persisted in PostgreSQL and included in user-scoped search results.
+
+- \`GET /api/v1/notes?thingId={id}\` — list notes in a Thing.
+- \`POST /api/v1/notes\` — create a note with \`title\`, \`body\` and \`thingId\`.
+- \`PATCH /api/v1/notes/{id}\` — edit a note the signed-in user owns.
+- \`DELETE /api/v1/notes/{id}\` — delete a note the signed-in user owns.
+- \`GET /api/v1/search?q={query}\` — search Things, reminders, payments, documents and notes for the signed-in user.
+
+Notes are exposed in the Thing detail rather than as a new top-level navigation destination.

@@ -253,7 +253,7 @@ export async function cancelPayment(id:string){
 
 export type ApiSearchResult={
  id:string;
- kind:"THING"|"REMINDER"|"PAYMENT"|string;
+ kind:"THING"|"REMINDER"|"PAYMENT"|"DOCUMENT"|"NOTE"|string;
  title:string;
  subtitle:string;
  thingId:string|null;
@@ -303,6 +303,37 @@ export async function updatePayment(id:string,payload:{
  thingId?:string|null;
 }){
  return apiRequest<ApiPayment>("/payments/"+id,{method:"PATCH",body:JSON.stringify(payload)});
+}
+
+
+
+
+export type ApiNote={
+ id:string;
+ title:string;
+ body:string;
+ thingId:string;
+ thingName:string|null;
+ createdAt:string;
+ updatedAt:string;
+};
+export type ApiNoteList={items:ApiNote[]};
+
+export async function getNotes(thingId?:string){
+ const suffix=thingId?"?thingId="+encodeURIComponent(thingId):"";
+ return apiRequest<ApiNoteList>("/notes"+suffix);
+}
+
+export async function createNote(payload:{title:string;body:string;thingId:string}){
+ return apiRequest<ApiNote>("/notes",{method:"POST",body:JSON.stringify(payload)});
+}
+
+export async function updateNote(id:string,payload:{title:string;body:string}){
+ return apiRequest<ApiNote>("/notes/"+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify(payload)});
+}
+
+export async function deleteNote(id:string){
+ return apiRequest<void>("/notes/"+encodeURIComponent(id),{method:"DELETE"});
 }
 
 

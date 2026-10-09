@@ -23,23 +23,18 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class PasswordResetService {
-
     private static final Duration TOKEN_TTL = Duration.ofMinutes(30);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordResetService.class);
-
     private final UserRepository users;
     private final PasswordResetTokenRepository tokens;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetEmailSender emailSender;
     private final String baseUrl;
 
-    public PasswordResetService(
-            UserRepository users,
-            PasswordResetTokenRepository tokens,
-            PasswordEncoder passwordEncoder,
-            PasswordResetEmailSender emailSender,
-            @Value("${life-admin.app.base-url}") String baseUrl) {
+    public PasswordResetService(UserRepository users, PasswordResetTokenRepository tokens,
+            PasswordEncoder passwordEncoder, PasswordResetEmailSender emailSender,
+            @Value("\${life-admin.app.base-url}") String baseUrl) {
         this.users = users;
         this.tokens = tokens;
         this.passwordEncoder = passwordEncoder;
@@ -50,41 +45,28 @@ public class PasswordResetService {
     @Transactional
     public void request(String rawEmail) {
         String email = normalizeEmail(rawEmail);
-
-        // Check delivery readiness before looking up the email. This gives registered
-        // and unregistered addresses the same response while mail delivery is offline.
+        // Keep behavior identical for known and unknown accounts while email is unavailable.
         if (!emailSender.isConfigured() || !isResetBaseUrlConfigured()) {
-            LOGGER.warn("Password reset is unavailable: configure SMTP and APP_BASE_URL before accepting requests");
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
+            LOGGER.warn("Password reset is unavailable: configure RESEND_API_KEY, a verified MAIL_FROM and APP_BASE_URL");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Password reset is temporarily unavailable. Please try again later.");
         }
-
         var userOptional = users.findByEmail(email);
         if (userOptional.isEmpty()) {
             return;
         }
-
         User user = userOptional.get();
         Instant now = Instant.now();
-
         for (PasswordResetToken token : tokens.findByUserIdAndUsedAtIsNull(user.getId())) {
             token.markUsed();
         }
-
         String rawToken = newToken();
-        tokens.save(new PasswordResetToken(
-                user,
-                hash(rawToken),
-                now.plus(TOKEN_TTL)));
-
+        tokens.save(new PasswordResetToken(user, hash(rawToken), now.plus(TOKEN_TTL)));
         String resetUrl = buildResetUrl(rawToken);
-
         try {
             emailSender.send(user.getEmail(), user.getDisplayName(), resetUrl);
         } catch (RuntimeException exception) {
-            // Avoid exposing account existence through a different response. Keep
-            // the failure visible in server logs so mail delivery can be diagnosed.
+            // Do not reveal account existence through a different public response.
             LOGGER.error("Unable to deliver password reset email", exception);
         }
     }
@@ -95,41 +77,29 @@ public class PasswordResetService {
         if (tokenValue.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset link is invalid or has expired");
         }
-
         validatePassword(rawPassword);
         String tokenHash = hash(tokenValue);
         PasswordResetToken token = tokens.findByTokenHashAndUsedAtIsNull(tokenHash)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Reset link is invalid or has expired"));
-
         if (!token.isActiveAt(Instant.now())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Reset link is invalid or has expired");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset link is invalid or has expired");
         }
-
         User user = token.getUser();
         user.changePassword(passwordEncoder.encode(rawPassword));
         token.markUsed();
     }
 
     private boolean isResetBaseUrlConfigured() {
-        if (baseUrl == null || baseUrl.isBlank()) {
-            return false;
-        }
+        if (baseUrl == null || baseUrl.isBlank()) return false;
         try {
             URI uri = URI.create(baseUrl.trim());
             String scheme = uri.getScheme();
             String host = uri.getHost();
-            if (host == null) {
-                return false;
-            }
-            if ("https".equalsIgnoreCase(scheme)) {
-                return true;
-            }
+            if (host == null) return false;
+            if ("https".equalsIgnoreCase(scheme)) return true;
             return "http".equalsIgnoreCase(scheme)
-                    && ("localhost".equalsIgnoreCase(host)
-                    || "127.0.0.1".equals(host)
-                    || "::1".equals(host));
+                    && ("localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host) || "::1".equals(host));
         } catch (IllegalArgumentException exception) {
             return false;
         }
@@ -137,9 +107,7 @@ public class PasswordResetService {
 
     private String buildResetUrl(String token) {
         String normalizedBase = baseUrl.trim();
-        if (normalizedBase.endsWith("/")) {
-            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
-        }
+        if (normalizedBase.endsWith("/")) normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
         return normalizedBase + "/reset-password?token="
                 + java.net.URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
@@ -160,9 +128,7 @@ public class PasswordResetService {
     }
 
     private static String normalizeEmail(String value) {
-        if (value == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
-        }
+        if (value == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
         String email = value.trim().toLowerCase(Locale.ROOT);
         if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid email address");
@@ -172,8 +138,8 @@ public class PasswordResetService {
 
     private static void validatePassword(String value) {
         if (value == null || value.length() < 12 || value.length() > 256) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Password must be between 12 and 256 characters");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Password must be between 12 and 256 characters");
         }
     }
 }

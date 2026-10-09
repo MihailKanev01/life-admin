@@ -21,7 +21,8 @@ public class TestDocumentStorageController {
         Document document=documents.findByStorageKeyAndUserId(key,principal.getId())
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Upload target not found"));
         if(!"UPLOADING".equals(document.getStatus()))throw new ResponseStatusException(HttpStatus.CONFLICT,"Upload target is no longer active");
-        storage.acceptUpload(key,token,contentType,checksum,bytes);
+        String normalizedContentType=contentType.split(";",2)[0].trim();
+        storage.acceptUpload(key,token,normalizedContentType,checksum,bytes);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{encodedKey}/download")

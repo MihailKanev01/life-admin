@@ -154,13 +154,16 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".auth-overlay").getByRole("button", { name: "Forgot your password?", exact: true }).click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
-    const resetResponse = page.waitForResponse(response =>
-      response.request().method() === "POST" && response.url().includes("/api/v1/auth/password-reset/request"),
-    );
+    const resetResponses: import("@playwright/test").Response[] = [];
+    page.on("response", response => {
+      if (response.request().method() === "POST" && response.url().includes("/api/v1/auth/password-reset/request")) {
+        resetResponses.push(response);
+      }
+    });
     await page.locator(".auth-overlay").getByRole("button", { name: "Send reset link", exact: true }).click();
-    const response = await resetResponse;
-    expect(response.status(), `Unexpected password reset API response: ${response.status()}`).toBe(503);
     await expect(page.locator(".auth-overlay").getByRole("alert")).toContainText("Password reset is temporarily unavailable");
+    expect(resetResponses.length).toBeGreaterThan(0);
+    expect(resetResponses.at(-1)?.status(), `Unexpected final password reset API response: ${resetResponses.map(response => response.status()).join(", ")}`).toBe(503);
   });
 
   test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {

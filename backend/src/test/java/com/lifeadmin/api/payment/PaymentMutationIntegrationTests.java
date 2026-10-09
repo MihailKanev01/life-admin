@@ -1,6 +1,7 @@
 package com.lifeadmin.api.payment;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -68,6 +69,77 @@ class PaymentMutationIntegrationTests {
                 .andExpect(jsonPath("$.amount").value(29.99))
                 .andExpect(jsonPath("$.frequency").value("YEARLY"))
                 .andExpect(jsonPath("$.nextDueDate").value("2027-01-15"));
+    }
+
+    @Test
+    void paymentCanBeSkippedWithoutBeingMarkedPaid() throws Exception {
+        MockHttpSession session = register("payment-skip");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/payments")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Internet",
+                                  "type":"BILL",
+                                  "amount":25.00,
+                                  "currency":"EUR",
+                                  "frequency":"MONTHLY",
+                                  "nextDueDate":"2026-11-15"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(post("/api/v1/payments/" + id + "/skip")
+                        .with(csrf()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nextDueDate").value("2026-12-15"))
+                .andExpect(jsonPath("$.lastPaidAt").doesNotExist());
+
+        mockMvc.perform(get("/api/v1/payments/" + id)
+                        .with(csrf()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nextDueDate").value("2026-12-15"));
+    }
+
+    @Test
+    void cancelledPaymentDisappearsFromActiveListAndCannotBeMarkedPaid() throws Exception {
+        MockHttpSession session = register("payment-cancel");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/payments")
+                        .with(csrf()).session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Old subscription",
+                                  "type":"SUBSCRIPTION",
+                                  "amount":9.99,
+                                  "currency":"EUR",
+                                  "frequency":"MONTHLY",
+                                  "nextDueDate":"2026-11-20"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String id = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(post("/api/v1/payments/" + id + "/cancel")
+                        .with(csrf()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+
+        mockMvc.perform(get("/api/v1/payments")
+                        .with(csrf()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty());
+
+        mockMvc.perform(post("/api/v1/payments/" + id + "/mark-paid")
+                        .with(csrf()).session(session))
+                .andExpect(status().isConflict());
     }
 
     @Test

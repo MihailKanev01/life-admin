@@ -122,6 +122,20 @@ public class Payment {
         this.thingId = thingId;
     }
 
+    public void skip() {
+        if (nextDueDate != null) {
+            nextDueDate = switch (frequency) {
+                case "WEEKLY" -> nextDueDate.plusWeeks(1);
+                case "YEARLY" -> nextDueDate.plusYears(1);
+                default -> nextDueDate.plusMonths(1);
+            };
+        }
+    }
+
+    public void cancelTracking() {
+        status = "CANCELLED";
+    }
+
     public void markPaid() {
         lastPaidAt = Instant.now();
         if (nextDueDate != null) {

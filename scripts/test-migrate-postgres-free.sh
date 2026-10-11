@@ -49,9 +49,13 @@ chmod +x "$FAKE_BIN/psql" "$FAKE_BIN/pg_dump" "$FAKE_BIN/pg_restore"
 expect_guard_failure() {
   local label="$1"
   local expected="$2"
-  shift 2
+  local source_url="$3"
+  local target_url="$4"
+  shift 4
   : > "$CALL_LOG"
-  if env PATH="$FAKE_BIN:$PATH" FAKE_CALL_LOG="$CALL_LOG" "$@" bash "$SCRIPT" > "$OUTPUT" 2>&1; then
+  if env PATH="$FAKE_BIN:$PATH" FAKE_CALL_LOG="$CALL_LOG" \
+      SOURCE_DATABASE_URL="$source_url" TARGET_DATABASE_URL="$target_url" \
+      "$@" bash "$SCRIPT" > "$OUTPUT" 2>&1; then
     echo "FAIL: $label unexpectedly succeeded." >&2
     cat "$OUTPUT" >&2
     exit 1
@@ -72,21 +76,21 @@ expect_guard_failure() {
 expect_guard_failure \
   "same database endpoint is rejected" \
   "same database endpoint" \
-  SOURCE_DATABASE_URL="postgresql://source.test/life_admin_db?sslmode=require" \
-  TARGET_DATABASE_URL="postgres://source.test/life_admin_db"
+  "postgresql://source.test/life_admin_db?sslmode=require" \
+  "postgres://source.test/life_admin_db"
 
 expect_guard_failure \
   "PostgreSQL major-version mismatch is rejected" \
   "Expected PostgreSQL 18" \
-  SOURCE_DATABASE_URL="postgresql://source.test/life_admin_db" \
-  TARGET_DATABASE_URL="postgresql://target.test/life_admin_db" \
+  "postgresql://source.test/life_admin_db" \
+  "postgresql://target.test/life_admin_db" \
   FAKE_SOURCE_MAJOR=18 FAKE_TARGET_MAJOR=17 FAKE_PG_DUMP_MAJOR=18
 
 expect_guard_failure \
   "non-empty destination is rejected" \
   "Destination public schema is not empty" \
-  SOURCE_DATABASE_URL="postgresql://source.test/life_admin_db" \
-  TARGET_DATABASE_URL="postgresql://target.test/life_admin_db" \
+  "postgresql://source.test/life_admin_db" \
+  "postgresql://target.test/life_admin_db" \
   FAKE_SOURCE_MAJOR=18 FAKE_TARGET_MAJOR=18 FAKE_PG_DUMP_MAJOR=18 \
   FAKE_TARGET_PUBLIC_OBJECTS=1
 
@@ -95,8 +99,8 @@ EXISTING_BACKUP="$TEMP_DIR/already-exists.dump"
 expect_guard_failure \
   "existing backup file is not overwritten" \
   "Backup file already exists" \
-  SOURCE_DATABASE_URL="postgresql://source.test/life_admin_db" \
-  TARGET_DATABASE_URL="postgresql://target.test/life_admin_db" \
+  "postgresql://source.test/life_admin_db" \
+  "postgresql://target.test/life_admin_db" \
   BACKUP_FILE="$EXISTING_BACKUP" \
   FAKE_SOURCE_MAJOR=18 FAKE_TARGET_MAJOR=18 FAKE_PG_DUMP_MAJOR=18 \
   FAKE_TARGET_PUBLIC_OBJECTS=0

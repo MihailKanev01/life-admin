@@ -166,6 +166,33 @@ test.describe("Life Admin prototype smoke", () => {
     expect(resetResponses.at(-1)?.status(), `Unexpected final password reset API response: ${resetResponses.map(response => response.status()).join(", ")}`).toBe(503);
   });
 
+  test("validates reset links and new-password input before submitting", async ({ page }) => {
+    await page.goto("/reset-password");
+    await expect(page.getByRole("heading", { name: "This reset link isn’t valid." })).toBeVisible();
+
+    await page.goto("/reset-password?token=e2e-invalid-token");
+    await expect(page.getByRole("heading", { name: "Choose a new password" })).toBeVisible();
+
+    let confirmationRequests = 0;
+    page.on("request", request => {
+      if (request.method() === "POST" && request.url().includes("/api/v1/auth/password-reset/confirm")) {
+        confirmationRequests += 1;
+      }
+    });
+
+    await page.getByLabel("New password").fill("short");
+    await page.getByLabel("Confirm password").fill("short");
+    await page.getByRole("button", { name: "Update password", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("at least 12 characters");
+    expect(confirmationRequests).toBe(0);
+
+    await page.getByLabel("New password").fill("correct-horse-battery");
+    await page.getByLabel("Confirm password").fill("different-password");
+    await page.getByRole("button", { name: "Update password", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("Passwords do not match");
+    expect(confirmationRequests).toBe(0);
+  });
+
   test("registers, signs out, signs in again and persists the session after reload", async ({ page }) => {
     const account = makeTestAccount("login");
     await createAccountAndFinishWalkthrough(page, account);

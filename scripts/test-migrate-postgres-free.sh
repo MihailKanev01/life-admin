@@ -52,6 +52,7 @@ expect_guard_failure() {
   local source_url="$3"
   local target_url="$4"
   shift 4
+  printf "TEST source_url=%q target_url=%q extra_env=%q\n" "$source_url" "$target_url" "$*" >&2
   : > "$CALL_LOG"
   if env PATH="$FAKE_BIN:$PATH" FAKE_CALL_LOG="$CALL_LOG" \
       SOURCE_DATABASE_URL="$source_url" TARGET_DATABASE_URL="$target_url" \

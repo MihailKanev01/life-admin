@@ -22,6 +22,9 @@ public class Reminder {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "thing_id")
+    private UUID thingId;
+
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -43,8 +46,9 @@ public class Reminder {
     protected Reminder() {
     }
 
-    public Reminder(UUID userId, String title, String context, LocalDate dueDate) {
+    public Reminder(UUID userId, String title, String context, LocalDate dueDate, UUID thingId) {
         this.userId = userId;
+        this.thingId = thingId;
         this.title = title;
         this.context = context;
         this.dueDate = dueDate;
@@ -58,6 +62,7 @@ public class Reminder {
 
     public UUID getId() { return id; }
     public UUID getUserId() { return userId; }
+    public UUID getThingId() { return thingId; }
     public String getTitle() { return title; }
     public String getContext() { return context; }
     public LocalDate getDueDate() { return dueDate; }

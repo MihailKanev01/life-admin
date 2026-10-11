@@ -80,7 +80,7 @@ export async function getReminders(){
  return apiRequest<ApiReminderList>("/reminders");
 }
 
-export async function createReminder(payload:{title:string;context:string;dueDate:string|null}){
+export async function createReminder(payload:{title:string;context:string;dueDate:string|null;thingId?:string|null}){
  return apiRequest<ApiReminder>("/reminders",{method:"POST",body:JSON.stringify(payload)});
 }
 
@@ -90,4 +90,27 @@ export async function completeReminder(id:string){
 
 export async function snoozeReminder(id:string,dueDate:string){
  return apiRequest<ApiReminder>("/reminders/"+id+"/snooze",{method:"POST",body:JSON.stringify({dueDate})});
+}
+
+export type ApiThing={
+ id:string;
+ name:string;
+ type:string;
+ detail:string|null;
+ openReminderCount:number;
+ createdAt:string;
+};
+
+export type ApiThingList={items:ApiThing[]};
+
+export async function getThings(){
+ return apiRequest<ApiThingList>("/things");
+}
+
+export async function getThing(id:string){
+ return apiRequest<ApiThing>("/things/"+id);
+}
+
+export async function createThing(payload:{name:string;type:string;detail?:string|null}){
+ return apiRequest<ApiThing>("/things",{method:"POST",body:JSON.stringify(payload)});
 }

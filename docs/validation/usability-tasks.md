@@ -98,3 +98,28 @@ Record:
 ### Validation note
 
 Do not explain the model before observation. Record the participant’s own language and any points of confusion.
+
+
+## Task — Create a Thing and connect an action
+
+### Prompt
+
+“Add something you own or manage, then add an action that belongs to it.”
+
+### Observe
+
+- whether the participant chooses to create a Thing before creating the reminder;
+- whether type/detail fields feel useful or unnecessary;
+- whether the participant understands why the reminder should be connected to a Thing;
+- whether the Thing detail view helps them understand related information.
+
+### Success criteria
+
+- participant creates a Thing without coaching;
+- participant can explain what the Thing represents;
+- participant can add a reminder to that Thing;
+- participant recognizes the reminder count/context on the Thing detail.
+
+### Validation note
+
+Do not tell the participant that the intended model is “Thing → reminders/documents/payments/history” before the task. Record whether that model emerges naturally.

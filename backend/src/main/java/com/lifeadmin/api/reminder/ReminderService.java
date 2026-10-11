@@ -14,9 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class ReminderService {
 
     private final ReminderRepository reminders;
+    private final com.lifeadmin.api.thing.ThingRepository things;
 
-    public ReminderService(ReminderRepository reminders) {
+    public ReminderService(ReminderRepository reminders, com.lifeadmin.api.thing.ThingRepository things) {
         this.reminders = reminders;
+        this.things = things;
     }
 
     @Transactional(readOnly = true)
@@ -28,7 +30,11 @@ public class ReminderService {
     public Reminder create(UserPrincipal principal, ReminderDtos.CreateRequest request) {
         String title = request.title().trim();
         String context = request.context().trim();
-        return reminders.save(new Reminder(principal.getId(), title, context, request.dueDate()));
+        UUID thingId=request.thingId();
+        if(thingId!=null && things.findByIdAndUserId(thingId, principal.getId()).isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Thing not found");
+        }
+        return reminders.save(new Reminder(principal.getId(), title, context, request.dueDate(), thingId));
     }
 
     @Transactional
@@ -54,6 +60,7 @@ public class ReminderService {
                 reminder.getTitle(),
                 reminder.getContext(),
                 reminder.getDueDate(),
+                reminder.getThingId(),
                 reminder.getStatus(),
                 reminder.getCreatedAt());
     }

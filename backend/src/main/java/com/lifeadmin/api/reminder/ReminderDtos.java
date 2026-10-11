@@ -14,7 +14,8 @@ public final class ReminderDtos {
     public record CreateRequest(
             @NotBlank @Size(max = 200) String title,
             @NotBlank @Size(max = 160) String context,
-            LocalDate dueDate) {}
+            LocalDate dueDate,
+            UUID thingId) {}
 
     public record SnoozeRequest(LocalDate dueDate) {}
 
@@ -23,6 +24,7 @@ public final class ReminderDtos {
             String title,
             String context,
             LocalDate dueDate,
+            UUID thingId,
             String status,
             Instant createdAt) {}
 

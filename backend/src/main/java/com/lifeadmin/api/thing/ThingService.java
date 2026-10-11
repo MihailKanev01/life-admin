@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.lifeadmin.api.reminder.ReminderRepository;
+import com.lifeadmin.api.payment.PaymentRepository;
 import com.lifeadmin.api.security.UserPrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,12 @@ public class ThingService {
 
     private final ThingRepository things;
     private final ReminderRepository reminders;
+    private final PaymentRepository payments;
 
-    public ThingService(ThingRepository things, ReminderRepository reminders) {
+    public ThingService(ThingRepository things, ReminderRepository reminders, PaymentRepository payments) {
         this.things = things;
         this.reminders = reminders;
+        this.payments = payments;
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +56,8 @@ public class ThingService {
                 thing.getDetail(),
                 reminders.countByUserIdAndThingIdAndStatus(
                         thing.getUserId(), thing.getId(), "OPEN"),
+                payments.countByUserIdAndThingIdAndStatus(
+                        thing.getUserId(), thing.getId(), "ACTIVE"),
                 thing.getCreatedAt());
     }
 

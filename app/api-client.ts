@@ -98,6 +98,7 @@ export type ApiThing={
  type:string;
  detail:string|null;
  openReminderCount:number;
+ activePaymentCount:number;
  createdAt:string;
 };
 
@@ -113,4 +114,45 @@ export async function getThing(id:string){
 
 export async function createThing(payload:{name:string;type:string;detail?:string|null}){
  return apiRequest<ApiThing>("/things",{method:"POST",body:JSON.stringify(payload)});
+}
+
+
+export type ApiPayment={
+ id:string;
+ thingId:string|null;
+ name:string;
+ type:"BILL"|"SUBSCRIPTION"|"RENEWAL"|string;
+ amount:number;
+ currency:string;
+ frequency:"WEEKLY"|"MONTHLY"|"YEARLY"|string;
+ nextDueDate:string|null;
+ status:string;
+ lastPaidAt:string|null;
+ createdAt:string;
+};
+
+export type ApiPaymentList={items:ApiPayment[]};
+
+export async function getPayments(){
+ return apiRequest<ApiPaymentList>("/payments");
+}
+
+export async function getPayment(id:string){
+ return apiRequest<ApiPayment>("/payments/"+id);
+}
+
+export async function createPayment(payload:{
+ name:string;
+ type:string;
+ amount:number;
+ currency?:string;
+ frequency:string;
+ nextDueDate?:string|null;
+ thingId?:string|null;
+}){
+ return apiRequest<ApiPayment>("/payments",{method:"POST",body:JSON.stringify(payload)});
+}
+
+export async function markPaymentPaid(id:string){
+ return apiRequest<ApiPayment>("/payments/"+id+"/mark-paid",{method:"POST"});
 }

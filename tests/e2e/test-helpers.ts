@@ -54,3 +54,20 @@ export async function addThing(
  await page.getByRole("button",{name:"Save thing",exact:true}).click();
  await expect(page.getByRole("button",{name:new RegExp(name,"i")})).toBeVisible();
 }
+
+
+export async function addPayment(
+ page:Page,
+ name="Internet",
+ amount="25",
+ frequency="Every month",
+){
+ await page.getByRole("button",{name:/Payments/i}).first().click();
+ await page.getByRole("button",{name:"+ Add payment",exact:true}).click();
+ await page.getByLabel("Name").fill(name);
+ await page.getByLabel("Type").selectOption({label:"Bill"});
+ await page.getByLabel("Amount").fill(amount);
+ await page.getByLabel("Frequency").selectOption({label:frequency});
+ await page.getByRole("button",{name:"Save payment",exact:true}).click();
+ await expect(page.getByText(name,{exact:true})).toBeVisible();
+}

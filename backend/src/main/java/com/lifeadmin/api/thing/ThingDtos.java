@@ -22,6 +22,7 @@ public final class ThingDtos {
             String type,
             String detail,
             long openReminderCount,
+            long activePaymentCount,
             Instant createdAt) {}
 
     public record ThingList(List<ThingResponse> items) {}

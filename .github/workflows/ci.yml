@@ -92,5 +92,8 @@ jobs:
       - name: Validate free database migration script syntax
         run: bash -n ../scripts/migrate-postgres-free.sh
 
+      - name: Test free database migration safety guards
+        run: bash ../scripts/test-migrate-postgres-free.sh
+
       - name: Test API
         run: mvn -B -ntp test

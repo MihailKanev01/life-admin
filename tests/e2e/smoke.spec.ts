@@ -74,7 +74,7 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.getByRole("button", { name: /Mazda 6/i }).click();
     await expect(page.getByRole("heading", { name: "Mazda 6" })).toBeVisible();
-    await expect(page.getByText("Nothing right now", { exact: true })).toBeVisible();
+    await expect(page.getByText("Nothing right now", { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: /Add something to Mazda 6/i }).click();
     await expect(page.getByText("Quick add", { exact: true })).toBeVisible();
@@ -82,6 +82,7 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByRole("button", { name: "Review details" }).click();
     await page.getByRole("button", { name: "Save to Life Admin" }).click();
 
+    await page.getByRole("button", { name: /Home/i }).first().click();
     await expect(page.getByRole("button", { name: /Car insurance/i })).toBeVisible();
     await page.getByRole("button", { name: /Things/i }).first().click();
     await page.getByRole("button", { name: /Mazda 6/i }).click();

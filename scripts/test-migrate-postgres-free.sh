@@ -55,7 +55,7 @@ expect_guard_failure() {
   : > "$CALL_LOG"
   if env PATH="$FAKE_BIN:$PATH" FAKE_CALL_LOG="$CALL_LOG" \
       SOURCE_DATABASE_URL="$source_url" TARGET_DATABASE_URL="$target_url" \
-      "$@" bash "$SCRIPT" > "$OUTPUT" 2>&1; then
+      "$@" bash -x "$SCRIPT" > "$OUTPUT" 2>&1; then
     echo "FAIL: $label unexpectedly succeeded." >&2
     cat "$OUTPUT" >&2
     exit 1

@@ -1,10 +1,13 @@
 package com.lifeadmin.api.auth;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import com.lifeadmin.api.domain.User;
 import com.lifeadmin.api.domain.UserRepository;
 import com.lifeadmin.api.security.UserPrincipal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final long SLOW_AUTH_THRESHOLD_NANOS = 500_000_000L;
 
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
@@ -50,11 +56,38 @@ public class AuthService {
     public User authenticate(String rawEmail, String rawPassword) {
         String email = normalizeEmail(rawEmail);
         String password = rawPassword == null ? "" : rawPassword;
+        long totalStartedAt = System.nanoTime();
 
-        return users.findByEmail(email)
-                .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+        long lookupStartedAt = System.nanoTime();
+        Optional<User> foundUser = users.findByEmail(email);
+        long lookupNanos = System.nanoTime() - lookupStartedAt;
+
+        long passwordVerificationNanos = 0L;
+        User authenticatedUser = null;
+        if (foundUser.isPresent()) {
+            User candidate = foundUser.get();
+            long verificationStartedAt = System.nanoTime();
+            boolean passwordMatches = passwordEncoder.matches(password, candidate.getPasswordHash());
+            passwordVerificationNanos = System.nanoTime() - verificationStartedAt;
+            if (passwordMatches) {
+                authenticatedUser = candidate;
+            }
+        }
+
+        long totalNanos = System.nanoTime() - totalStartedAt;
+        if (totalNanos >= SLOW_AUTH_THRESHOLD_NANOS) {
+            // Deliberately omit email, user ID, and password data from performance logs.
+            log.warn(
+                    "SLOW_AUTH lookupMs={} passwordVerificationMs={} totalMs={}",
+                    lookupNanos / 1_000_000,
+                    passwordVerificationNanos / 1_000_000,
+                    totalNanos / 1_000_000);
+        }
+
+        if (authenticatedUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        }
+        return authenticatedUser;
     }
 
     @Transactional(readOnly = true)

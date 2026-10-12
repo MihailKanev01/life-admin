@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {I18nProvider,LanguageSwitcher,useI18n, type Locale} from "./i18n";
+import {I18nProvider,LanguageSwitcher,useI18n,translate,type Locale} from "./i18n";
 import {
   ApiReminder,
   ApiNote,
@@ -264,7 +264,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
    <div className="landing-window-top">
     <div className="landing-window-brand">LIFE ADMIN<span>.</span></div>
     <button type="button" className="landing-window-search" onClick={()=>setSection("search")} aria-label={t("Search the example workspace")}>⌕ <span>{t("Search the example workspace...")}</span><kbd>Open</kbd></button>
-    <button className="landing-window-add" onClick={()=>openQuickAdd()}>+ Quick add</button>
+    <button className="landing-window-add" onClick={()=>openQuickAdd()}>+ {t("Quick add")}</button>
    </div>
 
    <div className="landing-window-body">
@@ -281,7 +281,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      {section==="home"&&<div className="landing-preview-page">
       <div className="landing-preview-heading">
        <div><span>YOUR DAY AT A GLANCE</span><h3>{t("Good afternoon")}, Alex</h3><p>{saved?t("One sample reminder saved in this demo."):t("See what needs attention and what’s coming up.")}</p></div>
-       <button onClick={()=>openQuickAdd()}>+ Quick add</button>
+       <button onClick={()=>openQuickAdd()}>+ {t("Quick add")}</button>
       </div>
       <div className="landing-preview-section-heading"><span>{t("NEEDS ATTENTION")}</span><strong>{saved?"Take care of this first":"Nothing urgent"}</strong></div>
       {saved
@@ -294,7 +294,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      </div>}
 
      {section==="things"&&<div className="landing-preview-page">
-      <div className="landing-preview-heading"><div><span>THINGS</span><h3>{t("Your real life, organized")}</h3><p>{t("Keep reminders and payments connected to what they belong to.")}</p></div><button onClick={()=>openQuickAdd("Add a thing")}>+ Add thing</button></div>
+      <div className="landing-preview-heading"><div><span>THINGS</span><h3>{t("Your real life, organized")}</h3><p>{t("Keep reminders and payments connected to what they belong to.")}</p></div><button onClick={()=>openQuickAdd("Add a thing")}>+ {t("Add thing")}</button></div>
       <div className="landing-preview-grid">
        {[
         ["🚗","Mazda 6","235,420 km","1 attention"],
@@ -305,7 +305,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
      </div>}
 
      {section==="payments"&&<div className="landing-preview-page">
-      <div className="landing-preview-heading"><div><span>PAYMENTS</span><h3>{t("Know what leaves your account")}</h3><p>{t("Recurring bills and subscriptions, without becoming a banking app.")}</p></div><button onClick={()=>openQuickAdd("Add a payment")}>+ Add payment</button></div>
+      <div className="landing-preview-heading"><div><span>PAYMENTS</span><h3>{t("Know what leaves your account")}</h3><p>{t("Recurring bills and subscriptions, without becoming a banking app.")}</p></div><button onClick={()=>openQuickAdd("Add a payment")}>+ {t("Add payment")}</button></div>
       <div className="landing-payment-list">
        {[
         ["Internet","€25.00","Every month","Oct 12"],
@@ -370,11 +370,11 @@ function LandingPage({onOpenAuth,theme,onToggleTheme}:{onOpenAuth:(mode:AuthMode
     <h1 id="landing-hero-title">{t("Your reminders, bills and important things. All in one place.")}</h1>
     <p className="landing-lead">{t("Life Admin helps you organize the things you own, recurring bills, documents and reminders in one searchable workspace — so the details you need are there when you need them. No bank connection required.")}</p>
     <div className="landing-actions">
-     <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
+     <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>{t("Create your account")} <span>→</span></button>
      <button className="light landing-secondary" onClick={openPreview}>{t("See how it works")}</button>
     </div>
     <div className="landing-note"><span>✓</span><span>{t("Start with your own workspace. The interactive preview uses sample data only.")}</span></div>
-    <div className="landing-feature-list" aria-label="What Life Admin helps you manage"><span><b>✓</b> Things you own</span><span><b>✓</b> Bills and subscriptions</span><span><b>✓</b> Reminders and documents</span></div>
+    <div className="landing-feature-list" aria-label={t("What Life Admin helps you manage")}><span><b>✓</b> {t("Things you own")}</span><span><b>✓</b> {t("Bills and subscriptions")}</span><span><b>✓</b> {t("Reminders and documents")}</span></div>
    </div>
 
    <div id="landing-preview"><LandingPreview/></div>
@@ -403,7 +403,7 @@ function LandingPage({onOpenAuth,theme,onToggleTheme}:{onOpenAuth:(mode:AuthMode
 
   <section className="landing-bottom-cta">
    <div><p className="eyebrow">{t("READY WHEN YOU ARE")}</p><h2>{t("Give your life admin a home.")}</h2><p>{t("Set up your workspace once. Then keep the details that matter close when you need them.")}</p></div>
-   <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
+   <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>{t("Create your account")} <span>→</span></button>
   </section>
 
   <footer className="landing-footer"><span>LIFE ADMIN.</span><span>{t("Your personal life admin workspace.")}</span></footer>
@@ -501,7 +501,7 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
    </div>
    {mode==="create"&&<label className="auth-field"><span>{t("Your name")}</span><input value={name} onChange={event=>setName(event.target.value)} placeholder="e.g. Mihail Kanev" autoComplete="name"/></label>}
    <label className="auth-field"><span>{t("Email address")}</span><input value={email} onChange={event=>setEmail(event.target.value)} placeholder="you@example.com" type="email" autoComplete="email"/></label>
-   {mode!=="forgot"&&<label className="auth-field"><span>{t("Password")}</span><input value={password} onChange={event=>setPassword(event.target.value)} placeholder={mode==="create"?"At least 12 characters":"Your password"} type="password" autoComplete={mode==="create"?"new-password":"current-password"}/></label>}
+   {mode!=="forgot"&&<label className="auth-field"><span>{t("Password")}</span><input value={password} onChange={event=>setPassword(event.target.value)} placeholder={t(mode==="create"?"At least 12 characters":"Your password")} type="password" autoComplete={mode==="create"?"new-password":"current-password"}/></label>}
    {mode==="create"&&<label className="auth-field"><span>{t("Confirm password")}</span><input value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder={t("Repeat your password")} type="password" autoComplete="new-password"/></label>}
    {error&&<div className="auth-error" role="alert">{t(error)}</div>}
    {notice&&<div className="auth-notice" role="status">{notice}</div>}
@@ -683,7 +683,7 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
 
   <div ref={tooltipRef} className="product-tour-card" style={{top:tooltipPosition.top,left:tooltipPosition.left}} role="dialog" aria-modal="true" aria-labelledby="product-tour-title">
    <div key={"tour-content-"+step} className={"product-tour-content "+direction}>
-    <div className="product-tour-step">STEP {step+1} OF {productTourSteps.length}</div>
+    <div className="product-tour-step">{t("STEP")} {step+1} {t("OF")} {productTourSteps.length}</div>
     <p className="eyebrow">{t("Life Admin tour")}</p>
     <h2 id="product-tour-title">{current.title}</h2>
     <p>{current.text}</p>
@@ -698,16 +698,16 @@ function ProductTour({account,onComplete}:{account:Account;onComplete:()=>void})
   </div>
  </div>;
 }
-function reminderMeta(dueDate:string|null,context:string){
+function reminderMeta(dueDate:string|null,context:string,locale:Locale="en"){
  if(!dueDate)return context;
  const due=new Date(dueDate+"T00:00:00");
  const today=new Date();
  const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());
  const tomorrow=new Date(start);
  tomorrow.setDate(tomorrow.getDate()+1);
- if(due.getTime()===start.getTime())return "Due today";
- if(due.getTime()===tomorrow.getTime())return "Tomorrow";
- return "Due "+due.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+ if(due.getTime()===start.getTime())return translate(locale,"Due today");
+ if(due.getTime()===tomorrow.getTime())return translate(locale,"Tomorrow");
+ return translate(locale,"Due")+" "+due.toLocaleDateString(locale,{month:"short",day:"numeric"});
 }
 
 function reminderAttention(reminder:ApiReminder):AttentionItem{
@@ -736,16 +736,16 @@ function proposalDueDate(due:string):string|null{
  return `${year}-${String(month+1).padStart(2,"0")}-${String(Number(match[2])).padStart(2,"0")}`;
 }
 
-function paymentDueLabel(nextDueDate:string|null){
-  if(!nextDueDate)return "No date";
+function paymentDueLabel(nextDueDate:string|null,locale:Locale="en"){
+  if(!nextDueDate)return translate(locale,"No date");
   const due=new Date(nextDueDate+"T00:00:00");
   const today=new Date();
   const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());
   const tomorrow=new Date(start);
   tomorrow.setDate(tomorrow.getDate()+1);
-  if(due.getTime()===start.getTime())return "Today";
+  if(due.getTime()===start.getTime())return translate(locale,"Today");
   if(due.getTime()===tomorrow.getTime())return "Tomorrow";
-  return due.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  return due.toLocaleDateString(locale,{month:"short",day:"numeric"});
 }
 
 function paymentMonthlyEquivalent(payment:ApiPayment){
@@ -754,14 +754,14 @@ function paymentMonthlyEquivalent(payment:ApiPayment){
   return payment.amount;
 }
 
-function paymentFrequencyLabel(frequency:string){
-  if(frequency==="YEARLY")return "Every year";
-  if(frequency==="WEEKLY")return "Every week";
-  return "Every month";
+function paymentFrequencyLabel(frequency:string,locale:Locale="en"){
+  if(frequency==="YEARLY")return translate(locale,"Every year");
+  if(frequency==="WEEKLY")return translate(locale,"Every week");
+  return translate(locale,"Every month");
 }
 
-function formatPaymentMoney(amount:number,currency:string){
-  return new Intl.NumberFormat("en-US",{style:"currency",currency,currencyDisplay:"symbol",maximumFractionDigits:2}).format(amount);
+function formatPaymentMoney(amount:number,currency:string,locale:Locale="en"){
+  return new Intl.NumberFormat(locale,{style:"currency",currency,currencyDisplay:"symbol",maximumFractionDigits:2}).format(amount);
 }
 
 function AppContent(){
@@ -1147,7 +1147,7 @@ function AppContent(){
   setAttention([]);
  };
 
- if(!ready)return <main className="auth-shell"><div className="auth-loading">Loading your workspace…</div></main>;
+ if(!ready)return <main className="auth-shell"><div className="auth-loading">{t("Loading your workspace…")}</div></main>;
  if(!account)return <>
   <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}} theme={theme} onToggleTheme={toggleTheme}/>
   {showAuth&&<div className="auth-overlay" role="dialog" aria-modal="true" aria-label={authMode==="login"?"Sign in":"Create account"}>
@@ -1171,9 +1171,9 @@ function AppContent(){
   <aside className="sidebar">
    <div className="brand">LIFE ADMIN<span>.</span></div>
    <nav>{([["home","Home","⌂"],["things","Things","◫"],["payments","Payments","€"],["search","Search","⌕"]] as const).map(([k,l,i])=><button data-tour={k} className={section===k?"nav active":"nav"} key={k} onClick={()=>{setSection(k);if(k==="things")setQ("");}}><b>{i}</b>{t(l)}</button>)}</nav>
-   <button data-tour="add" className="dark add" onClick={()=>openQuickAdd()}>+ Add</button>
+   <button data-tour="add" className="dark add" onClick={()=>openQuickAdd()}>+ {t("Add")}</button>
    <div className="bottom">
-    <button data-tour="theme" className="nav" onClick={toggleTheme} aria-label={theme==="dark"?"Switch to light mode":"Switch to dark mode"} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?"Light mode":"Dark mode"}</button>
+    <button data-tour="theme" className="nav" onClick={toggleTheme} aria-label={theme==="dark"?t("Switch to light mode"):t("Switch to dark mode")} aria-pressed={theme==="dark"}><b>{theme==="dark"?"☀":"☾"}</b>{theme==="dark"?t("Light mode"):t("Dark mode")}</button>
     <button data-tour="account" className="nav" onClick={()=>setAccountSheet(true)}><b>●</b>{t("Account")}</button>
     <button className="account" onClick={()=>setAccountSheet(true)}><span>{account.name.slice(0,1).toUpperCase()}</span><div><strong>{account.name}</strong><small>{account.email}</small></div></button>
    </div>
@@ -1189,16 +1189,16 @@ function AppContent(){
    </header>
 
    <div className="page">{appError&&<div className="auth-error app-error" role="alert">{t(appError)}<button className="text" onClick={()=>setAppError("")}>{t("Dismiss")}</button></div>}
-    {section==="home"&&<><div className="intro"><div><p className="eyebrow">{new Intl.DateTimeFormat(locale,{weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{t("Good afternoon")}, {account.name}</h1><p className="subtitle">{attention.length===1?"1 "+t("thing needs your attention."):attention.length>1?attention.length+" "+t("things need your attention."):t("You’re all caught up.")}</p></div><button className="dark action" onClick={()=>openQuickAdd()}>+ Quick add</button></div>
-     <section><div className="heading"><div><p className="eyebrow">{t("Needs attention")}</p><h2>{attention.length?t("Take care of these first"):t("Nothing urgent")}</h2></div>{attention.length>0&&<span className="count">{attention.length}</span>}</div><div className="list">{attention.map(x=><button className="row" key={x.id} onClick={()=>setSelected(x)}><i className={x.urgent?"dot urgent":"dot"}/><span><strong>{x.title}</strong><small>{x.meta}</small></span>{x.amount&&<b>{x.amount}</b>}<em>›</em></button>)}{!attention.length&&<div className="empty"><span>✓</span><div><strong>{t("You’re all caught up.")}</strong><small>{t("Nothing important needs attention right now.")}</small></div></div>}</div></section>
-     <div className="grid2"><section className="panel"><div className="heading"><div><p className="eyebrow">{t("Coming up")}</p><h2>{t("Next on your radar")}</h2></div></div>{upcomingReminders.length?upcomingReminders.map(item=><div className="simple" key={item.id}><span className="square">!</span><div><strong>{item.title}</strong><small>{item.context}</small></div><b>{item.dueDate?reminderMeta(item.dueDate,item.context).split(" · ")[0]:"No date"}</b></div>):<div className="empty"><span>✓</span><div><strong>{t("Nothing upcoming.")}</strong><small>{t("Add a reminder with a future date to see it here.")}</small></div></div>}</section><section className="panel"><div className="heading"><div><p className="eyebrow">{t("Payments")}</p><h2>{t("What’s due next")}</h2></div></div>{upcomingPayments.length?upcomingPayments.map(item=><div className="simple" key={item.id}><span className="square">€</span><div><strong>{item.name}</strong><small>{paymentFrequencyLabel(item.frequency)}</small></div><b>{item.nextDueDate?paymentDueLabel(item.nextDueDate):"No date"}</b></div>):<div className="empty"><span>€</span><div><strong>{t("No upcoming payments.")}</strong><small>{t("Add a recurring payment to keep future costs visible here.")}</small></div></div>}</section></div>
+    {section==="home"&&<><div className="intro"><div><p className="eyebrow">{new Intl.DateTimeFormat(locale,{weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{t("Good afternoon")}, {account.name}</h1><p className="subtitle">{attention.length===1?"1 "+t("thing needs your attention."):attention.length>1?attention.length+" "+t("things need your attention."):t("You’re all caught up.")}</p></div><button className="dark action" onClick={()=>openQuickAdd()}>+ {t("Quick add")}</button></div>
+     <section><div className="heading"><div><p className="eyebrow">{t("Needs attention")}</p><h2>{attention.length?t("Take care of these first"):t("Nothing urgent")}</h2></div>{attention.length>0&&<span className="count">{attention.length}</span>}</div><div className="list">{attention.map(x=><button className="row" key={x.id} onClick={()=>setSelected(x)}><i className={x.urgent?"dot urgent":"dot"}/><span><strong>{x.title}</strong><small>{x.dueDate?reminderMeta(x.dueDate,x.context,locale):x.meta}</small></span>{x.amount&&<b>{x.amount}</b>}<em>›</em></button>)}{!attention.length&&<div className="empty"><span>✓</span><div><strong>{t("You’re all caught up.")}</strong><small>{t("Nothing important needs attention right now.")}</small></div></div>}</div></section>
+     <div className="grid2"><section className="panel"><div className="heading"><div><p className="eyebrow">{t("Coming up")}</p><h2>{t("Next on your radar")}</h2></div></div>{upcomingReminders.length?upcomingReminders.map(item=><div className="simple" key={item.id}><span className="square">!</span><div><strong>{item.title}</strong><small>{item.context}</small></div><b>{item.dueDate?reminderMeta(item.dueDate,item.context,locale).split(" · ")[0]:"No date"}</b></div>):<div className="empty"><span>✓</span><div><strong>{t("Nothing upcoming.")}</strong><small>{t("Add a reminder with a future date to see it here.")}</small></div></div>}</section><section className="panel"><div className="heading"><div><p className="eyebrow">{t("Payments")}</p><h2>{t("What’s due next")}</h2></div></div>{upcomingPayments.length?upcomingPayments.map(item=><div className="simple" key={item.id}><span className="square">€</span><div><strong>{item.name}</strong><small>{paymentFrequencyLabel(item.frequency,locale)}</small></div><b>{item.nextDueDate?paymentDueLabel(item.nextDueDate,locale):"No date"}</b></div>):<div className="empty"><span>€</span><div><strong>{t("No upcoming payments.")}</strong><small>{t("Add a recurring payment to keep future costs visible here.")}</small></div></div>}</section></div>
     </>}
 
-    {section==="things"&&<><div className="intro"><div><p className="eyebrow">{t("Things")}</p><h1>{t("Your real life, organized")}</h1><p className="subtitle">{t("Keep reminders, documents and payments connected to what they belong to.")}</p></div><button className="dark action" onClick={openThingModal}>+ Add thing</button></div><div className="toolbar"><div className="input">⌕<input value={q} onChange={event=>setQ(event.target.value)} placeholder={t("Search things...")}/></div><small>{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).length} things</small></div>{things.length?<div className="thinggrid">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><button className="thing" key={x.id} onClick={()=>setSelectedThing(x)}><span className="thingicon">{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><strong>{x.name}</strong><small>{x.detail||x.type}</small><em>{x.openReminderCount?x.openReminderCount+" "+t("attention"):t("No attention")}</em></button>)}</div>:<div className="empty"><span>+</span><div><strong>{t("Nothing here yet.")}</strong><small>{t("Add the things you own or manage. Their reminders will stay connected to them.")}</small></div></div>}</>}
+    {section==="things"&&<><div className="intro"><div><p className="eyebrow">{t("Things")}</p><h1>{t("Your real life, organized")}</h1><p className="subtitle">{t("Keep reminders, documents and payments connected to what they belong to.")}</p></div><button className="dark action" onClick={openThingModal}>+ {t("Add thing")}</button></div><div className="toolbar"><div className="input">⌕<input value={q} onChange={event=>setQ(event.target.value)} placeholder={t("Search things...")}/></div><small>{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).length} things</small></div>{things.length?<div className="thinggrid">{things.filter(x=>(x.name+" "+x.type+" "+(x.detail||"")).toLowerCase().includes(q.toLowerCase())).map(x=><button className="thing" key={x.id} onClick={()=>setSelectedThing(x)}><span className="thingicon">{x.type==="Vehicle"?"🚗":x.type==="Home"?"⌂":x.type==="Device"?"◉":"▣"}</span><strong>{x.name}</strong><small>{x.detail||x.type}</small><em>{x.openReminderCount?x.openReminderCount+" "+t("attention"):t("No attention")}</em></button>)}</div>:<div className="empty"><span>+</span><div><strong>{t("Nothing here yet.")}</strong><small>{t("Add the things you own or manage. Their reminders will stay connected to them.")}</small></div></div>}</>}
 
-    {section==="payments"&&<><div className="intro"><div><p className="eyebrow">{t("Payments")}</p><h1>{t("Know what leaves your account")}</h1><p className="subtitle">{t("Recurring bills and subscriptions — without becoming a banking app.")}</p></div><button className="dark action" onClick={()=>openPaymentModal()}>+ Add payment</button></div>
-     {(()=>{const today=new Date();const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());const end=new Date(start);end.setDate(end.getDate()+30);const upcoming=payments.filter(x=>x.nextDueDate).filter(x=>{const d=new Date(x.nextDueDate+"T00:00:00");return d>=start&&d<=end}).reduce((sum,x)=>sum+x.amount,0);const recurring=payments.reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);const subscriptions=payments.filter(x=>x.type==="SUBSCRIPTION").reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);return <div className="stats"><div className="stat"><small>{t("Upcoming")}</small><strong>{formatPaymentMoney(upcoming,"EUR")}</strong><span>{t("next 30 days")}</span></div><div className="stat"><small>{t("Recurring")}</small><strong>{formatPaymentMoney(recurring,"EUR")}</strong><span>{t("per month equivalent")}</span></div><div className="stat"><small>{t("Subscriptions")}</small><strong>{formatPaymentMoney(subscriptions,"EUR")}</strong><span>{t("per month equivalent")}</span></div></div>})()}
-     <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency)}{x.thingId?" · Connected to a Thing":""}</small></div><b>{formatPaymentMoney(x.amount,x.currency)}</b><em className={paymentDueLabel(x.nextDueDate)==="Today"?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={()=>openPaymentEdit(x)}>{t("Edit")}</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await skipPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not skip this payment.")}}}>{t("Skip")}</button><button className="light" disabled={saving} onClick={async()=>{if(!window.confirm("Stop tracking this payment?"))return;try{await cancelPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.filter(item=>item.id!==x.id));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not cancel this payment.")}}}>{t("Cancel tracking")}</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>{t("Mark paid")}</button></div>)}</>:<div className="empty"><span>€</span><div><strong>{t("No recurring payments yet.")}</strong><small>{t("Add bills, subscriptions or renewals so you know what is coming up.")}</small></div></div>}</section></>}
+    {section==="payments"&&<><div className="intro"><div><p className="eyebrow">{t("Payments")}</p><h1>{t("Know what leaves your account")}</h1><p className="subtitle">{t("Recurring bills and subscriptions — without becoming a banking app.")}</p></div><button className="dark action" onClick={()=>openPaymentModal()}>+ {t("Add payment")}</button></div>
+     {(()=>{const today=new Date();const start=new Date(today.getFullYear(),today.getMonth(),today.getDate());const end=new Date(start);end.setDate(end.getDate()+30);const upcoming=payments.filter(x=>x.nextDueDate).filter(x=>{const d=new Date(x.nextDueDate+"T00:00:00");return d>=start&&d<=end}).reduce((sum,x)=>sum+x.amount,0);const recurring=payments.reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);const subscriptions=payments.filter(x=>x.type==="SUBSCRIPTION").reduce((sum,x)=>sum+paymentMonthlyEquivalent(x),0);return <div className="stats"><div className="stat"><small>{t("Upcoming")}</small><strong>{formatPaymentMoney(upcoming,"EUR",locale)}</strong><span>{t("next 30 days")}</span></div><div className="stat"><small>{t("Recurring")}</small><strong>{formatPaymentMoney(recurring,"EUR",locale)}</strong><span>{t("per month equivalent")}</span></div><div className="stat"><small>{t("Subscriptions")}</small><strong>{formatPaymentMoney(subscriptions,"EUR",locale)}</strong><span>{t("per month equivalent")}</span></div></div>})()}
+     <section className="panel">{payments.length?<>{payments.map(x=><div className="pay" key={x.id}><span className="square">€</span><div><strong>{x.name}</strong><small>{paymentFrequencyLabel(x.frequency,locale)}{x.thingId?" · "+t("Connected to this Thing"):""}</small></div><b>{formatPaymentMoney(x.amount,x.currency,locale)}</b><em className={paymentDueLabel(x.nextDueDate,locale)===t("Today")?"urgentpill":"pill"}>{paymentDueLabel(x.nextDueDate)}</em><button className="light" disabled={saving} onClick={()=>openPaymentEdit(x)}>{t("Edit")}</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await skipPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not skip this payment.")}}}>{t("Skip")}</button><button className="light" disabled={saving} onClick={async()=>{if(!window.confirm("Stop tracking this payment?"))return;try{await cancelPayment(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.filter(item=>item.id!==x.id));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not cancel this payment.")}}}>{t("Cancel tracking")}</button><button className="light" disabled={saving} onClick={async()=>{try{const updated=await markPaymentPaid(x.id);paymentMutationVersion.current+=1;setPayments(items=>items.map(item=>item.id===x.id?updated:item));}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not mark payment as paid.")}}}>{t("Mark paid")}</button></div>)}</>:<div className="empty"><span>€</span><div><strong>{t("No recurring payments yet.")}</strong><small>{t("Add bills, subscriptions or renewals so you know what is coming up.")}</small></div></div>}</section></>}
      
 {section==="documents"&&<DocumentsPanel things={things} initialThingId={documentsThingFilter} onBackToThing={()=>{const thing=things.find(item=>item.id===documentsThingFilter);setSection("things");setSelectedThing(thing||null);}}/>}
      {section==="search"&&<><div className="intro"><div><p className="eyebrow">{t("Search")}</p><h1>{t("Find anything you saved")}</h1><p className="subtitle">{t("Things, reminders, payments and documents in one search.")}</p></div></div><div className="input big">⌕<input autoFocus value={q} onChange={event=>setQ(event.target.value)} placeholder={t("Try “car”, “insurance”, or “internet”...")}/></div><div className="chips">{["Mazda","Insurance","Internet","Warranty"].map(x=><button key={x} onClick={()=>setQ(x)}>{x}</button>)}</div>{q&&<section className="panel">{searchLoading?<div className="search-status">{t("Searching your saved information…")}</div>:searchResults.length?searchResults.map(result=><div className="result" key={result.kind+":"+result.id}><span>{result.kind==="THING"?"◫":result.kind==="DOCUMENT"?"▤":result.kind==="NOTE"?"✎":result.kind==="PAYMENT"?"€":"!"}</span><div><strong>{result.title}</strong><small>{result.subtitle}{result.dueDate?" · "+result.dueDate:""}</small></div><em>{t(result.kind==="THING"?"Thing":result.kind==="DOCUMENT"?"Document":result.kind==="NOTE"?"Note":result.kind==="PAYMENT"?"Payment":"Reminder")}</em></div>):<div className="empty"><span>⌕</span><div><strong>{t("No matches found.")}</strong><small>{t("Try another word or one of the suggested searches above.")}</small></div></div>}</section>}</>}
@@ -1215,7 +1215,7 @@ function AppContent(){
 
   {selectedThing&&<div className="backdrop" onClick={()=>setSelectedThing(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">{t("Thing")}</p><h2>{selectedThing.name}</h2><p className="modalcopy">{selectedThing.detail||selectedThing.type}</p></div><button className="close" onClick={()=>setSelectedThing(null)}>×</button></div><div className="contextgrid"><div><small>{t("Needs attention")}</small><strong>{selectedThing.openReminderCount?selectedThing.openReminderCount+" reminder"+(selectedThing.openReminderCount===1?"":"s"):"Nothing right now"}</strong><span>Connected to this Thing</span></div><button className="document-context-link" onClick={()=>{setDocumentsThingFilter(selectedThing.id);setSelectedThing(null);setSection("documents");}}><small>{t("Documents")}</small><strong>{t("Open related documents")}</strong><span>{t("Receipts and warranties")}</span></button><div><small>{t("History")}</small><strong>{t("Coming next")}</strong><span>{t("Service and changes")}</span></div><div><small>{t("Payment")}</small><strong>{selectedThing.activePaymentCount?selectedThing.activePaymentCount+" active payment"+(selectedThing.activePaymentCount===1?"":"s"):"Nothing right now"}</strong><span>{t("Recurring costs connected to this Thing")}</span></div></div><section className="thing-notes" aria-labelledby="thing-notes-heading">
     <div className="thing-notes-heading">
-     <div><h3 id="thing-notes-heading">{t("Notes")}</h3><p>Keep useful details with {selectedThing.name}.</p></div>
+     <div><h3 id="thing-notes-heading">{t("Notes")}</h3><p>{t("Keep useful details with")} {selectedThing.name}.</p></div>
      <button className="light" disabled={thingNotesLoading} onClick={openNoteCreate}>+ Add note</button>
     </div>
     {thingNotesLoading?<p className="thing-notes-empty">Loading notes…</p>
@@ -1236,7 +1236,7 @@ function AppContent(){
 
   {selected&&<div className="backdrop" onClick={()=>setSelected(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheeticon">!</div><p className="eyebrow">{t("Needs attention")}</p><h2>{selected.title}</h2><p className="modalcopy">{selected.meta}{selected.amount?" · "+selected.amount:""}</p><div className="reminder-actions"><button className="dark full" onClick={async()=>{try{await completeReminder(selected.id);attentionMutationVersion.current+=1;
      setAttention(items=>items.filter(item=>item.id!==selected.id));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not complete reminder.")}}}>{t("Done")}</button><button className="light full" onClick={()=>openReminderEdit(selected)}>{t("Edit reminder")}</button><button className="light full" onClick={async()=>{const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);const dueDate=tomorrow.toISOString().slice(0,10);try{const updated=await rescheduleReminder(selected.id,dueDate);attentionMutationVersion.current+=1;
-     setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not reschedule reminder.")}}}>Snooze until tomorrow</button><button className="text full" onClick={()=>setSelected(null)}>{t("Close")}</button></div></div></div>}
+     setAttention(items=>items.map(item=>item.id===selected.id?reminderAttention(updated):item));setSelected(null);}catch(caught){setAppError(caught instanceof Error?caught.message:"Could not reschedule reminder.")}}}>{t("Snooze until tomorrow")}</button><button className="text full" onClick={()=>setSelected(null)}>{t("Close")}</button></div></div></div>}
 
   {paymentEdit&&<div className="backdrop" onClick={()=>setPaymentEdit(null)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">{t("Payments")}</p><h2>{t("Edit payment")}</h2></div><button className="close" onClick={()=>setPaymentEdit(null)}>×</button></div><label className="auth-field"><span>{t("Name")}</span><input autoFocus value={editPaymentName} onChange={event=>setEditPaymentName(event.target.value)} placeholder="e.g. Internet"/></label><label className="auth-field"><span>{t("Type")}</span><select value={editPaymentType} onChange={event=>setEditPaymentType(event.target.value)}><option value="BILL">{t("Bill")}</option><option value="SUBSCRIPTION">{t("Subscription")}</option><option value="RENEWAL">{t("Renewal")}</option></select></label><label className="auth-field"><span>{t("Amount")}</span><input inputMode="decimal" type="number" min="0.01" step="0.01" value={editPaymentAmount} onChange={event=>setEditPaymentAmount(event.target.value)} placeholder="25.00"/></label><label className="auth-field"><span>{t("Frequency")}</span><select value={editPaymentFrequency} onChange={event=>setEditPaymentFrequency(event.target.value)}><option value="MONTHLY">{t("Every month")}</option><option value="YEARLY">{t("Every year")}</option><option value="WEEKLY">{t("Every week")}</option></select></label><label className="auth-field"><span>{t("Next due date")}</span><input type="date" value={editPaymentDueDate} onChange={event=>setEditPaymentDueDate(event.target.value)}/></label><label className="auth-field"><span>{t("Connected Thing")}</span><select value={editPaymentThingId} onChange={event=>setEditPaymentThingId(event.target.value)}><option value="">{t("None")}</option>{things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}</select></label><button className="dark full" disabled={saving} onClick={()=>void savePaymentEdit()}>{saving?"Saving…":"Save changes"}</button><button className="text full" disabled={saving} onClick={()=>setPaymentEdit(null)}>{t("Cancel")}</button></div></div>}
 
@@ -1246,10 +1246,10 @@ function AppContent(){
 
   {modal&&<div className="backdrop" onClick={()=>setModal(false)}><div className="sheet" onClick={event=>event.stopPropagation()}><div className="sheettop"><div><p className="eyebrow">{t("Quick add")}</p><h2>{t("What do you want to remember?")}</h2></div><button className="close" onClick={()=>setModal(false)}>×</button></div><textarea autoFocus value={quickText} onChange={event=>{setQuickText(event.target.value);setQuickProposal(null)}} placeholder="e.g. Car insurance expires June 14"/><div className="aihint"><b>✦</b><div><strong>{quickProposal?"Review before saving":"We’ll organize it for you."}</strong><small>{quickProposal?"Nothing is saved until you confirm.":"We’ll identify the type, context and date, then ask you to confirm."}</small></div></div>{quickProposal?(quickProposal.expiresOn&&quickProposal.reminderOn&&quickProposal.recordTitle?<div className="proposal expiry-proposal">
  <div><small>{t("Thing")}</small><strong>{quickProposal.thingName||quickProposal.context}</strong></div>
- <div><small>Record</small><strong>{quickProposal.recordTitle}</strong></div>
- <div><small>Expiry</small><strong>{formatQuickAddDate(quickProposal.expiresOn,locale)}</strong></div>
+ <div><small>{t("Record")}</small><strong>{quickProposal.recordTitle}</strong></div>
+ <div><small>{t("Expiry")}</small><strong>{formatQuickAddDate(quickProposal.expiresOn,locale)}</strong></div>
  <div className="proposaltitle"><small>{t("Reminder")}</small><strong>{formatQuickAddDate(quickProposal.reminderOn,locale)} · 30 days before</strong></div>
- </div>:<div className="proposal"><div><small>{t("Type")}</small><strong>{t(quickProposal.type)}</strong></div><div><small>{t("Context")}</small><strong>{quickProposal.context}</strong></div><div><small>When</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>{t("Save as")}</small><strong>{quickProposal.title}</strong></div></div>):<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>{t("Capture it quickly")}</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
+ </div>:<div className="proposal"><div><small>{t("Type")}</small><strong>{t(quickProposal.type)}</strong></div><div><small>{t("Context")}</small><strong>{quickProposal.context}</strong></div><div><small>{t("When")}</small><strong>{quickProposal.due}</strong></div><div className="proposaltitle"><small>{t("Save as")}</small><strong>{quickProposal.title}</strong></div></div>):<div className="quickgrid">{["Reminder","Thing","Payment","Document"].map(x=><button key={x} onClick={()=>setQuickText(x==="Reminder"?"":"Add a "+x.toLowerCase())}><strong>{x}</strong><small>{t("Capture it quickly")}</small></button>)}</div>}<button className="dark full" disabled={saving||(!quickText.trim()&&!quickProposal)} onClick={async()=>{
  if(!quickProposal){
   setQuickProposal(buildQuickProposal(quickText,things,quickThingId));
   return;

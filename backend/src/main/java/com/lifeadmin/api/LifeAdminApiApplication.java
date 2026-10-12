@@ -34,15 +34,23 @@ public class LifeAdminApiApplication {
         events.stream()
                 .filter(event -> event.getDuration().toMillis() >= 100)
                 .sorted(Comparator.comparing(StartupTimeline.TimelineEvent::getDuration).reversed())
-                .limit(20)
+                .limit(30)
                 .forEach(event -> {
                     long startOffsetMs = Duration.between(
                             timeline.getStartTime(), event.getStartTime()).toMillis();
+                    StringBuilder tags = new StringBuilder();
+                    for (var tag : event.getStartupStep().getTags()) {
+                        if (!tags.isEmpty()) {
+                            tags.append(',');
+                        }
+                        tags.append(tag.getKey()).append('=').append(tag.getValue());
+                    }
                     log.info(
-                            "STARTUP_STEP name={} durationMs={} startOffsetMs={}",
+                            "STARTUP_STEP name={} durationMs={} startOffsetMs={} tags={}",
                             event.getStartupStep().getName(),
                             event.getDuration().toMillis(),
-                            startOffsetMs);
+                            startOffsetMs,
+                            tags);
                 });
     }
 }

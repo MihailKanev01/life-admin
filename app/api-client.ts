@@ -1,7 +1,9 @@
 type ApiErrorShape={message?:string;detail?:string;error?:{message?:string}};
 
 const API_REQUEST_TIMEOUT_MS=30_000;
-const API_WARMUP_TIMEOUT_MS=180_000;
+// Production cold-start logs show Spring Boot taking about 173 seconds to start on the free API instance.
+// Leave enough room for the platform/container startup in addition to Spring's own startup time.
+const API_WARMUP_TIMEOUT_MS=240_000;
 
 async function fetchWithTimeout(input:RequestInfo|URL,init:RequestInit={},timeoutMs=API_REQUEST_TIMEOUT_MS){
  const controller=new AbortController();

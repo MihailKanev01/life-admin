@@ -183,13 +183,13 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByLabel("New password").fill("short");
     await page.getByLabel("Confirm password").fill("short");
     await page.getByRole("button", { name: "Update password", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("at least 12 characters");
+    await expect(page.locator(".auth-error")).toContainText("at least 12 characters");
     expect(confirmationRequests).toBe(0);
 
     await page.getByLabel("New password").fill("correct-horse-battery");
     await page.getByLabel("Confirm password").fill("different-password");
     await page.getByRole("button", { name: "Update password", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("Passwords do not match");
+    await expect(page.locator(".auth-error")).toContainText("Passwords do not match");
     expect(confirmationRequests).toBe(0);
   });
 

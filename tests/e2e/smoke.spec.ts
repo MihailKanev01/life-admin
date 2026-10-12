@@ -215,6 +215,31 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
   });
 
+  test("explains when the authentication service is slow to respond", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
+    const authForm = page.locator(".auth-overlay");
+    await expect(authForm.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
+    await authForm.getByLabel("Email address").fill("slow-login@example.invalid");
+    await authForm.getByRole("textbox", { name: "Password", exact: true }).fill("LifeAdmin-Test-Password-2026!");
+
+    await page.route("**/api/v1/auth/login", async route => {
+      await new Promise(resolve => setTimeout(resolve, 6500));
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Invalid email or password" }),
+      });
+    });
+
+    await authForm.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(authForm.getByRole("status").filter({
+      hasText: "The secure service is taking longer than usual to respond",
+    })).toBeVisible({ timeout: 7000 });
+    await expect(authForm.locator(".auth-error")).toContainText("Invalid email or password.");
+  });
+
   test("shows the duplicate registration message", async ({ page }) => {
     const account = makeTestAccount("duplicate");
     await page.goto("/");

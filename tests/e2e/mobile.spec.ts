@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function expectMobileLayoutFits(page:Page,label:string){
   const metrics=await page.evaluate(()=>{
     const viewportWidth=document.documentElement.clientWidth;
-    const selectors=["body",".shell","header",".page",".intro",".panel",".list",".mobileNav",".backdrop .sheet",".auth-overlay .auth-card",".landing-page",".landing-nav",".landing-hero","#landing-preview",".landing-window",".landing-window-content",".landing-quick-card",".documents-page",".document-row"];
+    const selectors=["body",".shell","header",".page",".intro",".panel",".list",".mobileNav",".backdrop .sheet",".auth-overlay .auth-card",".landing-page",".landing-nav",".landing-hero","#landing-preview",".landing-window",".landing-window-content",".landing-quick-card",".account-sheet",".account-profile",".documents-page",".document-row"];
     const overflow=selectors.flatMap(selector=>Array.from(document.querySelectorAll<HTMLElement>(selector)).map(element=>{
       const rect=element.getBoundingClientRect();
       return {selector,left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width)};

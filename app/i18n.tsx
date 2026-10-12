@@ -327,7 +327,8 @@ bg:{
 "Loading notes…":"Бележките се зареждат…",
 "What Life Admin helps you manage":"С какво ти помага Life Admin",
 "Document deleted.":"Документът е изтрит.",
-"No linked Thing":"Няма свързана вещ"
+"No linked Thing":"Няма свързана вещ",
+"Home (thing type)":"Дом"
 },
 de:{
 "Language":"Sprache",
@@ -637,7 +638,8 @@ de:{
 "Add a reference number, contact details or anything worth keeping.":"Füge eine Referenznummer, Kontaktdaten oder andere wichtige Informationen hinzu.",
 "Could not load documents.":"Dokumente konnten nicht geladen werden.",
 "Document deleted.":"Dokument gelöscht.",
-"No linked Thing":"Kein verknüpftes Ding"
+"No linked Thing":"Kein verknüpftes Ding",
+"Home (thing type)":"Zuhause"
 },
 es:{
 "Language":"Idioma",
@@ -947,7 +949,8 @@ es:{
 "Add a reference number, contact details or anything worth keeping.":"Añade una referencia, datos de contacto u otra información útil.",
 "Could not load documents.":"No se pudieron cargar los documentos.",
 "Document deleted.":"Documento eliminado.",
-"No linked Thing":"Sin cosa vinculada"
+"No linked Thing":"Sin cosa vinculada",
+"Home (thing type)":"Hogar"
 },
 fr:{
 "Language":"Langue",
@@ -1257,7 +1260,8 @@ fr:{
 "Add a reference number, contact details or anything worth keeping.":"Ajoutez un numéro de référence, des coordonnées ou toute information utile.",
 "Could not load documents.":"Impossible de charger les documents.",
 "Document deleted.":"Document supprimé.",
-"No linked Thing":"Aucun bien associé"
+"No linked Thing":"Aucun bien associé",
+"Home (thing type)":"Maison"
 }
 };
 

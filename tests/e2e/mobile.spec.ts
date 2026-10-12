@@ -47,6 +47,7 @@ test.describe("Life Admin mobile prototype", () => {
     await expect(page.getByRole("heading", {
       name: "Напомняния, сметки и важни неща. Всичко на едно място.",
     })).toBeVisible();
+    await page.waitForFunction(() => localStorage.getItem("life-admin-language") === "bg");
 
     await page.reload();
     await expect(languagePicker).toHaveValue("bg");

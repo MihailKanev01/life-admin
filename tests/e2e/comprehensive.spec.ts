@@ -46,7 +46,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await page.goto("/");
     await expect(
       page.getByRole("heading", {
-        name: "Keep the real-world admin of your life in one place.",
+        name: "Your reminders, bills and important things. All in one place.",
       }),
     ).toBeVisible();
 
@@ -482,7 +482,7 @@ test.describe("Life Admin comprehensive functional coverage", () => {
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(
       page.getByRole("heading", {
-        name: "Keep the real-world admin of your life in one place.",
+        name: "Your reminders, bills and important things. All in one place.",
       }),
     ).toBeVisible();
 

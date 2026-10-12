@@ -6,7 +6,7 @@ test.describe("Life Admin account and onboarding",()=>{
     const account=makeTestAccount("Mihail Test");
     await page.goto("/");
 
-    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Your reminders, bills and important things. All in one place."})).toBeVisible();
     await page.getByRole("button",{name:"Create your account"}).first().click();
     await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Create your account"})).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Your name").fill(account.name);
@@ -37,7 +37,7 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await page.getByRole("button",{name:"Account"}).click();
     await page.getByRole("button",{name:"Sign out"}).click();
-    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Your reminders, bills and important things. All in one place."})).toBeVisible();
     await page.getByRole("button",{name:"Create your account"}).first().click();
     await expect(page.getByRole("heading",{name:"Create your account"})).toBeVisible();
 
@@ -54,7 +54,7 @@ test.describe("Life Admin account and onboarding",()=>{
 
     await page.getByRole("button",{name:"Account"}).click();
     await page.getByRole("button",{name:"Sign out"}).click();
-    await expect(page.getByRole("heading",{name:"Keep the real-world admin of your life in one place."})).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Your reminders, bills and important things. All in one place."})).toBeVisible();
     await page.getByRole("button",{name:"Sign in",exact:true}).click();
     await expect(page.locator(".auth-overlay").getByRole("heading",{name:"Sign in to Life Admin"})).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(accountA.email);

@@ -160,16 +160,16 @@ export default function DocumentsPanel({
         <p className="subtitle">{t("Keep receipts, warranties and important files alongside the things they belong to.")}</p>
       </div>
       <div className="documents-heading-actions">
-        {initialThingId&&onBackToThing&&<button className="light documents-back" type="button" onClick={onBackToThing}>Back to Thing</button>}
+        {initialThingId&&onBackToThing&&<button className="light documents-back" type="button" onClick={onBackToThing}>{t("Back to Thing")}</button>}
         <button className="light documents-refresh" type="button" onClick={()=>void refresh()} disabled={loading||busy}>
-          {loading?"Refreshing…":"Refresh"}
+          {t(loading?"Refreshing…":"Refresh")}
         </button>
       </div>
     </div>
 
     <form className="panel documents-upload" onSubmit={handleUpload}>
       <div>
-        <h2>Upload a document</h2>
+        <h2>{t("Upload a document")}</h2>
         <p>{t("PDF, JPEG or PNG · up to 10 MiB. Files are private by default.")}</p>
       </div>
       <label className="documents-file-field">
@@ -179,9 +179,9 @@ export default function DocumentsPanel({
       </label>
       {file&&<p className="documents-selected-file">{file.name} · {formatFileSize(file.size)}</p>}
       <label className="documents-link-field">
-        <span>Link to a Thing <small>{t("(optional)")}</small></span>
+        <span>{t("Link to a Thing")} <small>{t("(optional)")}</small></span>
         <select aria-label={t("Link to a Thing")} value={uploadThingId} onChange={event=>setUploadThingId(event.target.value)}>
-          <option value="">No linked Thing</option>
+          <option value="">{t("No linked Thing")}</option>
           {things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}
         </select>
       </label>
@@ -197,13 +197,13 @@ export default function DocumentsPanel({
       <div className="documents-library-heading">
         <div><h2 id="documents-library-heading">{t("Your documents")}</h2><p>{items.length} {t(items.length===1?"file":"files")}{filterThingId?t(" linked to the selected Thing"):""}</p></div>
         <label className="documents-filter"><span>{t("Filter")}</span>
-          <select aria-label="Filter documents by Thing" value={filterThingId} onChange={event=>setFilterThingId(event.target.value)}>
+          <select aria-label={t("Filter documents by Thing")} value={filterThingId} onChange={event=>setFilterThingId(event.target.value)}>
             <option value="">{t("All Things")}</option>
             {things.map(thing=><option key={thing.id} value={thing.id}>{thing.name}</option>)}
           </select>
         </label>
       </div>
-      {loading?<div className="empty"><span>▤</span><div><strong>Loading documents…</strong><small>{t("Your saved files will appear here.")}</small></div></div>
+      {loading?<div className="empty"><span>▤</span><div><strong>{t("Loading documents…")}</strong><small>{t("Your saved files will appear here.")}</small></div></div>
       :items.length===0?<div className="empty"><span>▤</span><div><strong>{t("No documents yet.")}</strong><small>{t("Upload a receipt or warranty to keep it with the rest of your life admin.")}</small></div></div>
       :<div className="documents-list">
         {items.map(document=><article className="document-row" key={document.id}>

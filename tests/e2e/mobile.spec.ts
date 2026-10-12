@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function expectMobileLayoutFits(page:Page,label:string){
   const metrics=await page.evaluate(()=>{
     const viewportWidth=document.documentElement.clientWidth;
-    const selectors=["body",".shell","header",".page",".intro",".panel",".list",".mobileNav",".backdrop .sheet",".auth-overlay .auth-card",".landing-page",".landing-nav",".landing-hero","#landing-preview",".landing-window",".landing-window-content",".documents-page",".document-row"];
+    const selectors=["body",".shell","header",".page",".intro",".panel",".list",".mobileNav",".backdrop .sheet",".auth-overlay .auth-card",".landing-page",".landing-nav",".landing-hero","#landing-preview",".landing-window",".landing-window-content",".landing-quick-card",".documents-page",".document-row"];
     const overflow=selectors.flatMap(selector=>Array.from(document.querySelectorAll<HTMLElement>(selector)).map(element=>{
       const rect=element.getBoundingClientRect();
       return {selector,left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width)};
@@ -56,10 +56,10 @@ test.describe("Life Admin responsive layout safeguards", () => {
       await expectMobileLayoutFits(page, `search preview at ${width}px`);
 
       await page.locator(".landing-window-nav").getByRole("button", { name: /Home/ }).click();
-      await page.locator(".landing-window-top").getByRole("button", { name: "Search the example workspace" }).click();
-      await expect(page.locator(".landing-window-nav").getByRole("button", { name: /Search/ })).toBeVisible();
-      await page.locator(".landing-window-top").getByRole("button", { name: "+ Quick add", exact: true }).click().catch(()=>{});
-      await expectMobileLayoutFits(page, `quick actions at ${width}px`);
+      await page.locator(".landing-preview-heading").getByRole("button", { name: "+ Quick add", exact: true }).click();
+      await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
+      await expectMobileLayoutFits(page, `Quick Add modal at ${width}px`);
+      await page.getByRole("button", { name: "Close preview" }).click();
     }
   });
 
@@ -77,8 +77,8 @@ test.describe("Life Admin responsive layout safeguards", () => {
     await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
     await expectMobileLayoutFits(page, "payments at 320px");
 
-    await page.locator(".mobileNav").getByRole("button", { name: "Search" }).click();
-    await expect(page.getByRole("heading", { name: "Search your life" })).toBeVisible();
+    await page.locator(".searchbar").click();
+    await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
     await expectMobileLayoutFits(page, "search at 320px");
 
     await page.locator(".mobileNav .mobadd").click();

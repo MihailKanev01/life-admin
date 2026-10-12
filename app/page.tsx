@@ -204,6 +204,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
  const [quickText,setQuickText]=useState("Car insurance expires December 14");
  const [proposal,setProposal]=useState<QuickProposal|null>(null);
  const [saved,setSaved]=useState(false);
+ const [searchText,setSearchText]=useState("car");
 
  const openQuickAdd=(seed?:string)=>{
   setSection("home");
@@ -237,20 +238,30 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
   ["payments","Payments"],
   ["search","Search"],
  ] as const;
+ const sampleSearchResults=[
+  {kind:"Reminder",title:"Car insurance",detail:"Due Dec 14 · Mazda 6"},
+  {kind:"Thing",title:"Mazda 6",detail:"235,420 km · Vehicle"},
+  {kind:"Payment",title:"Car insurance",detail:"€480.00 · Every year"},
+  {kind:"Payment",title:"Netflix",detail:"€14.99 · Every month"},
+ ];
+ const query=searchText.trim().toLowerCase();
+ const visibleSearchResults=sampleSearchResults.filter(item=>
+  (item.kind+" "+item.title+" "+item.detail).toLowerCase().includes(query)
+ );
 
  return <section className="landing-demo" aria-label="Interactive Life Admin preview">
   <div className="landing-demo-top">
    <div>
-    <span className="landing-demo-kicker">LIVE PRODUCT PREVIEW</span>
+    <span className="landing-demo-kicker">INTERACTIVE PRODUCT PREVIEW</span>
     <strong>Explore the workspace</strong>
    </div>
-   <span className="landing-demo-badge">Frontend only · mock data</span>
+   <span className="landing-demo-badge">Sample data · try the tabs and Quick Add</span>
   </div>
 
   <div className="landing-window">
    <div className="landing-window-top">
     <div className="landing-window-brand">LIFE ADMIN<span>.</span></div>
-    <div className="landing-window-search">⌕ <span>Search your life...</span></div>
+    <button type="button" className="landing-window-search" onClick={()=>setSection("search")} aria-label="Search the example workspace">⌕ <span>Search the example workspace...</span><kbd>Open</kbd></button>
     <button className="landing-window-add" onClick={()=>openQuickAdd()}>+ Quick add</button>
    </div>
 
@@ -267,13 +278,13 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
     <div className="landing-window-content">
      {section==="home"&&<div className="landing-preview-page">
       <div className="landing-preview-heading">
-       <div><span>WEDNESDAY, 7 OCTOBER</span><h3>Good afternoon, Alex</h3><p>{saved?"1 thing needs your attention.":"You’re all caught up."}</p></div>
+       <div><span>YOUR DAY AT A GLANCE</span><h3>Good afternoon, Alex</h3><p>{saved?"One sample reminder saved in this demo.":"See what needs attention and what’s coming up."}</p></div>
        <button onClick={()=>openQuickAdd()}>+ Quick add</button>
       </div>
       <div className="landing-preview-section-heading"><span>NEEDS ATTENTION</span><strong>{saved?"Take care of this first":"Nothing urgent"}</strong></div>
       {saved
        ?<button className="landing-preview-row" onClick={()=>openQuickAdd()}><i/><span><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></span><b>›</b></button>
-       :<div className="landing-preview-empty"><span>✓</span><div><strong>You’re all caught up.</strong><small>Nothing important needs attention right now.</small></div></div>}
+       :<div className="landing-preview-empty"><span>✓</span><div><strong>Nothing urgent right now.</strong><small>Your upcoming reminders and payments are still visible below.</small></div></div>}
       <div className="landing-preview-columns">
        <div className="landing-preview-card"><span>COMING UP</span><strong>Next on your radar</strong><div><b>▱</b><span>TV warranty<small>24 days</small></span></div><div><b>↻</b><span>Car service<small>1,200 km</small></span></div></div>
        <div className="landing-preview-card"><span>WAITING</span><strong>Not in your hands</strong><div><b>□</b><span>Amazon return<small>Tomorrow</small></span></div></div>
@@ -304,11 +315,10 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
 
      {section==="search"&&<div className="landing-preview-page">
       <div className="landing-search-heading"><span>SEARCH</span><h3>Find anything you saved</h3><p>Search across your things, reminders and payments from one place.</p></div>
-      <div className="landing-search-box">⌕ <span>car</span></div>
+      <label className="landing-search-box"><span aria-hidden="true">⌕</span><input type="search" value={searchText} onChange={event=>setSearchText(event.target.value)} placeholder="Try car, insurance or Netflix" aria-label="Search the sample workspace"/></label>
       <div className="landing-search-results">
-       <div><i>Reminder</i><strong>Car insurance</strong><small>Due Dec 14 · Mazda 6</small></div>
-       <div><i>Thing</i><strong>Mazda 6</strong><small>235,420 km · Vehicle</small></div>
-       <div><i>Payment</i><strong>Car insurance</strong><small>€480.00 · Every year</small></div>
+       {visibleSearchResults.map(item=><div key={item.kind+"-"+item.title}><i>{item.kind}</i><strong>{item.title}</strong><small>{item.detail}</small></div>)}
+       {!visibleSearchResults.length&&<div className="landing-search-empty">No sample items match that search. Try “car” or “Netflix”.</div>}
       </div>
      </div>}
     </div>
@@ -321,6 +331,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
    <div className="landing-quick-card" onClick={event=>event.stopPropagation()}>
     <div className="landing-quick-top"><div><span>QUICK ADD</span><h3>What do you want to remember?</h3></div><button aria-label="Close preview" onClick={()=>setQuickOpen(false)}>×</button></div>
     <textarea value={quickText} onChange={event=>{setQuickText(event.target.value);setProposal(null)}} placeholder="e.g. Car insurance expires June 14"/>
+    <div className="landing-quick-examples" aria-label="Try a sample entry"><span>Try an example</span>{[["Car insurance","Car insurance expires December 14"],["Subscription","Netflix subscription"],["A thing","Add a thing: Home"]].map(([label,value])=><button type="button" key={label} onClick={()=>{setQuickText(value);setProposal(null)}}>{label}</button>)}</div>
     <div className="landing-quick-hint"><b>✦</b><span>{proposal?"Review before saving":"We’ll organize it for you."}<small>{proposal?"Nothing is saved until you confirm.":"Type, context and date are proposed before anything is saved."}</small></span></div>
     {proposal&&<div className="landing-quick-proposal">
      <div><small>TYPE</small><strong>{proposal.type}</strong></div>
@@ -334,7 +345,7 @@ function LandingPreview({onTryQuickAdd}:{onTryQuickAdd?:()=>void}){
  </section>;
 }
 
-function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
+function LandingPage({onOpenAuth,theme,onToggleTheme}:{onOpenAuth:(mode:AuthMode)=>void;theme:Theme;onToggleTheme:()=>void}){
  const openPreview=()=>{
   window.setTimeout(()=>document.getElementById("landing-preview")?.scrollIntoView({behavior:"smooth",block:"center"}),0);
  };
@@ -344,6 +355,7 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
    <div className="landing-brand">LIFE ADMIN<span>.</span></div>
    <nav aria-label="Account actions">
     <button className="landing-nav-link" onClick={()=>onOpenAuth("login")}>Sign in</button>
+    <button className="landing-nav-theme" type="button" onClick={onToggleTheme} aria-label={theme==="dark"?"Switch to light theme":"Switch to dark theme"} aria-pressed={theme==="dark"}><span aria-hidden="true">{theme==="dark"?"☀":"☾"}</span><span>{theme==="dark"?"Light theme":"Dark theme"}</span></button>
     <button className="dark landing-nav-cta" onClick={()=>onOpenAuth("create")}>Create account</button>
    </nav>
   </header>
@@ -351,13 +363,14 @@ function LandingPage({onOpenAuth}:{onOpenAuth:(mode:AuthMode)=>void}){
   <section className="landing-hero" aria-labelledby="landing-hero-title">
    <div className="landing-hero-copy">
     <p className="eyebrow">YOUR LIFE, WITHOUT THE MENTAL LOAD</p>
-    <h1 id="landing-hero-title">Keep the real-world admin of your life in one place.</h1>
-    <p className="landing-lead">Life Admin brings together the things you manage, the payments you make and the reminders that need your attention — so you can stop carrying all of it in your head.</p>
+    <h1 id="landing-hero-title">Your reminders, bills and important things. All in one place.</h1>
+    <p className="landing-lead">Life Admin helps you organize the things you own, recurring bills, documents and reminders in one searchable workspace — so the details you need are there when you need them. No bank connection required.</p>
     <div className="landing-actions">
      <button className="dark landing-primary" onClick={()=>onOpenAuth("create")}>Create your account <span>→</span></button>
      <button className="light landing-secondary" onClick={openPreview}>See how it works</button>
     </div>
-    <div className="landing-note"><span>✓</span><span>Start with your own workspace. The preview below uses mock data only.</span></div>
+    <div className="landing-note"><span>✓</span><span>Start with your own workspace. The interactive preview uses sample data only.</span></div>
+    <div className="landing-feature-list" aria-label="What Life Admin helps you manage"><span><b>✓</b> Things you own</span><span><b>✓</b> Bills and subscriptions</span><span><b>✓</b> Reminders and documents</span></div>
    </div>
 
    <div id="landing-preview"><LandingPreview/></div>
@@ -1128,7 +1141,7 @@ export default function App(){
 
  if(!ready)return <main className="auth-shell"><div className="auth-loading">Loading your workspace…</div></main>;
  if(!account)return <>
-  <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}}/>
+  <LandingPage onOpenAuth={mode=>{setAuthMode(mode);setShowAuth(true)}} theme={theme} onToggleTheme={toggleTheme}/>
   {showAuth&&<div className="auth-overlay" role="dialog" aria-modal="true" aria-label={authMode==="login"?"Sign in":"Create account"}>
    <button className="auth-overlay-close" aria-label="Close" onClick={()=>setShowAuth(false)}>×</button>
    <AccountGate key={authMode} initialMode={authMode} onAuthenticated={authenticate}/>

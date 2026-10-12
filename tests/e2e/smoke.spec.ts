@@ -207,11 +207,28 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
     await page.locator(".auth-overlay").getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    const loginStartedAt = Date.now();
+    const loginResponsePromise = page.waitForResponse(response =>
+      response.request().method() === "POST" && response.url().endsWith("/api/v1/auth/login"),
+    );
     await page.locator(".auth-overlay").getByRole("button", { name: "Sign in", exact: true }).click();
+    const loginResponse = await loginResponsePromise;
+    const loginLatencyMs = Date.now() - loginStartedAt;
+    expect(loginResponse.status()).toBe(200);
+    expect(loginLatencyMs, "Warm isolated-environment sign-in should finish within 10 seconds").toBeLessThan(10_000);
 
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
 
+    const reloadStartedAt = Date.now();
+    const currentUserResponsePromise = page.waitForResponse(response =>
+      response.request().method() === "GET" && response.url().endsWith("/api/v1/auth/me"),
+    );
     await page.reload();
+    const currentUserResponse = await currentUserResponsePromise;
+    const sessionRestoreLatencyMs = Date.now() - reloadStartedAt;
+    expect(currentUserResponse.status()).toBe(200);
+    expect(sessionRestoreLatencyMs, "Session restoration in the isolated environment should finish within 5 seconds").toBeLessThan(5_000);
+    console.log(`AUTH_PERF warm-login=${loginLatencyMs}ms session-restore=${sessionRestoreLatencyMs}ms`);
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
   });
 

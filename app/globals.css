@@ -554,3 +554,29 @@ button,input,textarea,select{max-width:100%}
  .account-profile .modalcopy{overflow-wrap:anywhere;word-break:break-word}
  .account-profile h2{overflow-wrap:anywhere}
 }
+
+/* Language selection */
+.language-picker{display:inline-flex;align-items:center;gap:7px;min-width:0;color:var(--muted);font-size:12px;white-space:nowrap}
+.language-picker .language-label{font-weight:650}
+.language-select{max-width:132px;min-width:0;border:1px solid var(--border);border-radius:9px;padding:8px 28px 8px 10px;background:var(--surface);color:var(--text);font:inherit;cursor:pointer}
+.language-picker.compact .language-label{display:none}
+.landing-nav .language-picker{margin-right:2px}
+.content>header>.language-picker{margin-left:10px}
+.account-language{padding:14px 0 4px;border-bottom:1px solid var(--border)}
+.account-language .language-picker{width:100%;justify-content:space-between}
+.account-language .language-picker .language-label{display:inline}
+.account-language .language-select{max-width:none;width:58%}
+@media(max-width:700px){
+ .language-select{max-width:112px;padding:7px 22px 7px 8px;font-size:12px}
+ .content>header>.language-picker{margin-left:4px}
+ .content>header>.language-picker .language-label{display:none}
+ .account-language{display:block}
+ .landing-nav nav{gap:5px}
+ .landing-nav .language-select{max-width:98px}
+}
+@media(max-width:380px){
+ .content>header>.language-select{max-width:88px}
+ .content>header>.language-picker .language-select{max-width:88px}
+ .landing-nav .language-select{max-width:85px}
+ .landing-nav nav .language-picker{flex:0 0 auto}
+}

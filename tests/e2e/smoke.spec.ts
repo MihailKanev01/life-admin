@@ -5,8 +5,8 @@ test.describe("Life Admin prototype smoke", () => {
   test("shows the public landing and interactive preview", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Life Admin — Your life admin, in one place");
-    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
-    await expect(page.getByText("Frontend only · mock data")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your reminders, bills and important things. All in one place." })).toBeVisible();
+    await expect(page.getByText("Sample data · try the tabs and Quick Add")).toBeVisible();
 
     await page.locator(".landing-window-top").getByRole("button", { name: "+ Quick add", exact: true }).click();
     await expect(page.getByRole("heading", { name: "What do you want to remember?" })).toBeVisible();
@@ -40,6 +40,19 @@ test.describe("Life Admin prototype smoke", () => {
     await page.locator(".landing-window-nav").getByRole("button", { name: /Search/ }).click();
     await expect(page.getByRole("heading", { name: "Find anything you saved" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Capture the thought. Keep the context. Act when it matters." })).toBeVisible();
+
+    const sampleSearch = page.getByRole("searchbox", { name: "Search the sample workspace" });
+    await sampleSearch.fill("netflix");
+    await expect(page.getByText("Netflix", { exact: true })).toBeVisible();
+    await expect(page.getByText("Mazda 6", { exact: true })).toHaveCount(0);
+    await sampleSearch.fill("nothing-matches");
+    await expect(page.getByText(/No sample items match that search/)).toBeVisible();
+
+    const themeToggle = page.getByRole("button", { name: /Switch to (dark|light) theme/ });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", /^(dark|light)$/);
+    const initialTheme = await page.locator("html").getAttribute("data-theme");
+    await themeToggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", initialTheme === "dark" ? "light" : "dark");
 
     await page.locator(".landing-nav-cta").click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
@@ -199,7 +212,7 @@ test.describe("Life Admin prototype smoke", () => {
 
     await page.locator(".sidebar").getByRole("button", { name: /Account/ }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your reminders, bills and important things. All in one place." })).toBeVisible();
     await page.locator(".landing-hero-copy").getByRole("button", { name: /Create your account/ }).click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
 
@@ -234,7 +247,7 @@ test.describe("Life Admin prototype smoke", () => {
 
   test("explains when the authentication service is slow to respond", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your reminders, bills and important things. All in one place." })).toBeVisible();
     await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
     const authForm = page.locator(".auth-overlay");
     await expect(authForm.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
@@ -260,7 +273,7 @@ test.describe("Life Admin prototype smoke", () => {
   test("shows the duplicate registration message", async ({ page }) => {
     const account = makeTestAccount("duplicate");
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your reminders, bills and important things. All in one place." })).toBeVisible();
     await page.getByRole("button", { name: "Create account", exact: true }).first().click();
     await expect(page.locator(".auth-overlay").getByRole("heading", { name: "Create your account" })).toBeVisible();
 

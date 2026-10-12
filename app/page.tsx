@@ -1330,7 +1330,7 @@ function AppContent(){
  }finally{
   setSaving(false);
  }
-}}>{quickProposal?(saving?"Saving…":"Save to Life Admin"):"Review details"}</button></div></div>}
+}>{t(quickProposal?(saving?"Saving…":"Save to Life Admin"):"Review details")}</button></div></div>}
   {showProductTour&&<ProductTour account={account} onComplete={()=>setShowProductTour(false)}/>}
  </main>;
 }

@@ -15,23 +15,67 @@ concurrency:
 
 jobs:
   ping:
-    name: Wake and check the free Render API
+    name: Wake API and warm the login database path
     runs-on: ubuntu-slim
     timeout-minutes: 8
     steps:
       - name: Request the API health endpoint
         env:
           HEALTH_URL: https://life-admin-api-9xep.onrender.com/api/v1/system/health
+        shell: bash
         run: |
+          set -euo pipefail
           # Render Free sleeps after 15 minutes without inbound traffic.
           # Startup has taken ~185 seconds inside the app, plus Render wake-up time.
           # Leave six minutes for the health request so a normal cold start can finish.
-          status="$(curl --location --silent --show-error --output /tmp/health-response.txt --write-out '%{http_code}' --connect-timeout 15 --max-time 360 "$HEALTH_URL" || true)"
-          echo "Health endpoint HTTP status: ${status:-request-failed}"
-          if [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
-            cat /tmp/health-response.txt
-            exit 0
+          status="$(curl --location --silent --show-error --output /tmp/health-response.txt --write-out '%{http_code}' --connect-timeout 15 --max-time 360 "$HEALTH_URL")"
+          echo "Health endpoint HTTP status: $status"
+          if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+            echo "The endpoint did not return a successful HTTP status."
+            cat /tmp/health-response.txt || true
+            exit 1
           fi
-          echo "The endpoint did not return a successful HTTP status."
-          cat /tmp/health-response.txt || true
-          exit 1
+          cat /tmp/health-response.txt
+
+      - name: Warm the read-only login lookup
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://life-admin-api-9xep.onrender.com"
+          csrf_status="$(curl --silent --show-error \
+            --cookie-jar /tmp/cookies.txt \
+            --output /tmp/csrf.json \
+            --write-out '%{http_code}' \
+            --connect-timeout 10 \
+            --max-time 45 \
+            "$api/api/v1/auth/csrf")"
+          if [ "$csrf_status" != "200" ]; then
+            echo "CSRF bootstrap failed: HTTP $csrf_status"
+            cat /tmp/csrf.json || true
+            exit 1
+          fi
+
+          token="$(jq -r '.token // empty' /tmp/csrf.json)"
+          test -n "$token"
+
+          # The .invalid domain is reserved and cannot belong to a real account.
+          # This only looks up a non-existent user and should return HTTP 401; it
+          # does not create users, change sessions, reset passwords, or send email.
+          result="$(curl --silent --show-error \
+            --cookie /tmp/cookies.txt \
+            --connect-timeout 10 \
+            --max-time 45 \
+            --output /tmp/login-response.json \
+            --write-out '%{http_code} %{time_total}' \
+            --header 'Content-Type: application/json' \
+            --header "X-XSRF-TOKEN: $token" \
+            --data '{"email":"life-admin-production-check@example.invalid","password":"not-a-valid-password"}' \
+            "$api/api/v1/auth/login")"
+
+          read -r status seconds <<< "$result"
+          echo "Synthetic login lookup: HTTP $status; request_seconds=${seconds}s"
+          if [ "$status" != "401" ]; then
+            echo "Unexpected response body:"
+            cat /tmp/login-response.json || true
+            exit 1
+          fi

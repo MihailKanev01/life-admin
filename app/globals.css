@@ -418,3 +418,133 @@ body{font-size:15px;line-height:1.5}
  .landing-nav-theme{font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){.landing-page *{scroll-behavior:auto!important}}
+
+
+/* Mobile layout hardening: wrap long content and keep media within its container. */
+html,body{max-width:100%}
+body{overflow-wrap:break-word}
+img,picture,video,canvas,iframe,embed,object{max-width:100%}
+img,video{height:auto}
+button,input,textarea,select{max-width:100%}
+.shell,.content,.page,.intro,.intro>div,.heading,.heading>div,.panel,.list,.grid2,.thinggrid,.stats,.documents-page,.documents-list,.document-row,.document-main{min-width:0}
+.row strong,.row small,.simple strong,.simple small,.pay strong,.pay small,.result strong,.result small,.thing strong,.thing small,.thing em,.account strong,.account small,.document-main>strong,.document-main p,.document-main small,.landing-preview-heading h3,.landing-preview-heading p,.landing-preview-card strong,.landing-preview-card span,.landing-preview-thing strong,.landing-preview-thing small,.landing-payment-row strong,.landing-payment-row small,.landing-search-results strong,.landing-search-results small,.landing-demo-saved strong,.landing-demo-saved small{overflow-wrap:anywhere}
+@media(max-width:700px){
+ html,body{width:100%;max-width:100%;overflow-x:clip}
+ button,input,textarea,select{min-width:0}
+ .shell,.content,.page,.intro,.intro>div,.heading,.heading>div,.panel,.list,.grid2,.thinggrid,.stats,.documents-page,.documents-list,.document-row,.document-main{width:100%;min-width:0}
+ .page{padding:24px 13px calc(112px + env(safe-area-inset-bottom))}
+ .intro{gap:14px}
+ .intro h1{font-size:clamp(28px,8.6vw,34px);line-height:1.1;letter-spacing:-.045em;overflow-wrap:anywhere}
+ .subtitle{font-size:15px;line-height:1.55;overflow-wrap:anywhere}
+ .heading{align-items:flex-start}
+ .row{gap:9px;padding:14px 12px}
+ .row>span,.simple>div,.pay>div,.result>div{min-width:0;overflow-wrap:anywhere}
+ .row strong,.simple strong,.pay strong,.result strong{line-height:1.4;overflow-wrap:anywhere}
+ .simple,.result{gap:9px;min-width:0}
+ .simple>b,.pay>b,.result>em{flex-shrink:0;max-width:42%;overflow-wrap:anywhere;text-align:right}
+ .pay{flex-wrap:wrap;gap:9px;padding:12px 0}
+ .pay>div{flex:1 1 calc(100% - 52px)}
+ .pay>b{margin-left:auto}
+ .pay>.pill,.pay>.urgentpill{max-width:100%;white-space:normal}
+ .pay>button{flex:1 1 calc(50% - 8px);min-height:40px;white-space:normal;line-height:1.3;padding:9px 8px}
+ .thing{min-width:0;overflow-wrap:anywhere}
+ .thing strong,.thing small,.thing em{overflow-wrap:anywhere}
+ .stats .stat{min-width:0}
+ .stat strong{font-size:clamp(23px,7vw,29px);overflow-wrap:anywhere}
+ .toolbar{gap:10px;min-width:0}
+ .toolbar .input{min-width:0}
+ .toolbar>small{flex-shrink:0}
+ .backdrop{padding:0;place-items:end center}
+ .sheet{width:100%;max-width:100vw;max-height:calc(100dvh - 10px);overflow-y:auto;overscroll-behavior:contain;padding:18px 14px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0}
+ .sheettop{align-items:flex-start;min-width:0}
+ .sheettop>div{min-width:0;overflow-wrap:anywhere}
+ .quickgrid{grid-template-columns:1fr}
+ .contextgrid{grid-template-columns:minmax(0,1fr)}
+ .proposal{grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}
+ .proposal>div,.contextgrid>div{min-width:0;overflow-wrap:anywhere}
+ .full{min-height:44px}
+ .mobileNav{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));height:66px;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:5px;max-width:calc(100vw - 16px)}
+ .mobileNav button{min-width:0;min-height:44px}
+ .mobileNav small{font-size:11px;line-height:1.2;white-space:normal}
+ .mobileNav .mobadd{width:44px;height:44px;min-width:44px}
+ .auth-shell,.walkthrough-shell{width:100%;max-width:100%;min-width:0;padding:12px}
+ .auth-card{width:100%;min-width:0;padding:20px 16px}
+ .auth-card h1,.auth-copy h1,.walkthrough-copy h1{overflow-wrap:anywhere;line-height:1.1}
+ .auth-field,.auth-field label,.auth-field input,.auth-field textarea{width:100%;min-width:0}
+ .auth-overlay{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+ .auth-overlay>.auth-shell{width:100%;max-width:460px;min-width:0}
+ .auth-overlay .auth-card{max-height:calc(100dvh - 20px);padding:20px 16px;overflow-x:hidden;overflow-y:auto}
+ .walkthrough-card{width:100%;max-width:720px;max-height:calc(100dvh - 24px);overflow-y:auto;padding:18px 14px}
+ .walkthrough-visual-wrap{max-width:100%;min-width:0}
+ .product-tour-card{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+ .documents-page{width:100%;max-width:100%;min-width:0}
+ .documents-upload,.documents-upload>*{min-width:0;max-width:100%}
+ .documents-file-field input,.documents-link-field input,.documents-filter select{width:100%;min-width:0;max-width:100%}
+ .documents-selected-file{overflow-wrap:anywhere;word-break:break-word}
+ .document-row{grid-template-columns:38px minmax(0,1fr);min-width:0}
+ .document-main{overflow-wrap:anywhere}
+ .document-actions{min-width:0;max-width:100%}
+ .document-actions button{flex:0 1 auto;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .thing-notes,.thing-note,.thing-note-copy,.thing-note-actions{min-width:0;max-width:100%}
+ .thing-note-actions button{min-width:0;white-space:normal;overflow-wrap:anywhere}
+ .landing-page{width:100%;max-width:100%;overflow-x:clip}
+ .landing-nav,.landing-hero,.landing-value,.landing-steps,.landing-bottom-cta,.landing-footer{width:100%;max-width:100%;min-width:0}
+ .landing-nav{padding:13px 12px;gap:8px}
+ .landing-brand{font-size:15px;flex-shrink:0}
+ .landing-nav nav{min-width:0;gap:5px}
+ .landing-nav-cta{max-width:145px;white-space:normal;line-height:1.25;text-align:center}
+ .landing-hero{padding:25px 12px 46px;gap:28px}
+ .landing-hero-copy,.landing-demo,#landing-preview,.landing-window,.landing-window-body,.landing-window-content{min-width:0;max-width:100%}
+ .landing-hero-copy h1{font-size:clamp(34px,10vw,46px);line-height:1.02;letter-spacing:-.05em;overflow-wrap:anywhere}
+ .landing-actions{width:100%;align-items:stretch}
+ .landing-actions>button{min-width:0;max-width:100%;white-space:normal;line-height:1.35}
+ .landing-window-top{min-width:0;grid-template-columns:minmax(0,1fr) auto}
+ .landing-window-brand{min-width:0}
+ .landing-window-search{min-width:0;width:100%;max-width:100%;grid-column:1/-1;grid-row:2}
+ .landing-window-search span{min-width:0;overflow-wrap:anywhere}
+ .landing-window-body{display:block;min-height:0}
+ .landing-window-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}
+ .landing-window-nav button{justify-content:flex-start;min-width:0;white-space:normal;overflow-wrap:anywhere}
+ .landing-window-content{width:100%;min-width:0;padding:14px}
+ .landing-preview-page,.landing-preview-heading,.landing-preview-columns,.landing-preview-grid,.landing-payment-list,.landing-search-results{width:100%;min-width:0}
+ .landing-preview-heading h3,.landing-search-heading h3{font-size:clamp(21px,6.4vw,25px);overflow-wrap:anywhere}
+ .landing-preview-columns,.landing-preview-grid,.landing-value-grid,.landing-steps-grid{grid-template-columns:minmax(0,1fr)}
+ .landing-preview-card,.landing-preview-thing,.landing-payment-row,.landing-search-results>div{min-width:0;max-width:100%}
+ .landing-payment-row{align-items:flex-start;flex-wrap:wrap}
+ .landing-payment-row>span{flex:1 1 55%;min-width:0;overflow-wrap:anywhere}
+ .landing-payment-row>b{flex:0 1 auto;max-width:42%;white-space:normal;overflow-wrap:anywhere;text-align:right}
+ .landing-search-box{width:100%;min-width:0}
+ .landing-search-box input{width:100%;min-width:0}
+ .landing-quick-backdrop{padding:10px;place-items:center;overflow-y:auto;overscroll-behavior:contain}
+ .landing-quick-card{width:100%;max-width:460px;max-height:calc(100dvh - 20px);min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 13px}
+ .landing-quick-top h3{overflow-wrap:anywhere}
+ .landing-quick-proposal{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .landing-quick-proposal>div,.landing-quick-proposal strong{min-width:0;overflow-wrap:anywhere}
+ .landing-feature-list{align-items:flex-start}
+ .landing-feature-list span{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .landing-bottom-cta{align-items:stretch;gap:18px}
+ .landing-bottom-cta h2,.landing-value-heading h2,.landing-steps-heading h2{overflow-wrap:anywhere;line-height:1.07}
+}
+@media(max-width:360px){
+ .page{padding-left:11px;padding-right:11px}
+ header{padding-left:11px;padding-right:11px}
+ .mobileplus{width:32px;height:32px;min-width:32px}
+ .mobileaccount,.mobiletheme{width:32px;height:32px;min-width:32px}
+ .mobileNav{left:6px;right:6px;max-width:calc(100vw - 12px)}
+ .mobileNav small{font-size:10px}
+ .landing-nav{padding-left:10px;padding-right:10px}
+ .landing-nav-cta{max-width:128px;padding:8px}
+ .landing-hero-copy h1{font-size:clamp(32px,10vw,36px)}
+ .landing-window-content{padding:11px}
+ .landing-preview-empty{padding:13px}
+ .landing-quick-proposal{gap:7px;padding:9px}
+ .documents-page .panel{padding:12px}
+ .document-actions{gap:5px}
+ .document-actions button{padding:7px 8px;font-size:12px}
+}
+@media(orientation:landscape) and (max-height:520px) and (max-width:900px){
+ .sheet,.landing-quick-card,.auth-overlay .auth-card,.walkthrough-card,.product-tour-card{max-height:calc(100dvh - 12px);overflow-y:auto}
+ .backdrop{padding:0}
+ .mobileNav{bottom:calc(4px + env(safe-area-inset-bottom));height:58px}
+ .page{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+}

@@ -183,13 +183,13 @@ test.describe("Life Admin prototype smoke", () => {
     await page.getByLabel("New password").fill("short");
     await page.getByLabel("Confirm password").fill("short");
     await page.getByRole("button", { name: "Update password", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("at least 12 characters");
+    await expect(page.locator(".auth-error")).toContainText("at least 12 characters");
     expect(confirmationRequests).toBe(0);
 
     await page.getByLabel("New password").fill("correct-horse-battery");
     await page.getByLabel("Confirm password").fill("different-password");
     await page.getByRole("button", { name: "Update password", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("Passwords do not match");
+    await expect(page.locator(".auth-error")).toContainText("Passwords do not match");
     expect(confirmationRequests).toBe(0);
   });
 
@@ -207,12 +207,54 @@ test.describe("Life Admin prototype smoke", () => {
     await expect(page.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
     await page.locator(".auth-overlay").getByLabel("Email address").fill(account.email);
     await page.locator(".auth-overlay").getByRole("textbox", { name: "Password", exact: true }).fill(account.password);
+    const loginStartedAt = Date.now();
+    const loginResponsePromise = page.waitForResponse(response =>
+      response.request().method() === "POST" && response.url().endsWith("/api/v1/auth/login"),
+    );
     await page.locator(".auth-overlay").getByRole("button", { name: "Sign in", exact: true }).click();
+    const loginResponse = await loginResponsePromise;
+    const loginLatencyMs = Date.now() - loginStartedAt;
+    expect(loginResponse.status()).toBe(200);
+    expect(loginLatencyMs, "Warm isolated-environment sign-in should finish within 10 seconds").toBeLessThan(10_000);
 
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
 
+    const reloadStartedAt = Date.now();
+    const currentUserResponsePromise = page.waitForResponse(response =>
+      response.request().method() === "GET" && response.url().endsWith("/api/v1/auth/me"),
+    );
     await page.reload();
+    const currentUserResponse = await currentUserResponsePromise;
+    const sessionRestoreLatencyMs = Date.now() - reloadStartedAt;
+    expect(currentUserResponse.status()).toBe(200);
+    expect(sessionRestoreLatencyMs, "Session restoration in the isolated environment should finish within 5 seconds").toBeLessThan(5_000);
+    console.log(`AUTH_PERF warm-login=${loginLatencyMs}ms session-restore=${sessionRestoreLatencyMs}ms`);
     await expect(page.getByRole("heading", { name: "Good afternoon, "+account.name })).toBeVisible();
+  });
+
+  test("explains when the authentication service is slow to respond", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Keep the real-world admin of your life in one place." })).toBeVisible();
+    await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
+    const authForm = page.locator(".auth-overlay");
+    await expect(authForm.getByRole("heading", { name: "Sign in to Life Admin" })).toBeVisible();
+    await authForm.getByLabel("Email address").fill("slow-login@example.invalid");
+    await authForm.getByRole("textbox", { name: "Password", exact: true }).fill("LifeAdmin-Test-Password-2026!");
+
+    await page.route("**/api/v1/auth/login", async route => {
+      await new Promise(resolve => setTimeout(resolve, 6500));
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Invalid email or password" }),
+      });
+    });
+
+    await authForm.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(authForm.getByRole("status").filter({
+      hasText: "The secure service is taking longer than usual to respond",
+    })).toBeVisible({ timeout: 7000 });
+    await expect(authForm.locator(".auth-error")).toContainText("Invalid email or password.");
   });
 
   test("shows the duplicate registration message", async ({ page }) => {

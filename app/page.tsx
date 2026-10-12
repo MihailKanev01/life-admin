@@ -402,6 +402,16 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
  const [busy,setBusy]=useState(false);
+ const [showSlowRequestNotice,setShowSlowRequestNotice]=useState(false);
+
+ useEffect(()=>{
+  if(!busy||mode==="forgot"){
+   setShowSlowRequestNotice(false);
+   return;
+  }
+  const timer=window.setTimeout(()=>setShowSlowRequestNotice(true),5_000);
+  return ()=>window.clearTimeout(timer);
+ },[busy,mode]);
 
  const submitPasswordReset=async()=>{
   setError("");
@@ -477,7 +487,8 @@ function AccountGate({onAuthenticated,initialMode="create"}:{onAuthenticated:(ac
    {mode==="create"&&<label className="auth-field"><span>Confirm password</span><input value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Repeat your password" type="password" autoComplete="new-password"/></label>}
    {error&&<div className="auth-error" role="alert">{error}</div>}
    {notice&&<div className="auth-notice" role="status">{notice}</div>}
-   <button type="button" className="dark full auth-submit" disabled={busy} onClick={mode==="forgot"?submitPasswordReset:submit}>{busy?"Please wait…":mode==="create"?"Create account":mode==="login"?"Sign in":"Send reset link"}</button>
+   {busy&&showSlowRequestNotice&&mode!=="forgot"&&<div className="auth-notice" role="status">The secure service is taking longer than usual to respond. It may be starting after inactivity; please keep this page open.</div>}
+   <button type="button" className="dark full auth-submit" disabled={busy} onClick={mode==="forgot"?submitPasswordReset:submit}>{busy?(showSlowRequestNotice&&mode!=="forgot"?"Waiting for service…":mode==="forgot"?"Sending…":mode==="login"?"Signing in…":"Creating account…"):mode==="create"?"Create account":mode==="login"?"Sign in":"Send reset link"}</button>
    {mode==="login"&&<button className="text full auth-secondary" disabled={busy} onClick={()=>switchMode("forgot")}>Forgot your password?</button>}
    {mode==="forgot"
     ?<button className="text full" disabled={busy} onClick={()=>switchMode("login")}>Back to sign in</button>

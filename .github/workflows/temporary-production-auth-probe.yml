@@ -1,0 +1,61 @@
+name: Temporary Production login latency probe
+
+on:
+  push:
+    branches:
+      - diag/production-login-probe
+    paths:
+      - .github/workflows/temporary-production-auth-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Measure safe rejected login
+    runs-on: ubuntu-slim
+    timeout-minutes: 2
+    steps:
+      - name: Check API and get CSRF cookie
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://life-admin-api-9xep.onrender.com"
+          health_status="$(curl --silent --show-error --output /tmp/health.json --write-out '%{http_code}' --connect-timeout 10 --max-time 45 "$api/api/v1/system/health")"
+          echo "Health status: $health_status"
+          test "$health_status" = "200"
+
+          csrf_status="$(curl --silent --show-error --cookie-jar /tmp/cookies.txt --output /tmp/csrf.json --write-out '%{http_code}' --connect-timeout 10 --max-time 45 "$api/api/v1/auth/csrf")"
+          echo "CSRF status: $csrf_status"
+          test "$csrf_status" = "200"
+
+          token="$(jq -r '.token // empty' /tmp/csrf.json)"
+          test -n "$token"
+          echo "CSRF token obtained; value omitted from logs."
+
+      - name: Measure a rejected login using a non-existent synthetic account
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://life-admin-api-9xep.onrender.com"
+          token="$(jq -r '.token' /tmp/csrf.json)"
+          result="$(curl --silent --show-error \
+            --cookie /tmp/cookies.txt \
+            --connect-timeout 10 \
+            --max-time 45 \
+            --output /tmp/login-response.json \
+            --write-out '%{http_code} %{time_total}' \
+            --header 'Content-Type: application/json' \
+            --header "X-XSRF-TOKEN: $token" \
+            --data '{"email":"life-admin-production-check@example.invalid","password":"not-a-valid-password"}' \
+            "$api/api/v1/auth/login" || true)"
+
+          status="${result%% *}"
+          seconds="${result#* }"
+          echo "Synthetic rejected-login response: HTTP ${status:-000}; request_seconds=${seconds:-unknown}"
+          if [ "$status" != "401" ]; then
+            echo "Unexpected response body:"
+            cat /tmp/login-response.json || true
+            exit 1
+          fi
+          echo "Expected 401 received; no account creation or successful authentication was attempted."

@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   probe:
-    name: Measure safe rejected login
+    name: Measure safe rejected login after JVM tune
     runs-on: ubuntu-slim
     timeout-minutes: 3
     steps:
@@ -33,7 +33,7 @@ jobs:
           test -n "$token"
           echo "CSRF token obtained; value omitted from logs."
 
-      - name: Repeat safe rejected login and record network timings
+      - name: Repeat safe rejected login after JVM tune and record network timings
         shell: bash
         run: |
           set -euo pipefail

@@ -37,6 +37,24 @@ test.describe("Life Admin mobile prototype", () => {
     await page.locator(".mobileNav").getByRole("button", { name: "Payments" }).click();
     await expect(page.getByRole("heading", { name: "Know what leaves your account" })).toBeVisible();
   });
+  test("language picker switches the landing page to Bulgarian and persists the choice", async ({ page }) => {
+    await page.goto("/");
+    const languagePicker = page.locator(".landing-nav .language-select");
+    await expect(languagePicker).toBeVisible();
+    await expect(languagePicker.locator("option")).toHaveCount(5);
+
+    await languagePicker.selectOption("bg");
+    await expect(page.getByRole("heading", {
+      name: "Напомняния, сметки и важни неща. Всичко на едно място.",
+    })).toBeVisible();
+
+    await page.reload();
+    await expect(languagePicker).toHaveValue("bg");
+    await expect(page.getByRole("heading", {
+      name: "Напомняния, сметки и важни неща. Всичко на едно място.",
+    })).toBeVisible();
+  });
+
 });
 
 

@@ -14,7 +14,7 @@ jobs:
   probe:
     name: Measure safe rejected login
     runs-on: ubuntu-slim
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
       - name: Check API and get CSRF cookie
         shell: bash
@@ -33,29 +33,30 @@ jobs:
           test -n "$token"
           echo "CSRF token obtained; value omitted from logs."
 
-      - name: Measure a rejected login using a non-existent synthetic account
+      - name: Repeat safe rejected login and record network timings
         shell: bash
         run: |
           set -euo pipefail
           api="https://life-admin-api-9xep.onrender.com"
           token="$(jq -r '.token' /tmp/csrf.json)"
-          result="$(curl --silent --show-error \
-            --cookie /tmp/cookies.txt \
-            --connect-timeout 10 \
-            --max-time 45 \
-            --output /tmp/login-response.json \
-            --write-out '%{http_code} %{time_total}' \
-            --header 'Content-Type: application/json' \
-            --header "X-XSRF-TOKEN: $token" \
-            --data '{"email":"life-admin-production-check@example.invalid","password":"not-a-valid-password"}' \
-            "$api/api/v1/auth/login" || true)"
+          for attempt in 1 2 3; do
+            result="$(curl --silent --show-error \
+              --cookie /tmp/cookies.txt \
+              --connect-timeout 10 \
+              --max-time 45 \
+              --output /tmp/login-response.json \
+              --write-out '%{http_code} %{time_namelookup} %{time_connect} %{time_appconnect} %{time_starttransfer} %{time_total}' \
+              --header 'Content-Type: application/json' \
+              --header "X-XSRF-TOKEN: $token" \
+              --data '{"email":"life-admin-production-check@example.invalid","password":"not-a-valid-password"}' \
+              "$api/api/v1/auth/login")"
 
-          status="${result%% *}"
-          seconds="${result#* }"
-          echo "Synthetic rejected-login response: HTTP ${status:-000}; request_seconds=${seconds:-unknown}"
-          if [ "$status" != "401" ]; then
-            echo "Unexpected response body:"
-            cat /tmp/login-response.json || true
-            exit 1
-          fi
-          echo "Expected 401 received; no account creation or successful authentication was attempted."
+            read -r status dns connect tls first_byte total <<< "$result"
+            echo "Synthetic attempt ${attempt}: HTTP $status; dns=${dns}s connect=${connect}s tls=${tls}s first_byte=${first_byte}s total=${total}s"
+            if [ "$status" != "401" ]; then
+              echo "Unexpected response body:"
+              cat /tmp/login-response.json || true
+              exit 1
+            fi
+          done
+          echo "All three synthetic requests were rejected as expected; no account creation or successful authentication was attempted."

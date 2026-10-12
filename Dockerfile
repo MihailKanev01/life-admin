@@ -15,4 +15,6 @@ COPY --from=build /build/backend/target/life-admin-api-*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Limit JVM compilation to C1 level 1 as a measured trial for Render Free's
+# constrained CPU. This may trade some steady-state throughput for faster startup.
+ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-jar", "app.jar"]

@@ -315,3 +315,106 @@ html[data-theme="dark"] .landing-bottom-cta h2{ text-wrap:balance }
 @media(prefers-reduced-motion:reduce){
  .landing-window-search,.landing-nav-theme,.landing-quick-examples button{transition:none!important}
 }
+
+
+/* Readability pass: bring small labels and helper text up to comfortable sizes */
+body{font-size:15px;line-height:1.5}
+.eyebrow{font-size:11px;letter-spacing:.12em}
+.nav{font-size:14px}
+.searchbar{font-size:14px}
+.row small,.simple small,.pay small,.result small{font-size:13px;line-height:1.45}
+.thing small,.thing em{font-size:13px;line-height:1.4}
+.stat small,.stat span{font-size:13px;line-height:1.45}
+.pill,.urgentpill{font-size:12px}
+.chips button{font-size:13px}
+.quickgrid small{font-size:12px;line-height:1.45}
+.proposal small{font-size:11px}
+.contextgrid small,.contextgrid span{font-size:12px}
+.toolbar>small{font-size:13px}
+.empty small{font-size:13px;line-height:1.5}
+.account small{font-size:12px}
+
+/* Public demo preview: avoid tiny dashboard text and low-priority microcopy */
+.landing-demo-kicker{font-size:10px;letter-spacing:.1em}
+.landing-demo-badge{font-size:10px;letter-spacing:.02em}
+.landing-window-brand{font-size:13px}
+.landing-window-search,.landing-search-box{font-size:13px}
+.landing-window-nav button{font-size:12px;padding:10px 9px}
+.landing-window-content{padding:23px}
+.landing-preview-heading>div>span,.landing-search-heading>span,.landing-preview-card>span{font-size:10px;letter-spacing:.1em}
+.landing-preview-heading h3,.landing-search-heading h3{font-size:26px;line-height:1.12}
+.landing-preview-heading p,.landing-search-heading p{font-size:13px;line-height:1.55}
+.landing-preview-heading>button{font-size:12px;padding:10px 12px}
+.landing-preview-section-heading{margin-top:25px}
+.landing-preview-section-heading span{font-size:10px;letter-spacing:.1em}
+.landing-preview-section-heading strong{font-size:12px}
+.landing-preview-empty{padding:18px}
+.landing-preview-empty>span{width:32px;height:32px;font-size:14px}
+.landing-preview-empty strong{font-size:13px;line-height:1.4}
+.landing-preview-empty small{font-size:12px;line-height:1.5}
+.landing-preview-row{padding:14px}
+.landing-preview-row strong{font-size:13px;line-height:1.4}
+.landing-preview-row small{font-size:12px;line-height:1.45}
+.landing-preview-row>b{font-size:17px}
+.landing-preview-card{padding:14px;gap:10px}
+.landing-preview-card>strong{font-size:13px;line-height:1.4}
+.landing-preview-card>div>b{width:28px;height:28px;font-size:14px}
+.landing-preview-card>div>span{font-size:12px;line-height:1.35}
+.landing-preview-card small{font-size:11px;line-height:1.4}
+.landing-preview-grid{gap:11px}
+.landing-preview-thing{padding:14px;gap:7px}
+.landing-preview-thing>b{font-size:20px}
+.landing-preview-thing>strong{font-size:13px;line-height:1.4}
+.landing-preview-thing>small{font-size:12px;line-height:1.45}
+.landing-preview-thing>em{font-size:11px;line-height:1.4}
+.landing-payment-list{gap:9px}
+.landing-payment-row{padding:14px}
+.landing-payment-row strong{font-size:13px;line-height:1.4}
+.landing-payment-row small{font-size:11px;line-height:1.45}
+.landing-payment-row>b{font-size:13px;white-space:nowrap}
+.landing-search-box{padding:10px 12px}
+.landing-search-box input{font-size:13px}
+.landing-search-results>div{padding:13px}
+.landing-search-results i{font-size:9px;letter-spacing:.08em}
+.landing-search-results strong{font-size:13px;line-height:1.4}
+.landing-search-results small{font-size:12px;line-height:1.45}
+.landing-search-empty{font-size:13px;line-height:1.55}
+.landing-demo-saved strong{font-size:12px}
+.landing-demo-saved small{font-size:11px;line-height:1.4}
+.landing-demo-saved button{font-size:11px}
+.landing-quick-top span{font-size:10px;letter-spacing:.1em}
+.landing-quick-top h3{font-size:24px;line-height:1.18}
+.landing-quick-top>button{width:32px;height:32px}
+.landing-quick-card textarea{font-size:14px;line-height:1.5}
+.landing-quick-examples>span{font-size:12px}
+.landing-quick-examples button{font-size:12px;padding:8px 10px}
+.landing-quick-hint>span{font-size:12px;line-height:1.4}
+.landing-quick-hint small{font-size:11px;line-height:1.5}
+.landing-quick-proposal{gap:10px;padding:12px}
+.landing-quick-proposal small{font-size:10px;letter-spacing:.08em}
+.landing-quick-proposal strong{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.landing-nav-link,.landing-nav-theme,.landing-nav-cta{font-size:13px}
+.landing-lead{font-size:18px;line-height:1.65}
+.landing-note{font-size:12px;line-height:1.55}
+.landing-feature-list span{font-size:12px}
+.landing-primary,.landing-secondary{font-size:14px}
+.landing-steps-grid p,.landing-value-grid p{font-size:13px;line-height:1.65}
+.landing-value-grid strong{font-size:14px}
+.landing-bottom-cta p:last-child{font-size:14px}
+.landing-footer{font-size:11px}
+@media(max-width:700px){
+ body{font-size:15px}
+ .landing-window-content{padding:15px}
+ .landing-window-nav button{font-size:11px}
+ .landing-preview-heading h3,.landing-search-heading h3{font-size:23px}
+ .landing-preview-heading p,.landing-search-heading p{font-size:13px}
+ .landing-preview-columns{gap:9px}
+ .landing-preview-card{padding:12px}
+ .landing-preview-card>strong{font-size:12px}
+ .landing-preview-card>div>span{font-size:12px}
+ .landing-quick-top h3{font-size:22px}
+ .landing-feature-list span{font-size:11px}
+ .landing-lead{font-size:15px}
+ .landing-nav-theme{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){.landing-page *{scroll-behavior:auto!important}}

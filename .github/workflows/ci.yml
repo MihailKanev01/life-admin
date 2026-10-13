@@ -89,5 +89,8 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Validate free database migration script syntax
+        run: bash -n ../scripts/migrate-postgres-free.sh
+
       - name: Test API
         run: mvn -B -ntp test

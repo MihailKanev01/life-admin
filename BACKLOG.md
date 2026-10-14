@@ -40,15 +40,17 @@
 
 ## Phase 2 — Information Architecture + Wireframes
 
-- [ ] Define navigation
-- [ ] Define Home states
-- [ ] Define Things hierarchy
-- [ ] Define Payments hierarchy
-- [ ] Define Search behavior
-- [ ] Define Quick Add flow
-- [ ] Define reminder creation/edit/snooze flow
-- [ ] Define document flow
-- [ ] Create low-fidelity wireframes
+- [x] Define navigation
+- [x] Define Home states
+- [x] Define Things hierarchy
+- [x] Define Payments hierarchy
+- [x] Define Search behavior
+- [x] Define Quick Add flow
+- [x] Define reminder creation/edit/snooze flow
+- [x] Define document flow
+- [x] Create low-fidelity wireframes
+- [ ] Review wireframes with interview evidence
+- [ ] Revise IA after interviews
 
 ## Phase 3 — Prototype + Usability Testing
 

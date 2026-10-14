@@ -1,87 +1,121 @@
 # Life Admin
 
-A web-first personal life-admin system focused on reducing mental load.
+**A web-first personal administration workspace built to reduce mental load.**
 
 > Tell us what you have. We'll show you what matters.
 
-## Product direction
+Life Admin brings the small but important parts of everyday administration into one place: reminders, recurring payments, documents, owned items, warranties, maintenance and pending tasks. The product is designed around **what needs attention next**, not just storing an inventory of information.
 
-Life Admin is not intended to be another generic productivity app. The core problem we are solving is fragmented personal administration: reminders, documents, recurring payments, owned things, warranties, maintenance and pending items are scattered across tools and often require the user to remember when to act.
+## Product Principles
 
-The product should prioritize **attention over inventory**:
+- **Attention first:** make the next important action easy to identify.
+- **Low clutter:** keep everyday workflows focused and lightweight.
+- **User control:** AI may suggest actions, but the user remains in control.
+- **API first:** keep the backend suitable for a future mobile client.
+- **Private by default:** account data must be scoped and authorized server-side.
 
-- Home answers: "What needs my attention?"
-- Things answers: "What do I own/manage?"
-- Payments answers: "What do I pay and when?"
-- Search answers: "Where is the information?"
-- Quick Add answers: "How do I capture something in seconds?"
+## Core Areas
 
-## Account model
+| Area | Purpose |
+| --- | --- |
+| Home | Understand what needs attention |
+| Things | Track what you own or manage |
+| Payments | Keep recurring payments and due dates visible |
+| Documents | Keep important information organised |
+| Search | Find stored information quickly |
+| Quick Add | Capture a task or item with minimal friction |
 
-Every user has a personal account and their own server-backed workspace.
+## Technology
 
-Current persisted domain:
-- user identity;
-- onboarding completion state;
-- reminders.
+- **Web:** Next.js, React, TypeScript
+- **Backend:** Java, Spring Boot, Maven
+- **Database:** PostgreSQL
+- **Schema migrations:** Flyway
+- **Local infrastructure:** Docker Compose
+- **Authentication:** server-backed sessions with secure HttpOnly cookies
 
-The next persisted domain is Things, followed by contextual Payments and Documents.
+## Architecture
 
-## Local development
+The web client communicates with the API through the `/api/v1/*` path. The backend owns persistence and authorization; the browser should not connect directly to the database or make security decisions.
 
-Start the API database:
+```text
+Next.js Web Client
+        │
+        ▼
+/api/v1 proxy
+        │
+        ▼
+Spring Boot API
+        │
+        ▼
+PostgreSQL + Flyway
+```
+
+## Local Development
+
+### Requirements
+
+- Node.js and npm
+- Java 21
+- Maven
+- Docker with Docker Compose
+
+### 1. Start the local database
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-Run the backend:
+### 2. Start the backend
+
+In a separate terminal:
 
 ```bash
 cd backend
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-Run the web app:
+### 3. Start the web client
+
+In another terminal, from the repository root:
 
 ```bash
 npm install
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api/v1 npm run dev
 ```
 
-The web client proxies `/api/v1/*` to the configured backend origin.
+Open the local address printed by Next.js. The web client proxies `/api/v1/*` requests to the configured backend origin.
 
-## Production deployment
+On Windows PowerShell, set the environment variable for the current terminal before running the dev server:
 
-Set `NEXT_PUBLIC_API_BASE_URL` in the deployed web environment to the real backend origin ending in `/api/v1`.
+```powershell
+$env:NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:8080/api/v1"
+npm run dev
+```
 
-The frontend must never use the localhost fallback in production.
+## Production Configuration
 
-The backend must run with:
-- TLS;
-- PostgreSQL;
-- Flyway migrations;
-- secure HttpOnly session cookies;
-- server-side authorization;
-- production secrets from managed secret storage.
+Set `NEXT_PUBLIC_API_BASE_URL` to the deployed backend origin ending in `/api/v1`. The frontend must not use a localhost fallback in production.
 
-## Delivery strategy
+A production backend should use:
 
-1. Product discovery
-2. User interviews / validation
-3. Information architecture
-4. Wireframes
-5. Usability testing
-6. Visual design
-7. Technical architecture
-8. Web MVP
-9. Beta + iteration
-10. Mobile app on top of the same API
+- HTTPS/TLS
+- PostgreSQL and Flyway migrations
+- Secure, HttpOnly session cookies
+- Server-side authorization for every protected resource
+- Managed production secrets
+- A verified database backup and recovery approach
 
-## Repository rules
+Never commit real credentials, API secrets or production environment files.
 
-- No feature is added to MVP without a clear user problem.
-- No serious implementation before the user flow is validated.
-- AI proposes; the user confirms.
-- Home must remain attention-first and low-clutter.
-- Backend/API must remain mobile-app ready.
+## Current Scope
+
+Life Admin is under active development. The repository contains the web/API foundation and persisted user and reminder flows; additional domain areas are introduced as the related user workflows are validated.
+
+## Development Principles
+
+- Don't add an MVP feature without a clear user problem.
+- Validate user flows before committing to larger implementation work.
+- Keep Home attention-first and low-clutter.
+- Treat AI output as a proposal; the user confirms consequential actions.
+- Keep the API reusable by a future mobile application.
